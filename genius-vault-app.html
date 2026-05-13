@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Genius Vault AI</title>
+  <style>
+    body {
+      background: #0d0d0d;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      color: gold;
+      text-align: center;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: auto;
+      background: #1b1b1b;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: gold;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ffea70;
+    }
+
+    .danger {
+      background: #444;
+      color: white;
+    }
+
+    .output {
+      background: #111;
+      border: 1px solid #333;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      min-height: 160px;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: 12px;
+      border: 2px solid gold;
+      display: none;
+    }
+
+    .small {
+      color: #aaa;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>Genius Vault AI</h1>
+  <p class="small">Sports Card Listing Generator</p>
+
+  <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
+  <img id="cardImage">
+
+  <input id="player" placeholder="Player Name">
+  <input id="year" placeholder="Year">
+  <input id="brand" placeholder="Brand / Set">
+  <input id="parallel" placeholder="Parallel / Insert: Zebra, Silver, Downtown, Patch, Auto, etc.">
+  <input id="condition" placeholder="Condition: Raw, PSA 10, SGC 10, Near Mint, etc.">
+  <input id="numbered" placeholder="Numbered: /10, /25, /99, or leave blank">
+  <input id="price" placeholder="Price or asking price">
+
+  <select id="platform">
+    <option value="TikTok">TikTok Mode</option>
+    <option value="eBay">eBay Mode</option>
+    <option value="Shopify">Shopify Mode</option>
+    <option value="Whatnot">Whatnot Mode</option>
+    <option value="Instagram">Instagram Mode</option>
+  </select>
+
+  <button onclick="generateListing()">Generate Listing</button>
+  <button onclick="copyListing()">Copy Listing</button>
+  <button class="danger" onclick="clearForm()">Clear Everything</button>
+
+  <div class="output" id="output">Your listing will appear here...</div>
+
+</div>
+
+<script>
+function previewImage() {
+  const file = document.getElementById("imageUpload").files[0];
+  const img = document.getElementById("cardImage");
+
+  if (file) {
+    img.src = URL.createObjectURL(file);
+    img.style.display = "block";
+  }
+}
+
+function generateListing() {
+  const player = document.getElementById("player").value;
+  const year = document.getElementById("year").value;
+  const brand = document.getElementById("brand").value;
+  const parallel = document.getElementById("parallel").value;
+  const condition = document.getElementById("condition").value;
+  const numbered = document.getElementById("numbered").value;
+  const price = document.getElementById("price").value;
+  const platform = document.getElementById("platform").value;
+
+  const title = `${year} ${brand} ${player} ${parallel} ${condition} ${numbered}`;
+
+  let description = "";
+
+  if (platform === "TikTok") {
+    description =
+`🔥 ${player} Sports Card Spotlight 🔥
+
+${year} ${brand}
+${parallel}
+Condition: ${condition}
+${numbered ? "Numbered: " + numbered : ""}
+${price ? "Available for: $" + price : ""}
+
+This is a strong card for collectors, football fans, and hobby investors.
+
+Would you hold, sell, or grade this one?
+
+#SportsCards #FootballCards #CardCollector #TheHobby #GeniusVault`;
+  }
+
+  if (platform === "eBay") {
+    description =
+`${title}
+
+You are viewing the exact card shown.
+
+Player: ${player}
+Year: ${year}
+Brand/Set: ${brand}
+Parallel/Insert: ${parallel}
+Condition: ${condition}
+${numbered ? "Serial Numbered: " + numbered : ""}
+${price ? "Price: $" + price : ""}
+
+Card will be packaged carefully and shipped securely.
+
+Please review photos for condition before purchasing.`;
+  }
+
+  if (platform === "Shopify") {
+    description =
+`Add this ${player} card to your collection.
+
+This ${year} ${brand} card features:
+
+• Player: ${player}
+• Parallel/Insert: ${parallel}
+• Condition: ${condition}
+${numbered ? "• Numbered: " + numbered : ""}
+${price ? "• Price: $" + price : ""}
+
+All cards are handled carefully and shipped securely from Koollicks Vault.`;
+  }
+
+  if (platform === "Whatnot") {
+    description =
+`🔥 LIVE CARD FEATURE 🔥
+
+${player}
+${year} ${brand}
+${parallel}
+${condition}
+${numbered}
+
+Great pickup for collectors and football fans.
+
+Bid smart, collect smarter.`;
+  }
+
+  if (platform === "Instagram") {
+    description =
+`🔥 New card in the vault 🔥
+
+${player}
+${year} ${brand}
+${parallel}
+${condition}
+${numbered ? "Numbered: " + numbered : ""}
+
+Would you grade it, hold it, or sell it?
+
+#SportsCards #NFLCards #FootballCards #CardCollector #GeniusVault`;
+  }
+
+  const firstComment =
+`First comment:
+Would you grade, hold, or sell this card? 👀`;
+
+  document.getElementById("output").innerText =
+`TITLE:
+${title}
+
+PLATFORM:
+${platform}
+
+DESCRIPTION:
+${description}
+
+${firstComment}`;
+}
+
+function copyListing() {
+  const text = document.getElementById("output").innerText;
+  navigator.clipboard.writeText(text);
+  alert("Listing copied!");
+}
+
+function clearForm() {
+  document.getElementById("player").value = "";
+  document.getElementById("year").value = "";
+  document.getElementById("brand").value = "";
+  document.getElementById("parallel").value = "";
+  document.getElementById("condition").value = "";
+  document.getElementById("numbered").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("imageUpload").value = "";
+  document.getElementById("cardImage").style.display = "none";
+  document.getElementById("output").innerText = "Your listing will appear here...";
+}
+</script>
+
+</body>
+</html>
