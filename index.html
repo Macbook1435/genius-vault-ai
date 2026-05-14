@@ -141,8 +141,19 @@ document.getElementById("profitBox").innerText="Profit will appear here...";
 document.getElementById("preview").style.display="none";
 }
 
-function aiScan(){
-alert("AI Scan Coming Soon 🔥 — keeping the app stable first.");
+async function aiScan(){
+  const fileInput = document.getElementById("imageUpload");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Upload a card photo first.");
+    return;
+  }
+
+  alert("AI Scan starting 🔥");
+
+  document.getElementById("output").innerText =
+    "AI Scan is ready to connect. Next step: backend scan endpoint.";
 }
 </script>
 </body>
