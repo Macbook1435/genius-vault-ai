@@ -157,7 +157,7 @@ const formData = new FormData();
 formData.append("image", file);
 
 try {
-  const response = await fetch("/api/scan", {
+  const response = await fetch("/api/generate",{
     method: "POST",
     body: formData
   });
