@@ -241,7 +241,52 @@ Would you grade, hold, or sell this card? 👀`;
 
 }
 
-function copyListing(){
+async function aiScan() {
+
+const player = document.getElementById("player").value;
+const year = document.getElementById("year").value;
+const brand = document.getElementById("brand").value;
+const parallel = document.getElementById("parallel").value;
+const condition = document.getElementById("condition").value;
+const numbered = document.getElementById("numbered").value;
+const price = document.getElementById("price").value;
+const mode = document.getElementById("mode").value;
+
+document.getElementById("output").innerText =
+"Generating AI listing...";
+
+try {
+
+const response = await fetch("http://localhost:3000/generate", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+},
+body: JSON.stringify({
+player,
+year,
+brand,
+parallel,
+condition,
+numbered,
+price,
+mode
+}),
+});
+
+const data = await response.json();
+
+document.getElementById("output").innerText =
+data.result;
+
+} catch (error) {
+
+document.getElementById("output").innerText =
+"AI connection failed.";
+
+}
+
+}function copyListing(){
 
 navigator.clipboard.writeText(
 document.getElementById("output").innerText
@@ -251,31 +296,6 @@ alert("Copied!");
 
 }
 
-function aiScan(){
-
-document.getElementById("output").innerText =
-
-`AI Scan Coming Soon 🔥
-
-Next step:
-Connect OpenAI safely through a backend.
-
-Do NOT paste secret API keys into GitHub.`;
-
-}
-
-function clearForm(){
-
-document.querySelectorAll("input").forEach(
-i=>i.value=""
-);
-
-document.getElementById("cardImage").style.display="none";
-
-document.getElementById("output").innerText =
-"Your listing will appear here...";
-
-}
 
 </script>
 
