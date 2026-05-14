@@ -16,7 +16,8 @@ Suggested Search:
 Jahmyr Gibbs Zebra Select Rookie
 
 Pricing Engine:
-Connecting to live comps soon...
+eBay Sold Search:
+https://www.ebay.com/sch/i.html?_nkw=2023+Select+Jahmyr+Gibbs+Zebra+Prizm+RC&LH_Sold=1&LH_Complete=1
 `
     });
   } catch (error) {
