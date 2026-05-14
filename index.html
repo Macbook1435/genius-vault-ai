@@ -274,6 +274,22 @@ mode
 }),
 });
 
+const response = await fetch("/api/generate", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    player,
+    year,
+    brand,
+    parallel,
+    condition,
+    numbered,
+    price,
+    mode
+  }),
+});
 const data = await response.json();
 
 document.getElementById("output").innerText =
