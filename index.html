@@ -12,11 +12,11 @@ padding:20px;
 }
 
 .app{
-max-width:900px;
+max-width:700px;
 margin:auto;
 background:#1b1b1b;
 padding:20px;
-border-radius:16px;
+border-radius:15px;
 box-shadow:0 0 25px gold;
 }
 
@@ -25,19 +25,13 @@ text-align:center;
 color:gold;
 }
 
-p{
-text-align:center;
-color:#aaa;
-}
-
 input,select,button{
 width:100%;
-padding:13px;
+padding:12px;
 margin-top:10px;
-border-radius:8px;
+border-radius:10px;
 border:none;
 font-size:16px;
-box-sizing:border-box;
 }
 
 button{
@@ -47,27 +41,12 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.gray{
-background:#444;
-color:white;
-}
-
-.output{
-background:#111;
-border:1px solid #333;
-padding:15px;
+#output{
 margin-top:20px;
-border-radius:10px;
 white-space:pre-wrap;
-min-height:160px;
-}
-
-img{
-max-width:100%;
-margin-top:15px;
-border-radius:12px;
-border:2px solid gold;
-display:none;
+background:#111;
+padding:15px;
+border-radius:10px;
 }
 </style>
 </head>
@@ -78,11 +57,7 @@ display:none;
 
 <h1>Genius Vault AI</h1>
 
-<p>Sports Card Listing + Profit Tool</p>
-
-<input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
-
-<img id="cardImage">
+<p>Sports Card Listing + Pull Tool</p>
 
 <input id="player" placeholder="Player Name">
 
@@ -94,173 +69,61 @@ display:none;
 
 <input id="condition" placeholder="Condition">
 
-<input id="numbered" placeholder="Numbered: /10, /25, /99">
+<input id="numbered" placeholder="Numbered (ex. /25, /99)">
 
-<input id="cost" placeholder="What you paid">
+<input id="price" placeholder="What you paid">
 
-<input id="price" placeholder="Selling price">
-
-<input id="shipping" placeholder="Shipping cost">
-
-<input id="fees" placeholder="Platform fee percent example: 13">
-
-<select id="platform">
-<option>TikTok</option>
-<option>eBay</option>
-<option>Shopify</option>
-<option>Whatnot</option>
-<option>Instagram</option>
+<select id="mode">
+<option value="ebay">eBay Listing</option>
+<option value="tiktok">TikTok Post</option>
+<option value="instagram">Instagram Caption</option>
 </select>
 
 <button onclick="generateListing()">
-Generate Listing
+Generate AI Listing
 </button>
 
-<button onclick="copyListing()">
-Copy Listing
-</button>
-
-<button onclick="calculateProfit()">
-Calculate Profit
-</button>
-
-<button onclick="aiScan()">
-AI Scan Card
-</button>
-
-<button class="gray" onclick="clearForm()">
-Clear Everything
-</button>
-
-<div class="output" id="output">
-Your listing will appear here...
-</div>
+<div id="output"></div>
 
 </div>
 
 <script>
 
-function previewImage(){
-const file=document.getElementById("imageUpload").files[0];
-const img=document.getElementById("cardImage");
+async function generateListing(){
 
-if(file){
-img.src=URL.createObjectURL(file);
-img.style.display="block";
-}
-}
+const player =
+document.getElementById("player").value;
 
-function money(n){
-return "$"+Number(n||0).toFixed(2);
-}
+const year =
+document.getElementById("year").value;
 
-function calculateProfit(){
+const brand =
+document.getElementById("brand").value;
 
-const cost=parseFloat(document.getElementById("cost").value)||0;
+const parallel =
+document.getElementById("parallel").value;
 
-const price=parseFloat(document.getElementById("price").value)||0;
+const condition =
+document.getElementById("condition").value;
 
-const shipping=parseFloat(document.getElementById("shipping").value)||0;
+const numbered =
+document.getElementById("numbered").value;
 
-const fees=parseFloat(document.getElementById("fees").value)||0;
+const price =
+document.getElementById("price").value;
 
-const feeAmount=price*(fees/100);
-
-const profit=price-cost-shipping-feeAmount;
-
-document.getElementById("output").innerText =
-
-`PROFIT ESTIMATE:
-
-Selling Price: ${money(price)}
-
-Cost Paid: ${money(cost)}
-
-Shipping Cost: ${money(shipping)}
-
-Platform Fees: ${money(feeAmount)}
-
-Estimated Profit: ${money(profit)}`;
-
-}
-
-function generateListing(){
-
-const player=document.getElementById("player").value;
-
-const year=document.getElementById("year").value;
-
-const brand=document.getElementById("brand").value;
-
-const parallel=document.getElementById("parallel").value;
-
-const condition=document.getElementById("condition").value;
-
-const numbered=document.getElementById("numbered").value;
-
-const price=document.getElementById("price").value;
-
-const platform=document.getElementById("platform").value;
-
-const title =
-`${year} ${brand} ${player} ${parallel} ${condition} ${numbered}`;
-
-const description =
-
-`🔥 ${player} Sports Card Available 🔥
-
-${year} ${brand}
-
-${parallel}
-
-Condition: ${condition}
-
-${numbered ? "Numbered: " + numbered : ""}
-
-${price ? "Price: $" + price : ""}
-
-Great card for collectors, football fans, and hobby investors.
-
-Secure shipping. Handled carefully.
-
-#SportsCards #FootballCards #CardCollector #TheHobby #GeniusVault`;
-
-document.getElementById("output").innerText =
-
-`TITLE:
-${title}
-
-PLATFORM:
-${platform}
-
-DESCRIPTION:
-${description}
-
-FIRST COMMENT:
-Would you grade, hold, or sell this card? 👀`;
-
-}
-
-async function aiScan() {
-
-const player = document.getElementById("player").value;
-const year = document.getElementById("year").value;
-const brand = document.getElementById("brand").value;
-const parallel = document.getElementById("parallel").value;
-const condition = document.getElementById("condition").value;
-const numbered = document.getElementById("numbered").value;
-const price = document.getElementById("price").value;
-const mode = document.getElementById("mode").value;
+const mode =
+document.getElementById("mode").value;
 
 document.getElementById("output").innerText =
 "Generating AI listing...";
 
 try {
 
-const response = await fetch("http://localhost:3000/generate", {
-method: "POST",
-headers: {
-"Content-Type": "application/json",
+const response = await fetch("/api/generate", {
+method:"POST",
+headers:{
+"Content-Type":"application/json",
 },
 body: JSON.stringify({
 player,
@@ -274,22 +137,6 @@ mode
 }),
 });
 
-const response = await fetch("/api/generate", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    player,
-    year,
-    brand,
-    parallel,
-    condition,
-    numbered,
-    price,
-    mode
-  }),
-});
 const data = await response.json();
 
 document.getElementById("output").innerText =
@@ -302,16 +149,7 @@ document.getElementById("output").innerText =
 
 }
 
-}function copyListing(){
-
-navigator.clipboard.writeText(
-document.getElementById("output").innerText
-);
-
-alert("Copied!");
-
 }
-
 
 </script>
 
