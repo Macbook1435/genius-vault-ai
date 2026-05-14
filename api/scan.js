@@ -18,7 +18,10 @@ Jahmyr Gibbs Zebra Select Rookie
 Pricing Engine:
 REAL SOLD COMPS:
 https://130point.com/sales/
-`
+
+Search:
+2023 Select Jahmyr Gibbs Zebra Prizm RC
+
     });
   } catch (error) {
     res.status(500).json({
