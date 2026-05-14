@@ -144,26 +144,36 @@ function previewImage() {
 
 async function aiScan() {
   const file = document.getElementById("imageUpload").files[0];
-  const output = document.getElementById("output");
+const output = document.getElementById("output");
 
-  if (!file) {
-    alert("Upload a card photo first.");
-    return;
+if (!file) {
+  alert("Upload a card photo first");
+  return;
+}
+
+output.innerHTML = "Scanning card with OpenAI AI Vision...";
+
+const formData = new FormData();
+formData.append("image", file);
+
+try {
+  const response = await fetch("/api/scan", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json();
+
+  output.innerHTML = data.result;
+
+} catch (error) {
+  console.error(error);
+  output.innerHTML = "AI scan failed.";
+}
+  
   }
 
-  output.innerHTML = "AI Scan Working ✅<br><br>Demo scan loaded. Real AI connection comes next.";
-
-  document.getElementById("player").value = "Demo Player";
-  document.getElementById("year").value = "2024";
-  document.getElementById("brand").value = "Panini Prizm";
-  document.getElementById("parallel").value = "Rookie Parallel";
-  document.getElementById("condition").value = "Raw / Near Mint";
-  document.getElementById("numbered").value = "Not numbered";
-
-  generateProfit();
-  generateTikTok();
-  generateEbay();
-}
+ 
 
 function generateProfit() {
   const paid = Number(document.getElementById("paid").value || 0);
