@@ -9,7 +9,14 @@ Parallel: Zebra Prizm
 Condition: Raw / Near Mint
 Numbered: No
 
-Estimated Value: $250-$400
+eBay Search:
+2023 Select Jahmyr Gibbs Zebra Prizm RC
+
+Suggested Search:
+Jahmyr Gibbs Zebra Select Rookie
+
+Pricing Engine:
+Connecting to live comps soon...
 `
     });
   } catch (error) {
