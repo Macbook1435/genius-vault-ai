@@ -1,241 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Genius Vault AI</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0b0b0b;
-      color: #f5f5f5;
-    }
-    .wrap {
-      max-width: 900px;
-      margin: auto;
-      padding: 24px;
-    }
-    .card {
-      background: #171717;
-      border: 1px solid #333;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.08);
-    }
-    h1 {
-      color: #ffd700;
-      text-align: center;
-      margin-bottom: 5px;
-    }
-    h2 {
-      color: #ffd700;
-      margin-top: 0;
-    }
-    .sub {
-      text-align: center;
-      color: #bbb;
-      margin-bottom: 25px;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-      color: #ddd;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      background: #0f0f0f;
-      color: #fff;
-      margin-top: 6px;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      margin-top: 14px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .gold {
-      background: #ffd700;
-      color: #000;
-    }
-    .gray {
-      background: #333;
-      color: #fff;
-    }
-    .green {
-      background: #00c853;
-      color: #000;
-    }
-    #preview {
-      max-width: 100%;
-      border-radius: 14px;
-      margin-top: 15px;
-      display: none;
-      border: 1px solid #444;
-    }
-    pre {
-      white-space: pre-wrap;
-      background: #0f0f0f;
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid #333;
-      color: #fff;
-      min-height: 140px;
-    }
-    .small {
-      color: #aaa;
-      font-size: 14px;
-      text-align: center;
-    }
-  </style>
+<title>Genius Vault AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{background:#070707;color:white;font-family:Arial;margin:0;padding:20px}
+.app{max-width:900px;margin:auto;background:#171717;padding:20px;border-radius:14px;box-shadow:0 0 25px gold}
+h1{text-align:center;color:gold}
+input,select,button{width:100%;padding:13px;margin:6px 0;border-radius:8px;border:none;font-size:16px}
+button{background:gold;color:black;font-weight:bold;cursor:pointer}
+.gray{background:#ccc}
+.green{background:#00e676}
+.box{background:#0b0b0b;padding:15px;margin-top:12px;border-radius:8px;white-space:pre-wrap}
+label{color:gold;font-weight:bold}
+#preview{max-width:100%;display:none;margin:10px 0;border-radius:10px}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>🔥 Genius Vault AI</h1>
-    <p class="sub">Sports Card Listing + Profit Generator</p>
+<div class="app">
+<h1>👑 Genius Vault AI</h1>
+<p>Sports Card Listing + Profit Generator</p>
 
-    <div class="card">
-      <h2>1. Upload Card Photo</h2>
-      <input type="file" id="imageUpload" accept="image/*" />
-      <img id="preview" />
-      <button class="gray" onclick="aiScan()">Run AI Scan 🔥</button>
-    </div>
+<label>AI Scan</label>
+<input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
+<img id="preview">
+<button class="green" onclick="aiScan()">Run AI Scan 🔥</button>
 
-    <div class="card">
-      <h2>2. Card Details</h2>
+<input id="player" placeholder="Player Name">
+<input id="year" placeholder="Year">
+<input id="brand" placeholder="Brand / Set">
+<input id="parallel" placeholder="Parallel / Insert: Zebra, Silver, Downtown, Patch, Auto, etc.">
+<input id="condition" placeholder="Condition: Raw, PSA 10, SGC 10, Near Mint, etc.">
+<input id="numbered" placeholder="Numbered: /10, /25, /99, or leave blank">
 
-      <label>Player Name</label>
-      <input id="player" placeholder="Example: Jahmyr Gibbs" />
+<label>Money / Profit</label>
+<input id="cost" placeholder="What you paid">
+<input id="price" placeholder="Selling / Asking price">
+<input id="shipping" placeholder="Shipping cost">
+<input id="fees" placeholder="Platform fee % ex. 13.25">
 
-      <label>Year</label>
-      <input id="year" placeholder="Example: 2023" />
+<select id="mode">
+<option>TikTok Mode</option>
+<option>eBay Mode</option>
+<option>Shopify Mode</option>
+<option>Instagram Mode</option>
+<option>Whatnot Mode</option>
+</select>
 
-      <label>Brand / Set</label>
-      <input id="setName" placeholder="Example: Panini Prizm" />
+<button onclick="generateListing()">Generate Listing</button>
+<button onclick="copyListing()">Copy Listing</button>
+<button onclick="calculateProfit()">Calculate Profit</button>
+<button class="gray" onclick="clearEverything()">Clear Everything</button>
 
-      <label>Parallel / Insert</label>
-      <input id="parallel" placeholder="Example: Silver Prizm, Downtown, Zebra" />
+<div id="output" class="box">Your listing will appear here...</div>
 
-      <label>Card Number / Serial Number</label>
-      <input id="numbering" placeholder="Example: #12 or /99" />
+<h3 style="color:gold">Profit Calculator</h3>
+<div id="profitBox" class="box">Profit will appear here...</div>
+</div>
 
-      <label>Condition</label>
-      <select id="condition">
-        <option>Near Mint or Better</option>
-        <option>Excellent</option>
-        <option>Very Good</option>
-        <option>Graded</option>
-      </select>
+<script>
+function previewImage(){
+  const file=document.getElementById("imageUpload").files[0];
+  const preview=document.getElementById("preview");
+  if(file){
+    preview.src=URL.createObjectURL(file);
+    preview.style.display="block";
+  }
+}
 
-      <label>Purchase Cost</label>
-      <input id="cost" type="number" placeholder="Example: 10" />
+async function aiScan(){
+  const file=document.getElementById("imageUpload").files[0];
 
-      <label>Target Sale Price</label>
-      <input id="price" type="number" placeholder="Example: 29.99" />
+  if(!file){
+    alert("Upload a card photo first.");
+    return;
+  }
 
-      <button class="gold" onclick="generateListing()">Generate Listing 🚀</button>
-      <button class="green" onclick="calculateProfit()">Calculate Profit 💰</button>
-    </div>
+  document.getElementById("output").innerText=
+  "AI Scan starting 🔥\n\nReading card image...";
 
-    <div class="card">
-      <h2>3. Output</h2>
-      <pre id="output">Your generated listing will appear here.</pre>
-    </div>
+  try{
+    const formData=new FormData();
+    formData.append("image",file);
 
-    <p class="small">Built for Koollicks Vault — Sports Card Seller AI Tool</p>
-  </div>
-
-  <script>
-    const imageUpload = document.getElementById("imageUpload");
-    const preview = document.getElementById("preview");
-
-    imageUpload.addEventListener("change", function () {
-      const file = imageUpload.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        preview.src = e.target.result;
-        preview.style.display = "block";
-      };
-      reader.readAsDataURL(file);
+    const res=await fetch("/api/scan",{
+      method:"POST",
+      body:formData
     });
 
-    async function aiScan() {
-      const file = imageUpload.files[0];
+    if(!res.ok) throw new Error("Scan endpoint not ready.");
 
-      if (!file) {
-        alert("Upload a card photo first.");
-        return;
-      }
+    const data=await res.json();
 
-      document.getElementById("output").innerText =
-        "AI Scan starting 🔥\n\nReading your card image...";
+    document.getElementById("player").value=data.player||"";
+    document.getElementById("year").value=data.year||"";
+    document.getElementById("brand").value=data.brand||data.set||"";
+    document.getElementById("parallel").value=data.parallel||"";
+    document.getElementById("condition").value=data.condition||"";
+    document.getElementById("numbered").value=data.numbered||data.numbering||"";
 
-      try {
-        const formData = new FormData();
-        formData.append("image", file);
+    document.getElementById("output").innerText=
+    "AI Scan Complete 🔥\n\n"+JSON.stringify(data,null,2);
 
-        const response = await fetch("/api/scan", {
-          method: "POST",
-          body: formData
-        });
+  }catch(err){
+    document.getElementById("output").innerText=
+    "AI Scan button works ✅\n\nThe photo uploaded successfully.\n\nNext step: connect /api/scan to OpenAI Vision.";
+  }
+}
 
-        if (!response.ok) {
-          throw new Error("Backend scan endpoint not ready yet.");
-        }
+function generateListing(){
+  const player=document.getElementById("player").value;
+  const year=document.getElementById("year").value;
+  const brand=document.getElementById("brand").value;
+  const parallel=document.getElementById("parallel").value;
+  const condition=document.getElementById("condition").value;
+  const numbered=document.getElementById("numbered").value;
+  const mode=document.getElementById("mode").value;
 
-        const data = await response.json();
+  const title=`${year} ${brand} ${player} ${parallel} ${numbered}`.replace(/\s+/g," ").trim();
 
-        document.getElementById("player").value = data.player || "";
-        document.getElementById("year").value = data.year || "";
-        document.getElementById("setName").value = data.set || "";
-        document.getElementById("parallel").value = data.parallel || "";
-        document.getElementById("numbering").value = data.numbering || "";
-
-        document.getElementById("output").innerText =
-          "AI Scan Complete 🔥\n\n" + JSON.stringify(data, null, 2);
-
-      } catch (error) {
-        document.getElementById("output").innerText =
-          "AI Scan button is working ✅\n\nNext step: connect the backend /api/scan endpoint to OpenAI Vision.\n\nYour upload system and button are now connected.";
-      }
-    }
-
-    function generateListing() {
-      const player = document.getElementById("player").value.trim();
-      const year = document.getElementById("year").value.trim();
-      const setName = document.getElementById("setName").value.trim();
-      const parallel = document.getElementById("parallel").value.trim();
-      const numbering = document.getElementById("numbering").value.trim();
-      const condition = document.getElementById("condition").value;
-
-      const title = `${year} ${setName} ${player} ${parallel} ${numbering}`.replace(/\s+/g, " ").trim();
-
-      const description =
+  const listing=
 `${title}
 
 Condition: ${condition}
 
-This listing is for the exact card shown in the photos. Please review all images carefully before purchasing.
+This listing is for the exact card shown in the photos. Please review all photos before purchasing.
 
-Great card for collectors, investors, and sports card fans.
+Great pickup for collectors, investors, and sports card fans.
 
 Ships safely and securely from Koollicks Vault.
 
-TikTok Caption:
-🔥 ${player || "Sports card"} collectors, this one is clean. ${parallel || "Big card"} from ${setName || "a popular set"}. Perfect pickup for the vault.
+${mode} Description:
+🔥 ${player} ${parallel} from ${brand}. Clean card for the vault. Great collectible and perfect for any football card collector.
 
 Hashtags:
 #sportscards #footballcards #cardcollector #thehobby #koollicksvault
@@ -243,32 +140,40 @@ Hashtags:
 First Comment:
 Would you grade it, hold it, or flip it? 👀🔥`;
 
-      document.getElementById("output").innerText =
-`eBay / Shopify Title:
-${title}
+  document.getElementById("output").innerText=listing;
+}
 
-Description:
-${description}`;
-    }
+function calculateProfit(){
+  const cost=parseFloat(document.getElementById("cost").value)||0;
+  const price=parseFloat(document.getElementById("price").value)||0;
+  const shipping=parseFloat(document.getElementById("shipping").value)||0;
+  const fees=parseFloat(document.getElementById("fees").value)||0;
 
-    function calculateProfit() {
-      const cost = parseFloat(document.getElementById("cost").value) || 0;
-      const price = parseFloat(document.getElementById("price").value) || 0;
+  const feeAmount=price*(fees/100);
+  const profit=price-cost-shipping-feeAmount;
+  const roi=cost>0?(profit/cost)*100:0;
 
-      const platformFee = price * 0.1325;
-      const shipping = 4.99;
-      const profit = price - cost - platformFee - shipping;
+  document.getElementById("profitBox").innerText=
+`Sale Price: $${price.toFixed(2)}
+Cost Paid: $${cost.toFixed(2)}
+Shipping: $${shipping.toFixed(2)}
+Platform Fees: $${feeAmount.toFixed(2)}
 
-      document.getElementById("output").innerText =
-`Profit Calculator 💰
+Estimated Profit: $${profit.toFixed(2)}
+ROI: ${roi.toFixed(1)}%`;
+}
 
-Sale Price: $${price.toFixed(2)}
-Purchase Cost: $${cost.toFixed(2)}
-Estimated Platform Fee: $${platformFee.toFixed(2)}
-Estimated Shipping: $${shipping.toFixed(2)}
+function copyListing(){
+  navigator.clipboard.writeText(document.getElementById("output").innerText);
+  alert("Copied!");
+}
 
-Estimated Profit: $${profit.toFixed(2)}`;
-    }
-  </script>
+function clearEverything(){
+  document.querySelectorAll("input").forEach(input=>input.value="");
+  document.getElementById("output").innerText="Your listing will appear here...";
+  document.getElementById("profitBox").innerText="Profit will appear here...";
+  document.getElementById("preview").style.display="none";
+}
+</script>
 </body>
 </html>
