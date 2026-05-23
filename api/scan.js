@@ -13,12 +13,27 @@ export default async function handler(req, res) {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     const buffer = Buffer.concat(chunks);
+const contentType = req.headers["content-type"] || "";
+let imageBase64 = "";
 
-   const body = JSON.parse(buffer.toString() || "{}")
-const imageBase64 = body.imageBase64 || ""
+if (contentType.includes("multipart/form-data")) {
+  const boundary = "--" + contentType.split("boundary=")[1];
+  const parts = buffer.toString("latin1").split(boundary);
+  const filePart = parts.find(p => p.includes("filename="));
+
+  if (filePart) {
+    const start = filePart.indexOf("\r\n\r\n");
+    const raw = filePart
+      .slice(start + 4)
+      .replace(/\r\n--$/, "")
+      .replace(/\r\n$/, "");
+
+    imageBase64 = Buffer.from(raw, "latin1").toString("base64");
+  }
+}
 
 if (!imageBase64) {
-  return res.status(400).json({ results: "No card image received." })
+  return res.status(400).json({ results: "No card image received." });
 }
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
