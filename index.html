@@ -163,14 +163,7 @@ try {
   });
 
   const data = await response.json();
-
-  output.innerHTML = data.result;
-document.getElementById("player").value = "Jahmyr Gibbs";
-document.getElementById("year").value = "2023";
-document.getElementById("brand").value = "Select";
-document.getElementById("parallel").value = "Zebra Prizm";
-document.getElementById("condition").value = "Raw / Near Mint";
-document.getElementById("numbered").value = "No";
+output.innerHTML = data.results || "No scan result returned.";  
 } catch (error) {
   console.error(error);
   output.innerHTML = "AI scan failed.";
