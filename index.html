@@ -131,10 +131,13 @@
 
     <div class="box">
       <h2>1. Upload Card Image</h2>
-      <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
-      <img id="preview">
-      <div class="scanner-frame">
-  <span></span><span></span><span></span><span></span>
+      <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()"
+      
+      <div class="preview-container">
+  <img id="preview">
+  <div class="scanner-frame">
+    <span></span><span></span><span></span><span></span>
+  </div>
 </div>
       <button onclick="aiScan()">RUN AI SCAN</button>
     </div>
