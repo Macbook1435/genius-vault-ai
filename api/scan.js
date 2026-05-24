@@ -37,7 +37,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: "No card image received." });
     }
 
-    const prompt = `Identify this sports card. Return this exact format:
+    const prompt = `Identify this sports card.
+    If the card appears to be unlicensed, custom, Wild Card, Leaf, Sage, Onyx, college-only, NIL, or does not clearly show a licensed brand logo, DO NOT guess Panini, Prizm, Mosaic, Absolute, or other major sets. Instead mark Brand/Set as "Unknown or Unlicensed" and set Confidence to low.
+    Return this exact format:
 
 Possible Matches:
 1. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [high/medium/low]
