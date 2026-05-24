@@ -237,7 +237,7 @@ try {
 output.innerHTML = data.results || "No scan result returned.";  
 } catch (error) {
   console.error(error);
-  output.innerHTML = "AI scan failed.";
+  output.innerHTML = error.message || "AI scan failed.";
 }
   
   }
