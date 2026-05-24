@@ -268,6 +268,30 @@ function getLine(label, scanText) {
 
 function generateTikTok() {
   const scan = getScanText();
+
+  const player = getLine("Player", scan);
+  const year = getLine("Year", scan);
+  const brand = getLine("Brand / Set", scan);
+  const parallel = getLine("Parallel / Insert", scan);
+  const numbered = getLine("Numbered", scan);
+  const value = getLine("Estimated Value Range", scan);
+  const hashtags = getLine("Hashtags", scan);
+
+  document.getElementById("tiktokBox").innerHTML =
+`🔥 Fresh scan from Genius Vault AI 🔥
+
+This is a ${year} ${brand} ${player} ${parallel} ${numbered} sports card, and this one has serious collector appeal. Cards like this are exactly why the hobby is fun — rookie heat, parallel shine, limited numbering, and a player collectors are watching closely.
+
+Estimated value range: ${value}
+
+Would you grade this, sell it now, or hold it in the vault and wait for the market to move? Drop your opinion below because I want to know what the card community thinks.
+
+First comment:
+Would you list this card or keep it in the vault?
+
+${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
+}
+  const scan = getScanText();
  const caption = getLine("TikTok Caption", scan) || getLine("TikTok Caption: Write", scan);
 
   const hashtags = getLine("Hashtags", scan);
