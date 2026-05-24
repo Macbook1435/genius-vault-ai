@@ -47,7 +47,7 @@ if (!imageBase64) {
         messages: [
           {
             role: "system",
-            content: "You are a sports card identification and pricing assistant for Koollicks Vault. Identify only what is visible. Do not guess Jahmyr Gibbs unless the card actually says Jahmyr Gibbs."
+            content: "You are a sports card identification and pricing assistant for Koollicks Vault. Identify only what is visible. 
           },
           {
             role: "user",
