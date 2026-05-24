@@ -152,37 +152,28 @@
     <h1>Genius Vault AI</h1>
     <p>AI Sports Card Scanner + Profit Generator</p>
 
-    <div class="box">
-      <h2>1. Upload Card Image</h2>
-      <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()"
-      
-      <div class="preview-container">
-  <img id="preview">
-  <div class="scanner-frame">
-    <span></span><span></span><span></span><span></span>
+  <div class="box">
+  <h2>1. Upload Card Image</h2>
+
+  <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
+
+  <div class="preview-container">
+
+    <div class="scanner-frame">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      </div
+        
+    <img id="preview">
+    
+</div
+    
   </div>
+
+  <button onclick="aiScan()">RUN AI SCAN</button>
 </div>
-      <button onclick="aiScan()">RUN AI SCAN</button>
-    </div>
-
-    <div class="box">
-      <h2>2. Card Info</h2>
-      <input id="player" placeholder="Player Name">
-      <input id="year" placeholder="Year">
-      <input id="brand" placeholder="Brand / Set">
-      <input id="parallel" placeholder="Parallel / Insert / Rookie / Patch">
-      <input id="condition" placeholder="Condition">
-      <input id="numbered" placeholder="Numbered Example: /199">
-      <input id="paid" type="number" placeholder="What You Paid">
-      <input id="sell" type="number" placeholder="Estimated Sell Price">
-    </div>
-
-    <div class="box">
-      <h2>3. Profit Generator</h2>
-      <button onclick="generateProfit()">GENERATE PROFIT</button>
-      <div id="profitBox" class="result">Profit will appear here...</div>
-    </div>
-
     <div class="box">
       <h2>4. TikTok Generator</h2>
       <button onclick="generateTikTok()">GENERATE TIKTOK POST</button>
