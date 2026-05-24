@@ -295,19 +295,7 @@ Would you list this card or keep it in the vault?
 
 ${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
 }
-  const scan = getScanText();
- const caption = getLine("TikTok Caption", scan) || getLine("TikTok Caption: Write", scan);
-
-  const hashtags = getLine("Hashtags", scan);
-
-  document.getElementById("tiktokBox").innerHTML =
-`${caption || "Fresh scan from Genius Vault AI. Would you grade this, sell it, or keep it in the vault?"}
-
-First comment:
-Would you list this card or keep it in the vault?
-
-${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
-}
+  
 
 function generateEbay() {
   const scan = getScanText();
