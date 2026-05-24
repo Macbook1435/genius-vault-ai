@@ -214,7 +214,8 @@ function previewImage() {
 }
 
 async function aiScan() {
-  const file = document.getElementById("imageUpload").files[0];
+ const fileInput = document.getElementById("imageUpload");
+const file = fileInput.files[0];
 const output = document.getElementById("output");
 
 if (!file) {
