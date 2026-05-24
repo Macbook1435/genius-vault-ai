@@ -56,6 +56,12 @@ if (!imageBase64) {
                 type: "text",
                 text: `Identify this sports card. Return this exact format:
 
+Possible Matches:
+1. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [high/medium/low]
+2. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [high/medium/low]
+3. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [high/medium/low]
+
+Best Guess:
 Player:
 Year:
 Brand / Set:
@@ -69,7 +75,7 @@ Suggested 130point Search:
 Estimated Value Range:
 Listing Title:
 TikTok Caption:
-Hashtags:`
+Hashtags:
               },
               {
                 type: "image_url",
