@@ -262,7 +262,11 @@ function getScanText() {
 }
 
 function getLine(label, scanText) {
-  const line = scanText.split("\n").find(l => l.toLowerCase().startsWith(label.toLowerCase()));
+  const line = scanText
+    .split("\n")
+    .map(l => l.trim())
+    .find(l => l.toLowerCase().startsWith(label.toLowerCase()));
+
   return line ? line.split(":").slice(1).join(":").trim() : "";
 }
 
