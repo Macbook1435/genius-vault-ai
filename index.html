@@ -268,7 +268,8 @@ function getLine(label, scanText) {
 
 function generateTikTok() {
   const scan = getScanText();
-  const caption = getLine("TikTok Caption", scan);
+ const caption = getLine("TikTok Caption", scan) || getLine("TikTok Caption: Write", scan);
+
   const hashtags = getLine("Hashtags", scan);
 
   document.getElementById("tiktokBox").innerHTML =
