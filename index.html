@@ -130,8 +130,9 @@
 .preview-container #preview {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: none;
+  object-fit: contain;
+  object-position: center
+  display: block
   border-radius: 12px;
 }
 
@@ -140,6 +141,7 @@
   top: 0;
   left: 0;
   margin: 0;
+  z-index:2;
 }  
   </style>
 </head>
