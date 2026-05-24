@@ -89,7 +89,10 @@ Hashtags:`
         max_tokens: 700
       })
     });
-
+if (!aiResponse.ok) {
+  const errorText = await aiResponse.text();
+  return res.status(500).json({ results: errorText });
+}
     const data = await aiResponse.json();
     const text = data.choices[0].message.content || "AI could not read this card.";
 
