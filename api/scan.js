@@ -91,7 +91,7 @@ Hashtags:
     });
 
     const data = await aiResponse.json();
-    const text = data.choices?.[0]?.message?.content || "AI could not read this card.";
+    const text = data.choices[0].message.content || "AI could not read this card.";
 
     return res.status(200).json({ results: text });
 
