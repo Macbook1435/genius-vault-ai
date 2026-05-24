@@ -257,36 +257,44 @@ Estimated Fees: $${fees.toFixed(2)}
 Estimated Profit: $${profit.toFixed(2)}`;
 }
 
+function getScanText() {
+  return document.getElementById("output").innerText || "";
+}
+
+function getLine(label, scanText) {
+  const line = scanText.split("\n").find(l => l.toLowerCase().startsWith(label.toLowerCase()));
+  return line ? line.split(":").slice(1).join(":").trim() : "";
+}
+
 function generateTikTok() {
-  const player = document.getElementById("player").value;
-  const year = document.getElementById("year").value;
-  const brand = document.getElementById("brand").value;
-  const parallel = document.getElementById("parallel").value;
-  const numbered = document.getElementById("numbered").value;
+  const scan = getScanText();
+  const caption = getLine("TikTok Caption", scan);
+  const hashtags = getLine("Hashtags", scan);
 
   document.getElementById("tiktokBox").innerHTML =
-`${year} ${brand} ${player} ${parallel} ${numbered}
-
-🔥 Fresh scan from Genius Vault AI.
-Sports card collectors, would you grade this, sell it, or hold it?
+`${caption || "Fresh scan from Genius Vault AI. Would you grade this, sell it, or keep it in the vault?"}
 
 First comment:
 Would you list this card or keep it in the vault?
 
-#sportscards #footballcards #thehobby #rookiecards #cardcollector`;
+${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
 }
 
 function generateEbay() {
-  const player = document.getElementById("player").value;
-  const year = document.getElementById("year").value;
-  const brand = document.getElementById("brand").value;
-  const parallel = document.getElementById("parallel").value;
-  const condition = document.getElementById("condition").value;
-  const numbered = document.getElementById("numbered").value;
+  const scan = getScanText();
 
-  document.getElementById("ebayBox").innerHTML =
-`Title:
-${year} ${brand} ${player} ${parallel} ${numbered} Sports Card
+  const title = getLine("Listing Title", scan);
+  const player = getLine("Player", scan);
+  const year = getLine("Year", scan);
+  const brand = getLine("Brand / Set", scan);
+  const parallel = getLine("Parallel / Insert", scan);
+  const condition = getLine("Condition Estimate", scan);
+  const numbered = getLine("Numbered", scan);
+  const value = getLine("Estimated Value Range", scan);
+
+  document.getElementById("ebayBox").innerHTML = `Title:
+
+${title || `${year} ${brand} ${player} ${parallel} ${numbered} Sports Card`}
 
 Description:
 You are viewing the actual card shown in the photos.
@@ -295,8 +303,9 @@ Player: ${player}
 Year: ${year}
 Brand/Set: ${brand}
 Parallel/Insert: ${parallel}
-Condition: ${condition}
 Numbered: ${numbered}
+Condition: ${condition}
+Estimated Value Range: ${value}
 
 Great card for collectors, investors, and fans.
 
