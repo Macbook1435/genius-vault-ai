@@ -96,6 +96,6 @@ Hashtags:
     return res.status(200).json({ results: text });
 
   } catch (error) {
-return res.status(500).json({ results: "AI scan failed: " + (error.message || JSON.stringify(error)) })
+return res.status(200).json({ results: "AI scan failed: " + (error.message || JSON.stringify(error)) })
   }
 }
