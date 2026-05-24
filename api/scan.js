@@ -75,7 +75,7 @@ Suggested 130point Search:
 Estimated Value Range:
 Listing Title:
 TikTok Caption:
-Hashtags:
+Hashtags:`
               },
               {
                 type: "image_url",
