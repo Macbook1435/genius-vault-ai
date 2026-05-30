@@ -163,7 +163,8 @@
   <h2>1. Upload Card Image</h2>
 
   <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
-
+<label style="display:block;margin-top:10px;">Upload Back of Card</label>
+<input type="file" id="backImageUpload" accept="image/*">
   <div class="preview-container">
     
      <img id="preview">
@@ -215,7 +216,9 @@ function previewImage() {
 
 async function aiScan() {
  const fileInput = document.getElementById("imageUpload");
+ const backFileInput = document.getElementById("backImageUpload"); 
 const file = fileInput.files[0];
+  const backFile = backFileInput.files[0];
 const output = document.getElementById("output");
 
 if (!file) {
@@ -227,7 +230,9 @@ output.innerHTML = "Scanning card with OpenAI AI Vision...";
 
 const formData = new FormData();
 formData.append("image", file);
-
+if (backFile) {
+  formData.append("backImage", backFile);
+}
 try {
   const response = await fetch("/api/scan", {
     method: "POST",
