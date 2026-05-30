@@ -20,8 +20,9 @@ export default async function handler(req, res) {
     if (contentType.includes("multipart/form-data")) {
       const boundary = "--" + contentType.split("boundary=")[1];
       const parts = buffer.toString("latin1").split(boundary);
-      const filePart = parts.find(p => p.includes("filename="));
-
+      const const fileParts = parts.filter(p => p.includes("filename="));
+const filePart = fileParts[0];
+const backFilePart = fileParts[1];
       if (filePart) {
         const start = filePart.indexOf("\r\n\r\n");
         const raw = filePart
@@ -31,6 +32,17 @@ export default async function handler(req, res) {
 
         imageBase64 = Buffer.from(raw, "latin1").toString("base64");
       }
+      let backImageBase64 = "";
+
+if (backFilePart) {
+  const backStart = backFilePart.indexOf("\r\n\r\n");
+  const backRaw = backFilePart
+    .slice(backStart + 4)
+    .replace(/\r\n--$/, "")
+    .replace(/\r\n$/, "");
+
+  backImageBase64 = Buffer.from(backRaw, "latin1").toString("base64");
+}
     }
 
     if (!imageBase64) {
@@ -86,6 +98,13 @@ Hashtags:`;
                   url: `data:image/jpeg;base64,${imageBase64}`
                 }
               }
+              ,
+{
+  type: "image_url",
+  image_url: {
+    url: `data:image/jpeg;base64,${backImageBase64}`
+  }
+}
             ]
           }
         ],
