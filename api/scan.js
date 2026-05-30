@@ -90,26 +90,26 @@ Hashtags:`;
           },
           {
             role: "user",
-            content: [
-              { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-              ,
-{
-  type: "image_url",
-  image_url: {
-    url: `data:image/jpeg;base64,${backImageBase64}`
+content: [
+  { type: "text", text: prompt },
+  {
+    type: "image_url",
+    image_url: {
+      url: `data:image/jpeg;base64,${imageBase64}`
+    }
+  },
+  {
+    type: "image_url",
+    image_url: {
+      url: `data:image/jpeg;base64,${backImageBase64}`
+    }
   }
-}
-            ]
-          }
-        ],
-        max_tokens: 700
-      })
+
+],
+},
+max_tokens: 700
+})
+
     });
 
     const data = await aiResponse.json();
