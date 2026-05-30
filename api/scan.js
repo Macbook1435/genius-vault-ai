@@ -38,6 +38,7 @@ export default async function handler(req, res) {
     }
 
     const prompt = `Identify this sports card.
+    If the back of the card clearly shows a year, copyright date, card number, or set name, trust the back of the card over visual guessing from the front. Never invent earlier years if the back explicitly shows the correct year.
     If the card appears to be unlicensed, custom, Wild Card, Leaf, Sage, Onyx, college-only, NIL, or does not clearly show a licensed brand logo, DO NOT guess Panini, Prizm, Mosaic, Absolute, or other major sets. Instead mark Brand/Set as "Unknown or Unlicensed" and set Confidence to low.
     Return this exact format:
 
