@@ -25,7 +25,7 @@ app.post("/generate", async (req, res) => {
     } = req.body;
 
     const prompt = `
-Create a ${mode} sports card listing.
+Create a professional sports card listing using recent sold market comps.
 
 Player: ${player}
 Year: ${year}
