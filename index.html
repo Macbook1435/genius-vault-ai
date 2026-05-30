@@ -235,7 +235,14 @@ try {
   });
 
   const data = await response.json();
-output.innerHTML = data.results || "No scan result returned.";  
+  const compsResponse = await fetch("/api/comps")
+const compsData = await compsResponse.json()
+output.innerHTML =
+  (data.results || "No scan result returned.") +
+  "<br><br><b>REAL SOLD COMPS:</b><br>" +
+  compsData.comps.map(comp =>
+    `${comp.title} - ${comp.soldPrice} (${comp.dateSold})`
+  ).join("<br>")
 } catch (error) {
   console.error(error);
   output.innerHTML = error.message || "AI scan failed.";
