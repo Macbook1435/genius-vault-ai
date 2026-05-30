@@ -74,7 +74,29 @@ app.post("/api/scan", upload.single("image"), async (req, res) => {
           content: [
             {
               type: "text",
-              text: "Analyze this sports card image. Return JSON with player, year, brand, parallel, condition, and numbered."
+              text: `Analyze this sports card image carefully.
+
+Identify:
+- Player name
+- Year
+- Brand/set
+- Card number
+- Parallel or insert
+- Rookie status
+- Auto or patch
+- Serial numbering
+- Estimated condition
+
+Return ONLY valid JSON.
+
+Also generate:
+- best_match
+- possible_matches
+- ebay_search
+- one30point_search
+
+Do NOT guess players if uncertain.
+Use exact visible text from the card whenever possible.`,
             },
             {
               type: "image_url",
