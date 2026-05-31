@@ -102,15 +102,15 @@ Hashtags:`;
   {
     type: "image_url",
     image_url: {
-      url: `data:image/jpeg;base64,${imageBase64.trim()}`
+      url: `data:image/jpeg;base64,${imageBase64.replace(/\s/g, "")}`
     }
   },
-  ...(backImageBase64 ? [{
-    type: "image_url",
-    image_url: {
-      url: `data:image/jpeg;base64,${backImageBase64.trim()}`
-    }
-  }] : [])
+  ...(backImageBase64 && backImageBase64.length > 100 ? [{
+  type: "image_url",
+  image_url: {
+    url: `data:image/jpeg;base64,${backImageBase64.replace(/\s/g, "")}`
+  }
+}] : [])
 ]
   }
 ],
