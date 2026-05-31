@@ -102,10 +102,14 @@ Hashtags:`;
           },
 
           
-        ]
-      }
-    ],
-    max_tokens: 700
+...(backImageBase64 ? [{
+  type: "image_url",
+  image_url: {
+    url: `data:image/jpeg;base64,${backImageBase64.trim()}`
+  }
+}] : []),
+],
+max_tokens: 700
   })
 });
 
