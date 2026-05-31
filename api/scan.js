@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     if (contentType.includes("multipart/form-data")) {
       const boundary = "--" + contentType.split("boundary=")[1];
       const parts = buffer.toString("latin1").split(boundary);
-      const const fileParts = parts.filter(p => p.includes("filename="));
+      const  fileParts = parts.filter(p => p.includes("filename="));
 const filePart = fileParts[0];
 const backFilePart = fileParts[1];
       if (filePart) {
