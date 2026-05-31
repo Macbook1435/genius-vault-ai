@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     const contentType = req.headers["content-type"] || "";
     let imageBase64 = "";
-
+let backImageBase64 = "";
     if (contentType.includes("multipart/form-data")) {
       const boundary = "--" + contentType.split("boundary=")[1];
       const parts = buffer.toString("latin1").split(boundary);
@@ -32,7 +32,7 @@ const backFilePart = fileParts[1];
 
         imageBase64 = Buffer.from(raw, "latin1").toString("base64");
       }
-      let backImageBase64 = "";
+    
 
 if (backFilePart) {
   const backStart = backFilePart.indexOf("\r\n\r\n");
