@@ -214,9 +214,9 @@ function previewImage() {
 
 async function aiScan() {
  const fileInput = document.getElementById("imageUpload");
-
+const backFileInput = document.getElementById("backImageUpload");
 const file = fileInput.files[0];
- 
+const backFile = backFileInput.files[0];
 const output = document.getElementById("output");
 
 if (!file) {
@@ -228,7 +228,9 @@ output.innerHTML = "Scanning card with OpenAI AI Vision...";
 
 const formData = new FormData();
 formData.append("image", file);
-
+if (backFile) {
+  formData.append("backImage", backFile);
+}
 try {
   const response = await fetch("/api/scan", {
     method: "POST",
@@ -236,6 +238,7 @@ try {
   });
 
   const data = await response.json();
+  const backScan = backFile ? "\n\nBACK OF CARD SCANNED SUCCESSFULLY" : "";
  const ebaySearch = encodeURIComponent(
   (data.results.match(/Suggested eBay Search:\s*(.*)/i)?.[1]) || "sports card"
 );
@@ -244,6 +247,7 @@ const compsResponse = await fetch("/api/comps?q=" + ebaySearch)
 const compsData = await compsResponse.json()
 output.innerHTML =
   (data.results || "No scan result returned.") +
+  backScan +
   "<br><br><b>REAL SOLD COMPS:</b><br>" +
   compsData.comps.map(comp =>
     `${comp.title} - ${comp.soldPrice} (${comp.dateSold})`
