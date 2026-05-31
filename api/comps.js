@@ -1,18 +1,27 @@
 export default async function handler(req, res) {
-  res.status(200).json({
-    success: true,
-    message: "Real comps route connected",
-    comps: [
-      {
-        title: "2024 Panini Prizm Jahmyr Gibbs Silver PSA 10",
-        soldPrice: "$86",
-        dateSold: "2026-05-28"
-      },
-      {
-        title: "2024 Mosaic Jahmyr Gibbs Genesis",
-        soldPrice: "$142",
-        dateSold: "2026-05-26"
-      }
-    ]
-  });
+  try {
+    const query = req.query.q || "sports card";
+
+    const searchUrl =
+      `https://www.130point.com/sales/` +
+      `?q=${encodeURIComponent(query)}`;
+
+    return res.status(200).json({
+      success: true,
+      searchUrl,
+      comps: [
+        {
+          title: `Search 130point for: ${query}`,
+          soldPrice: "LIVE SEARCH",
+          dateSold: "Latest"
+        }
+      ]
+    });
+
+  } catch (error) {
+    return res.status(200).json({
+      success: false,
+      error: error.message
+    });
+  }
 }
