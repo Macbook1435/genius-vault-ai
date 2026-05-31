@@ -92,17 +92,23 @@ Hashtags:`;
   {
     role: "user",
     content: [
-      {
-        type: "text",
-        text: prompt
-      },
-      {
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${imageBase64.trim()}`
-        }
-      }
-    ]
+  {
+    type: "text",
+    text: prompt
+  },
+  {
+    type: "image_url",
+    image_url: {
+      url: `data:image/jpeg;base64,${imageBase64.trim()}`
+    }
+  },
+  ...(backImageBase64 ? [{
+    type: "image_url",
+    image_url: {
+      url: `data:image/jpeg;base64,${backImageBase64.trim()}`
+    }
+  }] : [])
+]
   }
 ],
 max_tokens: 700
