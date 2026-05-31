@@ -27,8 +27,8 @@ const backFilePart = fileParts[1];
         const start = filePart.indexOf("\r\n\r\n");
         const raw = filePart
           .slice(start + 4)
-          .replace(/\r\n--$/, "")
-          .replace(/\r\n$/, "");
+.split("\r\n--")[0]
+.replace(/\r\n$/, "");
 
         imageBase64 = Buffer.from(raw, "latin1").toString("base64");
       }
@@ -38,8 +38,8 @@ if (backFilePart) {
   const backStart = backFilePart.indexOf("\r\n\r\n");
   const backRaw = backFilePart
     .slice(backStart + 4)
-    .replace(/\r\n--$/, "")
-    .replace(/\r\n$/, "");
+    .split("\r\n--")[0]
+.replace(/\r\n$/, "");
 
   backImageBase64 = Buffer.from(backRaw, "latin1").toString("base64");
 }
