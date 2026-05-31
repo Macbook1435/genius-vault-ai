@@ -75,6 +75,7 @@ Listing Title:
 TikTok Caption: Write a long viral TikTok caption between 120-180 words with collector hype, card details, investment potential, fan engagement, and a strong call to action.
 Hashtags:`;
 
+    
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
   method: "POST",
   headers: {
