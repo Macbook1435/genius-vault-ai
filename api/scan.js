@@ -101,12 +101,7 @@ Hashtags:`;
             }
           },
 
-          ...(backImageBase64 ? [{
-            type: "image_url",
-            image_url: {
-              url: `data:image/jpeg;base64,${backImageBase64.trim()}`
-            }
-          }] : [])
+          
         ]
       }
     ],
