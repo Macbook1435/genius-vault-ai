@@ -85,29 +85,25 @@ Hashtags:`;
   body: JSON.stringify({
     model: "gpt-4.1-mini",
     messages: [
+  {
+    role: "system",
+    content: "You are a sports card identification assistant for Koollicks Vault."
+  },
+  {
+    role: "user",
+    content: [
       {
-        role: "system",
-        content: "You are a sports card identification and pricing assistant for Koollicks Vault. Identify only what is visible."
+        type: "text",
+        text: prompt
       },
       {
-        role: "user",
-        content: [
-          { type: "text", text: prompt },
-
-          {
-            type: "image_url",
-            image_url: {
-             url: `data:image/jpeg;base64,${imageBase64.trim()}`
-            }
-          }
-,
-          
-...(backImageBase64 ? [{
-  type: "image_url",
-  image_url: {
-    url: `data:image/jpeg;base64,${backImageBase64.trim()}`
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${imageBase64.trim()}`
+        }
+      }
+    ]
   }
-}] : []),
 ],
 max_tokens: 700
   })
