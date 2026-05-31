@@ -236,7 +236,7 @@ try {
   });
 
   const data = await response.json();
-  const compsResponse = await fetch("/api/comps")
+  const compsResponse = await fetch("/api/comps?q=" + encodeURIComponent(data.results || "sports card"))
 const compsData = await compsResponse.json()
 output.innerHTML =
   (data.results || "No scan result returned.") +
