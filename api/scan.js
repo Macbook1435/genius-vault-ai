@@ -69,6 +69,7 @@ CRITICAL RULES:
 - Use the FRONT image for patch, autograph, parallel, color, rookie logo, and visual card design.
 - If front and back conflict, trust the back for year/set/card number.
 - Do NOT invent eBay sold prices.
+- If the back image clearly shows a copyright year, card number, or set name, you MUST use those exact values even if they conflict with known rookie-year data or player memory.
 - Estimated Value Range must say: Needs sold comp lookup.
 - Suggested eBay Search and Suggested 130point Search should be clean search phrases only.
 
