@@ -104,9 +104,7 @@ Hashtags:`;
     image_url: {
       url: `data:image/jpeg;base64,${imageBase64.replace(/\s/g, "")}`
     }
-  },
- 
-}] : [])
+  }
 ]
   }
 ],
