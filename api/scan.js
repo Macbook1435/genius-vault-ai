@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     }
 
     const frontBase64 = fs.readFileSync(frontFile.filepath).toString("base64");
-    const frontMime = frontFile.mimetype || "image/jpeg";
+   const frontMime = "image/jpeg";
 
     const content = [
       {
@@ -64,8 +64,7 @@ Hashtags:`
 
     if (backFile) {
       const backBase64 = fs.readFileSync(backFile.filepath).toString("base64");
-      const backMime = backFile.mimetype || "image/jpeg";
-
+      const backMime = "image/jpeg";
       content.push({
         type: "image_url",
         image_url: {
