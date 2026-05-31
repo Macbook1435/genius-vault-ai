@@ -236,7 +236,11 @@ try {
   });
 
   const data = await response.json();
-  const compsResponse = await fetch("/api/comps?q=" + encodeURIComponent(data.results || "sports card"))
+ const ebaySearch = encodeURIComponent(
+  (data.results.match(/Suggested eBay Search:\s*(.*)/i)?.[1]) || "sports card"
+);
+
+const compsResponse = await fetch("/api/comps?q=" + ebaySearch)
 const compsData = await compsResponse.json()
 output.innerHTML =
   (data.results || "No scan result returned.") +
