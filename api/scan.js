@@ -76,36 +76,42 @@ TikTok Caption: Write a long viral TikTok caption between 120-180 words with col
 Hashtags:`;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are a sports card identification and pricing assistant for Koollicks Vault. Identify only what is visible."
-          },
-          {
-            role: "user",
-content: [
-  { type: "text", text: prompt },
-  {
-    type: "image_url",
-    image_url: {
-      url: `data:image/jpeg;base64,${imageBase64}`
-    }
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
   },
-  
+  body: JSON.stringify({
+    model: "gpt-4.1-mini",
+    messages: [
+      {
+        role: "system",
+        content: "You are a sports card identification and pricing assistant for Koollicks Vault. Identify only what is visible."
+      },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
 
-],
-},
-max_tokens: 700
-})
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:image/jpeg;base64,${imageBase64}`
+            }
+          },
 
-    });
+          ...(backImageBase64 ? [{
+            type: "image_url",
+            image_url: {
+              url: `data:image/jpeg;base64,${backImageBase64}`
+            }
+          }] : [])
+        ]
+      }
+    ],
+    max_tokens: 700
+  })
+});
 
     const data = await aiResponse.json();
 
