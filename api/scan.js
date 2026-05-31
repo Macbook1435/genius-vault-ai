@@ -2,17 +2,12 @@ import formidable from "formidable";
 import fs from "fs";
 
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false },
 };
 
 function parseForm(req) {
   return new Promise((resolve, reject) => {
-    const form = formidable({
-      multiples: true,
-      keepExtensions: true,
-    });
+    const form = formidable({ multiples: true, keepExtensions: true });
 
     form.parse(req, (err, fields, files) => {
       if (err) reject(err);
@@ -25,31 +20,20 @@ export default async function handler(req, res) {
   try {
     const { files } = await parseForm(req);
 
-    const frontFile =
-      files.front?.[0] ||
-      files.front ||
-      files.image?.[0] ||
-      files.image;
-
-    const backFile =
-      files.back?.[0] ||
-      files.back;
+    const frontFile = files.front?.[0] || files.front || files.image?.[0] || files.image;
+    const backFile = files.back?.[0] || files.back;
 
     if (!frontFile) {
-      return res.status(400).json({
-        error: "No front image uploaded",
-      });
+      return res.status(400).json({ error: "No front image uploaded" });
     }
 
-    const frontBase64 = fs
-      .readFileSync(frontFile.filepath)
-      .toString("base64")
-      .replace(/\s/g, "");
-
-    const content = [
+    const input = [
       {
-        type: "text",
-        text: `Identify this sports card and return ONLY this exact format:
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `Identify this sports card and return ONLY this exact format:
 
 Player:
 Team:
@@ -64,56 +48,39 @@ Short Description:
 TikTok Description:
 First Comment:
 Hashtags:`
-      },
-      {
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${frontBase64}`
-        }
+          },
+          {
+            type: "input_image",
+            image_url: `data:image/jpeg;base64,${fs.readFileSync(frontFile.filepath).toString("base64").replace(/\s/g, "")}`
+          }
+        ]
       }
     ];
 
     if (backFile) {
-      const backBase64 = fs
-        .readFileSync(backFile.filepath)
-        .toString("base64")
-        .replace(/\s/g, "");
-
-      content.push({
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${backBase64}`
-        }
+      input[0].content.push({
+        type: "input_image",
+        image_url: `data:image/jpeg;base64,${fs.readFileSync(backFile.filepath).toString("base64").replace(/\s/g, "")}`
       });
     }
 
-    const aiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "user",
-              content,
-            },
-          ],
-          max_tokens: 900,
-        }),
-      }
-    );
+    const aiResponse = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        input,
+        max_output_tokens: 900,
+      }),
+    });
 
     const data = await aiResponse.json();
 
-    console.log(data);
-
     const result =
-      data.choices?.[0]?.message?.content ||
+      data.output_text ||
       data.error?.message ||
       "AI scan failed";
 
@@ -123,10 +90,7 @@ Hashtags:`
       scan: result,
       text: result,
     });
-
   } catch (error) {
-    console.error(error);
-
     return res.status(500).json({
       error: "Scan failed",
       details: error.message,
