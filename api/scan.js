@@ -50,8 +50,9 @@ if (backFilePart) {
     }
 
     const prompt = `Identify this sports card.
-    If the back of the card clearly shows a year, copyright date, card number, or set name, trust the back of the card over visual guessing from the front. Never invent earlier years if the back explicitly shows the correct year.
-    If the year or card number is not clearly visible on the front image, do not guess it. Use the back image if provided. If still unclear, write Unknown.
+  If the back of the card clearly shows a year, copyright date, card number, or set name, trust the back of the card over visual guessing from the front. Never invent earlier years if the back explicitly shows the correct year.
+When both front and back images are provided, the back image is the source of truth for year, set, card number, and player spelling. Use the front image mainly for patch, autograph, and parallel confirmation.
+If the year or card number is not clearly visible on the front image, do not guess it. Use the back image if provided. If still unclear, write Unknown.
 Contenders Rookie Ticket Swatches cards usually use RTS-style card numbers when visible. Do not call it Draft Picks unless the card clearly says Draft Picks.
     If the card appears to be unlicensed, custom, Wild Card, Leaf, Sage, Onyx, college-only, NIL, or does not clearly show a licensed brand logo, DO NOT guess Panini, Prizm, Mosaic, Absolute, or other major sets. Instead mark Brand/Set as "Unknown or Unlicensed" and set Confidence to low.
     Return this exact format:
