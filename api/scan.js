@@ -97,14 +97,14 @@ Hashtags:`;
           {
             type: "image_url",
             image_url: {
-              url: `data:image/jpeg;base64,${imageBase64}`
+              url: `data:image/png;base64,${imageBase64}`
             }
           },
 
           ...(backImageBase64 ? [{
             type: "image_url",
             image_url: {
-              url: `data:image/jpeg;base64,${backImageBase64}`
+              url: `data:image/png;base64,${backImageBase64}`
             }
           }] : [])
         ]
