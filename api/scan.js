@@ -28,11 +28,26 @@ function getFile(files, name) {
   return Array.isArray(file) ? file[0] : file;
 }
 
-function fileToBase64(file) {
+function fileToDataUrl(file) {
   if (!file || !file.filepath) return "";
-  return fs.readFileSync(file.filepath).toString("base64").replace(/\s/g, "");
-}
 
+  let mimeType = file.mimetype || "image/jpeg";
+
+  if (
+    mimeType !== "image/jpeg" &&
+    mimeType !== "image/png" &&
+    mimeType !== "image/webp"
+  ) {
+    mimeType = "image/jpeg";
+  }
+
+  const base64 = fs
+    .readFileSync(file.filepath)
+    .toString("base64")
+    .replace(/\s/g, "");
+
+  return `data:${mimeType};base64,${base64}`;
+}
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
