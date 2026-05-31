@@ -124,10 +124,11 @@ max_tokens: 700
 
     const data = await aiResponse.json();
 
-    if (!aiResponse.ok) {
-      return res.status(200).json({ results: JSON.stringify(data) });
-    }
-
+   if (!aiResponse.ok) {
+  return res.status(200).json({
+    results: "OPENAI ERROR: " + JSON.stringify(data)
+  });
+}
     const text = data.choices[0].message.content || "AI could not read this card.";
     return res.status(200).json({ results: text });
 
