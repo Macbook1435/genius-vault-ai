@@ -99,8 +99,8 @@ Hashtags:`;
             image_url: {
              url: `data:image/jpeg;base64,${imageBase64.trim()}`
             }
-          },
-
+          }
+,
           
 ...(backImageBase64 ? [{
   type: "image_url",
