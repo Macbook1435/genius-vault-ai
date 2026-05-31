@@ -105,6 +105,13 @@ Hashtags:`;
       url: `data:image/jpeg;base64,${imageBase64.replace(/\s/g, "")}`
     }
   }
+ ,
+{
+  type: "image_url",
+  image_url: {
+    url: `data:image/jpeg;base64,${backImageBase64.replace(/\s/g, "")}`
+  }
+}     
 ]
   }
 ],
