@@ -164,7 +164,9 @@
   <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
   
 <label style="display:block;margin-top:10px;">Upload Back of Card</label>
-<input type="file" id="backImageUpload" accept="image/*">
+<input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()">
+
+<img id="backPreview" style="max-width:320px;width:100%;display:none;margin:15px auto;border-radius:12px;">
   <div class="preview-container">
     
      <img id="preview">
@@ -213,6 +215,18 @@ function previewImage() {
     preview.style.display = "block";
   }
 }
+}
+  
+function previewBackImage() {
+  const file = document.getElementById("backImageUpload").files[0];
+  const preview = document.getElementById("backPreview");
+
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+  }
+}
+
 
 async function aiScan() {
  const fileInput = document.getElementById("imageUpload");
