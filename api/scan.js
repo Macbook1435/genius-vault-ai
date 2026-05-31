@@ -57,7 +57,7 @@ Hashtags:`
       {
         type: "image_url",
         image_url: {
-          url: `data:${frontMime};base64,${frontBase64}`
+        url: `data:image/jpeg;base64,${frontBase64.replace(/\s/g, "")}`
         }
       }
     ];
@@ -69,7 +69,7 @@ Hashtags:`
       content.push({
         type: "image_url",
         image_url: {
-          url: `data:${backMime};base64,${backBase64}`
+        url: `data:image/jpeg;base64,${backBase64.replace(/\s/g, "")}`  
         }
       });
     }
