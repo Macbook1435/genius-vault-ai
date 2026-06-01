@@ -227,7 +227,41 @@ function previewBackImage() {
   }
 }
 
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
 
+    reader.onload = e => {
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxWidth = 1200;
+        const scale = Math.min(1, maxWidth / img.width);
+
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          blob => {
+            if (blob) resolve(blob);
+            else reject(new Error("Image compression failed"));
+          },
+          "image/jpeg",
+          0.75
+        );
+      };
+
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 async function aiScan() {
  const fileInput = document.getElementById("imageUpload");
 const backFileInput = document.getElementById("backImageUpload");
@@ -242,10 +276,13 @@ if (!file) {
 
 output.innerHTML = "Scanning card with OpenAI AI Vision...";
 
+const frontBlob = await compressImage(file);
 const formData = new FormData();
-formData.append("image", file);
+formData.append("image", frontBlob, "front.jpg");
+
 if (backFile) {
-  formData.append("back", backFile);
+  const backBlob = await compressImage(backFile);
+  formData.append("back", backBlob, "back.jpg");
 }
 try {
   const response = await fetch("/api/scan", {
