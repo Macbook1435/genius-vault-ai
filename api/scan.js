@@ -67,7 +67,9 @@ export default async function handler(req, res) {
 
     const imageBase64 = fileToDataUrl(frontFile);
     const backImageBase64 = fileToDataUrl(backFile);
-
+console.log("FRONT DATA URL START:", imageBase64.slice(0, 40));
+console.log("BACK DATA URL START:", backImageBase64.slice(0, 40));
+console.log("BACK EXISTS:", !!backFile);
     if (!imageBase64) {
       return res.status(200).json({ results: "No front card image received." });
     }
