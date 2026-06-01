@@ -65,8 +65,8 @@ export default async function handler(req, res) {
     const frontFile = getFile(files, "front") || getFile(files, "image") || getFile(files, "card");
     const backFile = getFile(files, "back");
 
-    const imageBase64 = fileToBase64(frontFile);
-    const backImageBase64 = fileToBase64(backFile);
+    const imageBase64 = fileToDataUrl(frontfile);
+    const backImageBase64 = fileToDataUrl(backfile);
 
     if (!imageBase64) {
       return res.status(200).json({ results: "No front card image received." });
@@ -127,27 +127,26 @@ First Comment:
 `;
 
     const content = [
-      {
-        type: "text",
-        text: prompt,
-      },
-      {
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${imageBase64}`,
-        },
-      },
-    ];
+  {
+    type: "text",
+    text: prompt,
+  },
+  {
+    type: "image_url",
+    image_url: {
+      url: imageBase64,
+    },
+  },
+];
 
-    if (backImageBase64) {
-      content.push({
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${backImageBase64}`,
-        },
-      });
-    }
-
+if (backImageBase64) {
+  content.push({
+    type: "image_url",
+    image_url: {
+      url: backImageBase64,
+    },
+  });
+}
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
