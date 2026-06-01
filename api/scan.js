@@ -12,7 +12,7 @@ function parseForm(req) {
     const form = formidable({
       multiples: true,
       keepExtensions: true,
-      maxFileSize: 15 * 1024 * 1024,
+      maxFileSize: 25 * 1024 * 1024,
     });
 
     form.parse(req, (err, fields, files) => {
