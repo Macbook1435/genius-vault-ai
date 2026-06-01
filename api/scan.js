@@ -65,8 +65,8 @@ export default async function handler(req, res) {
     const frontFile = getFile(files, "front") || getFile(files, "image") || getFile(files, "card");
     const backFile = getFile(files, "back");
 
-    const imageBase64 = fileToDataUrl(frontfile);
-    const backImageBase64 = fileToDataUrl(backfile);
+    const imageBase64 = fileToDataUrl(frontFile);
+    const backImageBase64 = fileToDataUrl(backFile);
 
     if (!imageBase64) {
       return res.status(200).json({ results: "No front card image received." });
