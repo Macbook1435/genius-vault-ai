@@ -245,7 +245,7 @@ output.innerHTML = "Scanning card with OpenAI AI Vision...";
 const formData = new FormData();
 formData.append("image", file);
 if (backFile) {
-  formData.append("backImage", backFile);
+  formData.append("back", backFile);
 }
 try {
   const response = await fetch("/api/scan", {
