@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         {
          title: `Open sold comps search for: ${query}`,
 soldPrice: "Manual check required",
-dateSold: searchUrl
+dateSold: "Latest"
         }
       ]
     });
