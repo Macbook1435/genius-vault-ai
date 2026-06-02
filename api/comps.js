@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       comps: [
         {
           title: `Search 130point for: ${query}`,
-          soldPrice: "LIVE SEARCH",
+          soldPrice: "$0.00",
           dateSold: "Latest"
         }
       ]
