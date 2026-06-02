@@ -11,9 +11,9 @@ export default async function handler(req, res) {
       searchUrl,
       comps: [
         {
-          title: `Search 130point for: ${query}`,
-          soldPrice: "$0.00",
-          dateSold: "Latest"
+         title: `Open sold comps search for: ${query}`,
+soldPrice: "Manual check required",
+dateSold: searchUrl
         }
       ]
     });
