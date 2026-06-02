@@ -305,13 +305,10 @@ output.innerHTML =
   backScan +
   "<br><br><b>REAL SOLD COMPS:</b><br>" +
   (compsList.length
-    ? compsList.map(comp =>
- `<a href="${comp.dateSold}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;"
-${comp.title}
-</a><br>
-${comp.soldPrice}`
-      ).join("<br>")
-    : "No sold comps found yet.");
+  ? compsList.map(comp =>
+      `<a href="${comp.url}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">${comp.title}</a><br>${comp.soldPrice} (${comp.dateSold})`
+    ).join("<br><br>")
+  : "No sold comps found yet.");
 } catch (error) {
   console.error(error);
   output.innerHTML = error.message || "AI scan failed.";
