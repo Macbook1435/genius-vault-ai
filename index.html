@@ -306,7 +306,10 @@ output.innerHTML =
   "<br><br><b>REAL SOLD COMPS:</b><br>" +
   (compsList.length
     ? compsList.map(comp =>
-        `${comp.title} - ${comp.soldPrice} (${comp.dateSold})`
+ `<a href="${comp.dateSold}" target="_blank" style="color:#00ff88;">
+${comp.title}
+</a><br>
+${comp.soldPrice}`
       ).join("<br>")
     : "No sold comps found yet.");
 } catch (error) {
