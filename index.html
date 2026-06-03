@@ -349,7 +349,16 @@ output.innerHTML =
 }
   
   }
+function copySearchText() {
+  const copyInput = document.getElementById("searchCopyBox");
 
+  copyInput.select();
+  copyInput.setSelectionRange(0, 99999);
+
+  navigator.clipboard.writeText(copyInput.value);
+
+  alert("Search phrase copied!");
+}
  
 
 function generateProfit() {
