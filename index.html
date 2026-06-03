@@ -339,6 +339,7 @@ COPY SEARCH PHRASE
 output.innerHTML =
   (data.results || "No scan result returned.") +
   backScan +
+  copyBox +
   '<br><br><b>REAL SOLD COMPS:</b><br>' +
   `<a href="${pointUrl}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">Open 130Point sold comps search for: ${searchText}</a><br>` +
   "Manual check required on 130Point.";
