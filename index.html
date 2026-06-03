@@ -300,8 +300,40 @@ const searchText =
   ((data.results || "").match(/Suggested 130point Search:\s*(.*)/i)?.[1]) ||
   ((data.results || "").match(/Suggested eBay Search:\s*(.*)/i)?.[1]) ||
   "sports card";
+const copyBox = `
+<br><br>
+<div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
+<b style="color:#00ff88;">COPY SOLD COMP SEARCH:</b><br><br>
 
-const pointUrl =
+<input
+  type="text"
+  value="${searchText}"
+  id="searchCopyBox"
+  readonly
+  style="
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    font-size:16px;
+    margin-bottom:10px;
+  "
+>
+
+<button onclick="copySearchText()" style="
+  background:#00c853;
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:8px;
+  width:100%;
+  font-weight:bold;
+  cursor:pointer;
+">
+COPY SEARCH PHRASE
+</button>
+</div>
+`;const pointUrl =
   "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
 
 output.innerHTML =
