@@ -296,19 +296,20 @@ try {
  ((data.results || "").match(/Suggested eBay Search:\s*(.*)/i)?.[1]) || "sports card"
 );
 
-const compsResponse = await fetch("/api/comps?q=" + ebaySearch);
-const compsData = await compsResponse.json();
-const compsList = Array.isArray(compsData.comps) ? compsData.comps : [];
+const searchText =
+  ((data.results || "").match(/Suggested 130point Search:\s*(.*)/i)?.[1]) ||
+  ((data.results || "").match(/Suggested eBay Search:\s*(.*)/i)?.[1]) ||
+  "sports card";
+
+const pointUrl =
+  "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
 
 output.innerHTML =
   (data.results || "No scan result returned.") +
   backScan +
-  "<br><br><b>REAL SOLD COMPS:</b><br>" +
-  (compsList.length
-  ? compsList.map(comp =>
-      `<a href="${comp.url}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">${comp.title}</a><br>${comp.soldPrice} (${comp.dateSold})`
-    ).join("<br><br>")
-  : "No sold comps found yet.");
+  '<br><br><b>REAL SOLD COMPS:</b><br>' +
+  `<a href="${pointUrl}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">Open 130Point sold comps search for: ${searchText}</a><br>` +
+  "Manual check required on 130Point.";
 } catch (error) {
   console.error(error);
   output.innerHTML = error.message || "AI scan failed.";
