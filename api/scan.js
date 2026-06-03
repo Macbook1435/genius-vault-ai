@@ -47,6 +47,38 @@ function fileToDataUrl(file) {
     .replace(/\s/g, "");
 
   return `data:${mimeType};base64,${base64}`;
+function getField(text, fieldName) {
+  const regex = new RegExp(`${fieldName}:\\s*(.*)`, "i");
+  const match = text.match(regex);
+  return match ? match[1].trim() : "";
+}
+
+function buildSoldCompQuery(scanText) {
+  const player = getField(scanText, "Player");
+  const year = getField(scanText, "Year");
+  const brand = getField(scanText, "Brand / Set");
+  const cardNumber = getField(scanText, "Card Number");
+  const parallel = getField(scanText, "Parallel / Insert");
+  const numbered = getField(scanText, "Numbered");
+
+  return [
+    year,
+    brand,
+    player,
+    cardNumber ? `#${cardNumber}` : "",
+    parallel,
+    numbered,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function build130PointUrl(query) {
+  return `https://130point.com/sales/?search=${encodeURIComponent(query)}`;
+}
+  
 }
 export default async function handler(req, res) {
   try {
@@ -180,8 +212,22 @@ if (backImageBase64) {
       });
     }
 
-    const text = data?.choices?.[0]?.message?.content || "AI could not read this card.";
-    return res.status(200).json({ results: text });
+   const text =
+  data?.choices?.[0]?.message?.content ||
+  "AI could not read this card.";
+
+const soldCompQuery = buildSoldCompQuery(text);
+
+const soldCompUrl = build130PointUrl(soldCompQuery);
+
+const finalResults =
+  text +
+  "\n\nREAL SOLD COMPS:\n" +
+  soldCompUrl;
+
+return res.status(200).json({
+  results: finalResults,
+});
   } catch (error) {
     return res.status(200).json({
       results: "AI scan failed: " + error.message,
