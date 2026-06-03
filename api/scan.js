@@ -2,9 +2,7 @@ import formidable from "formidable";
 import fs from "fs";
 
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false },
 };
 
 function parseForm(req) {
@@ -52,7 +50,7 @@ function fileToDataUrl(file) {
 function getField(text, fieldName) {
   const regex = new RegExp(`${fieldName}:\\s*(.*)`, "i");
   const match = text.match(regex);
-  return match ? match[1].trim() : "";
+  return match ? match[1].replace(/["]/g, "").trim() : "";
 }
 
 function buildSoldCompQuery(scanText) {
@@ -84,14 +82,10 @@ function build130PointUrl(query) {
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({
-        results: "Use POST only.",
-      });
+      return res.status(405).json({ results: "Use POST only." });
     }
 
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.SPECIAL_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.SPECIAL_API_KEY;
 
     if (!apiKey) {
       return res.status(200).json({
@@ -111,18 +105,6 @@ export default async function handler(req, res) {
     const imageBase64 = fileToDataUrl(frontFile);
     const backImageBase64 = fileToDataUrl(backFile);
 
-    console.log(
-      "FRONT DATA URL START:",
-      imageBase64.slice(0, 40)
-    );
-
-    console.log(
-      "BACK DATA URL START:",
-      backImageBase64.slice(0, 40)
-    );
-
-    console.log("BACK EXISTS:", !!backFile);
-
     if (!imageBase64) {
       return res.status(200).json({
         results: "No front card image received.",
@@ -133,23 +115,29 @@ export default async function handler(req, res) {
 You are a sports card identification assistant for Koollicks Vault.
 
 CRITICAL RULES:
-- NEVER use prior sports card knowledge.
-- ONLY use text/details visible in uploaded images.
-- Treat images as ONLY source of truth.
-- If back image shows year/card number, use exact visible value.
-- If text not visible, write Unknown.
-- Use BACK image for year, card number, set name.
-- Use FRONT image for parallel/color/rookie/logo/design.
-- Only label Patch if actual fabric/material visible.
-- If no visible fabric, write No Patch.
-- Do NOT invent sold prices.
-- Estimated Value Range must say:
-Needs sold comp lookup.
+- NEVER use prior sports card knowledge, checklist memory, rookie-year memory, or known player data to identify the card.
+- ONLY use text and details physically visible in the uploaded images.
+- Treat the images as the ONLY source of truth.
+- If the back image shows a year or card number, you MUST use that exact visible value.
+- Do not replace visible values with known rookie card information.
+- If text is not clearly visible, write Unknown.
+- Use the BACK image as source of truth for year, copyright date, card number, set name, and player spelling.
+- Do NOT use player career years, rookie season, stats, or biography as the card year.
+- Card year must come from copyright/set text on the card.
+- Use the FRONT image for autograph, parallel, color, rookie logo, and visual card design.
+- Only label Auto / Patch as Patch if actual fabric/material/relic is visibly embedded in the card.
+- If there is no visible fabric/material/relic, write No Patch.
+- If front and back conflict, trust the back for year/set/card number.
+- Do NOT invent eBay sold prices.
+- Estimated Value Range must say: Needs sold comp lookup.
+- Suggested eBay Search and Suggested 130point Search should be clean search phrases only.
 
 UNLICENSED / EDGE BRAND RULE:
-- Do NOT force Panini/Prizm/Mosaic/etc.
-- Use visible brand only.
-- If unreadable, write Unknown or Unlicensed.
+If the card appears to be Wild Card, Leaf, Sage, Onyx, Bowman U, NIL, college-only, custom, or unlicensed:
+- Do NOT force Panini, Prizm, Mosaic, Absolute, Donruss, or Select.
+- Use the visible brand if readable.
+- If not readable, write Unknown or Unlicensed.
+- Confidence should be low or medium unless the brand is clearly visible.
 
 Return this exact format:
 
@@ -177,60 +165,48 @@ First Comment:
 `;
 
     const content = [
-      {
-        type: "text",
-        text: prompt,
-      },
+      { type: "text", text: prompt },
       {
         type: "image_url",
-        image_url: {
-          url: imageBase64,
-        },
+        image_url: { url: imageBase64 },
       },
     ];
 
     if (backImageBase64) {
       content.push({
         type: "image_url",
-        image_url: {
-          url: backImageBase64,
-        },
+        image_url: { url: backImageBase64 },
       });
     }
 
-    const aiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4.1-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You identify sports cards from images. Never invent details.",
-            },
-            {
-              role: "user",
-              content,
-            },
-          ],
-          max_tokens: 900,
-        }),
-      }
-    );
+    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You identify sports cards from images. Be conservative. Never invent missing details.",
+          },
+          {
+            role: "user",
+            content,
+          },
+        ],
+        max_tokens: 900,
+      }),
+    });
 
     const data = await aiResponse.json();
 
     if (!aiResponse.ok) {
       return res.status(200).json({
-        results:
-          "OpenAI error: " +
-          JSON.stringify(data),
+        results: "OpenAI error: " + JSON.stringify(data),
       });
     }
 
@@ -238,15 +214,14 @@ First Comment:
       data?.choices?.[0]?.message?.content ||
       "AI could not read this card.";
 
-    const soldCompQuery =
-      buildSoldCompQuery(text);
-
-    const soldCompUrl =
-      build130PointUrl(soldCompQuery);
+    const soldCompQuery = buildSoldCompQuery(text);
+    const soldCompUrl = build130PointUrl(soldCompQuery);
 
     const finalResults =
       text +
       "\n\nBACK OF CARD SCANNED SUCCESSFULLY" +
+      "\n\nCOPY SOLD COMP SEARCH:\n" +
+      soldCompQuery +
       "\n\nREAL SOLD COMPS:\n" +
       soldCompUrl;
 
@@ -255,8 +230,7 @@ First Comment:
     });
   } catch (error) {
     return res.status(200).json({
-      results:
-        "AI scan failed: " + error.message,
+      results: "AI scan failed: " + error.message,
     });
   }
 }
