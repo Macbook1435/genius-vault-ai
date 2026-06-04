@@ -263,92 +263,43 @@ function compressImage(file) {
   });
 }
 async function aiScan() {
- const fileInput = document.getElementById("imageUpload");
-const backFileInput = document.getElementById("backImageUpload");
-const file = fileInput.files[0];
-const backFile = backFileInput.files[0];
-const output = document.getElementById("output");
+  const fileInput = document.getElementById("imageUpload");
+  const backFileInput = document.getElementById("backImageUpload");
+  const file = fileInput.files[0];
+  const backFile = backFileInput.files[0];
+  const output = document.getElementById("output");
 
-if (!file) {
-  alert("Upload a card photo first");
-  return;
-}
-
-output.innerHTML = "Scanning card with OpenAI AI Vision...";
-
-const frontBlob = await compressImage(file);
-const formData = new FormData();
-formData.append("image", frontBlob, "front.jpg");
-
-if (backFile) {
-  const backBlob = await compressImage(backFile);
-  formData.append("back", backBlob, "back.jpg");
-}
-try {
-  const response = await fetch("/api/scan", {
-    method: "POST",
-    body: formData
-  });
-
-  const data = await response.json();
-  const backScan = backFile ? "\n\nBACK OF CARD SCANNED SUCCESSFULLY" : "";
- const ebaySearch = encodeURIComponent(
- ((data.results || "").match(/Suggested eBay Search:\s*(.*)/i)?.[1]) || "sports card"
-);
-
-const searchText =
-  ((data.results || "").match(/Suggested 130point Search:\s*(.*)/i)?.[1]) ||
-  ((data.results || "").match(/Suggested eBay Search:\s*(.*)/i)?.[1]) ||
-  "sports card";
-const copyBox = `
-<br><br>
-<div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
-<b style="color:#00ff88;">COPY SOLD COMP SEARCH:</b><br><br>
-
-<input
-  type="text"
-  value="${searchText}"
-  id="searchCopyBox"
-  readonly
-  style="
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:none;
-    font-size:16px;
-    margin-bottom:10px;
-  "
->
-
-<button onclick="copySearchText()" style="
-  background:#00c853;
-  color:white;
-  border:none;
-  padding:12px;
-  border-radius:8px;
-  width:100%;
-  font-weight:bold;
-  cursor:pointer;
-">
-COPY SEARCH PHRASE
-</button>
-</div>
-`;const pointUrl =
-  "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
-
-output.innerHTML =
-  (data.results || "No scan result returned.") +
-  backScan +
-  copyBox +
-  '<br><br><b>REAL SOLD COMPS:</b><br>' +
-  `<a href="${pointUrl}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">Open 130Point sold comps search for: ${searchText}</a><br>` +
-  "Manual check required on 130Point.";
-} catch (error) {
-  console.error(error);
-  output.innerHTML = error.message || "AI scan failed.";
-}
-  
+  if (!file) {
+    alert("Upload a card photo first");
+    return;
   }
+
+  output.innerHTML = "Scanning card with OpenAI AI Vision...";
+
+  const frontBlob = await compressImage(file);
+  const formData = new FormData();
+  formData.append("image", frontBlob, "front.jpg");
+
+  if (backFile) {
+    const backBlob = await compressImage(backFile);
+    formData.append("back", backBlob, "back.jpg");
+  }
+
+  try {
+    const response = await fetch("/api/scan", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    output.innerHTML = (data.results || "No scan result returned.")
+      .replace(/\n/g, "<br>");
+  } catch (error) {
+    console.error(error);
+    output.innerHTML = error.message || "AI scan failed.";
+  }
+}
 function copySearchText() {
   const copyInput = document.getElementById("searchCopyBox");
 
