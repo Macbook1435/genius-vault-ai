@@ -292,9 +292,38 @@ async function aiScan() {
     });
 
     const data = await response.json();
+    const results = data.results || "No scan result returned.";
 
-    output.innerHTML = (data.results || "No scan result returned.")
-      .replace(/\n/g, "<br>");
+    const searchText =
+      (results.match(/🔎 COPY SOLD COMP SEARCH:\s*([\s\S]*?)(?:\n\n|💰|🔗|$)/i)?.[1] ||
+      results.match(/Suggested 130point Search:\s*(.*)/i)?.[1] ||
+      results.match(/Suggested eBay Search:\s*(.*)/i)?.[1] ||
+      "sports card").trim();
+
+    const pointUrl =
+      "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
+
+    output.innerHTML =
+      results.replace(/\n/g, "<br>") +
+      `<br><br>
+      <div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
+        <b style="color:#00ff88;">COPY SEARCH PHRASE:</b><br><br>
+        <input
+          type="text"
+          value="${searchText.replace(/"/g, "&quot;")}"
+          id="searchCopyBox"
+          readonly
+          style="width:100%;padding:10px;border-radius:8px;border:none;font-size:16px;margin-bottom:10px;"
+        >
+        <button onclick="copySearchText()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">
+          COPY SEARCH PHRASE
+        </button>
+        <br><br>
+        <a href="${pointUrl}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">
+          Open 130Point Sold Comps
+        </a>
+      </div>`;
+
   } catch (error) {
     console.error(error);
     output.innerHTML = error.message || "AI scan failed.";
