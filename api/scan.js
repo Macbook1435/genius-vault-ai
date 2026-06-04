@@ -105,6 +105,9 @@ async function fetchSoldComps(query) {
 
     const html = await response.text();
 
+    console.log("HTML LENGTH:", html.length);
+console.log(html.slice(0, 1000));
+
     const priceMatches = [...html.matchAll(/\$[\d,]+(?:\.\d{2})?/g)]
       .map((m) => m[0])
       .slice(0, 8);
