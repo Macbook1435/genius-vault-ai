@@ -61,14 +61,14 @@ function buildSoldCompQuery(scanText) {
   const parallel = cleanValue(getField(scanText, "Parallel / Insert"));
   const numbered = cleanValue(getField(scanText, "Numbered"));
 
-  const parts = [
-    year,
-    brand,
-    player,
-    cardNumber ? `#${cardNumber.replace("#", "")}` : "",
-    parallel,
-    numbered,
-  ];
+ const parts = [
+  year,
+  brand,
+  player,
+  cardNumber ? `#${cardNumber.replace("#", "")}` : "",
+  parallel,
+  numbered && numbered !== "Yes" ? numbered : "",
+];
 
   return parts
     .filter(Boolean)
