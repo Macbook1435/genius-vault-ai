@@ -294,12 +294,13 @@ async function aiScan() {
     const data = await response.json();
     const results = data.results || "No scan result returned.";
 
-    const searchText =
-      (results.match(/🔎 COPY SOLD COMP SEARCH:\s*([\s\S]*?)(?:\n\n|💰|🔗|$)/i)?.[1] ||
-      results.match(/Suggested 130point Search:\s*(.*)/i)?.[1] ||
-      results.match(/Suggested eBay Search:\s*(.*)/i)?.[1] ||
-      "sports card").trim();
-
+   const searchText =
+  (
+    results.match(/COPY SOLD COMP SEARCH:\s*([^\n\r]+)/i)?.[1] ||
+    results.match(/Suggested 130point Search:\s*([^\n\r]+)/i)?.[1] ||
+    results.match(/Suggested eBay Search:\s*([^\n\r]+)/i)?.[1] ||
+    "sports card"
+  ).trim();
     const pointUrl =
       "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
 
