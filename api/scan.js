@@ -31,18 +31,11 @@ function fileToDataUrl(file) {
 
   let mimeType = file.mimetype || "image/jpeg";
 
-  if (
-    mimeType !== "image/jpeg" &&
-    mimeType !== "image/png" &&
-    mimeType !== "image/webp"
-  ) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) {
     mimeType = "image/jpeg";
   }
 
-  const base64 = fs
-    .readFileSync(file.filepath)
-    .toString("base64")
-    .replace(/\s/g, "");
+  const base64 = fs.readFileSync(file.filepath).toString("base64").replace(/\s/g, "");
 
   return `data:${mimeType};base64,${base64}`;
 }
@@ -53,30 +46,86 @@ function getField(text, fieldName) {
   return match ? match[1].replace(/["]/g, "").trim() : "";
 }
 
-function buildSoldCompQuery(scanText) {
-  const player = getField(scanText, "Player");
-  const year = getField(scanText, "Year");
-  const brand = getField(scanText, "Brand / Set");
-  const cardNumber = getField(scanText, "Card Number");
-  const parallel = getField(scanText, "Parallel / Insert");
-  const numbered = getField(scanText, "Numbered");
+function cleanValue(value) {
+  if (!value) return "";
+  const bad = ["unknown", "n/a", "none", "no", "not visible"];
+  const cleaned = value.trim();
+  return bad.includes(cleaned.toLowerCase()) ? "" : cleaned;
+}
 
-  return [
+function buildSoldCompQuery(scanText) {
+  const player = cleanValue(getField(scanText, "Player"));
+  const year = cleanValue(getField(scanText, "Year"));
+  const brand = cleanValue(getField(scanText, "Brand / Set"));
+  const cardNumber = cleanValue(getField(scanText, "Card Number"));
+  const parallel = cleanValue(getField(scanText, "Parallel / Insert"));
+  const numbered = cleanValue(getField(scanText, "Numbered"));
+
+  const parts = [
     year,
     brand,
     player,
-    cardNumber ? `#${cardNumber}` : "",
+    cardNumber ? `#${cardNumber.replace("#", "")}` : "",
     parallel,
     numbered,
-  ]
+  ];
+
+  return parts
     .filter(Boolean)
     .join(" ")
+    .replace(/\bunknown\b/gi, "")
+    .replace(/\bno patch\b/gi, "")
+    .replace(/\bnot numbered\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function build130PointUrl(query) {
   return `https://130point.com/sales/?search=${encodeURIComponent(query)}`;
+}
+
+function cleanAiText(text) {
+  return text
+    .replace(/BACK OF CARD SCANNED SUCCESSFULLY/gi, "")
+    .replace(/COPY SOLD COMP SEARCH:/gi, "")
+    .replace(/REAL SOLD COMPS:/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function fetchSoldComps(query) {
+  try {
+    const url = build130PointUrl(query);
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
+
+    const html = await response.text();
+
+    const priceMatches = [...html.matchAll(/\$[\d,]+(?:\.\d{2})?/g)]
+      .map((m) => m[0])
+      .slice(0, 8);
+
+    if (!priceMatches.length) {
+      return {
+        url,
+        summary: "No prices auto-pulled yet. Use the 130point link below.",
+      };
+    }
+
+    return {
+      url,
+      summary: priceMatches.join(" | "),
+    };
+  } catch {
+    return {
+      url: build130PointUrl(query),
+      summary: "Sold prices could not auto-load. Use the 130point link below.",
+    };
+  }
 }
 
 export default async function handler(req, res) {
@@ -115,34 +164,28 @@ export default async function handler(req, res) {
 You are a sports card identification assistant for Koollicks Vault.
 
 CRITICAL RULES:
-- NEVER use prior sports card knowledge, checklist memory, rookie-year memory, or known player data to identify the card.
-- ONLY use text and details physically visible in the uploaded images.
-- Treat the images as the ONLY source of truth.
-- If the back image shows a year or card number, you MUST use that exact visible value.
-- Do not replace visible values with known rookie card information.
-- If text is not clearly visible, write Unknown.
-- Use the BACK image as source of truth for year, copyright date, card number, set name, and player spelling.
-- Do NOT use player career years, rookie season, stats, or biography as the card year.
-- Card year must come from copyright/set text on the card.
-- Use the FRONT image for autograph, parallel, color, rookie logo, and visual card design.
-- Only label Auto / Patch as Patch if actual fabric/material/relic is visibly embedded in the card.
-- If there is no visible fabric/material/relic, write No Patch.
-- If front and back conflict, trust the back for year/set/card number.
-- Do NOT invent eBay sold prices.
+- ONLY use visible card details from the uploaded image/images.
+- Do NOT use player memory, rookie-year memory, checklist memory, or internet knowledge.
+- The BACK image is the source of truth for year, copyright date, card number, set name, and player spelling.
+- The FRONT image is the source of truth for autograph, patch, rookie logo, color, and parallel.
+- If something is not clearly visible, write Unknown.
+- Do NOT invent sold prices.
 - Estimated Value Range must say: Needs sold comp lookup.
-- Suggested eBay Search and Suggested 130point Search should be clean search phrases only.
+- Keep search phrases clean and short.
+- Do NOT repeat sections.
+- Do NOT add extra notes after First Comment.
 
 UNLICENSED / EDGE BRAND RULE:
 If the card appears to be Wild Card, Leaf, Sage, Onyx, Bowman U, NIL, college-only, custom, or unlicensed:
 - Do NOT force Panini, Prizm, Mosaic, Absolute, Donruss, or Select.
 - Use the visible brand if readable.
 - If not readable, write Unknown or Unlicensed.
-- Confidence should be low or medium unless the brand is clearly visible.
+- Confidence should be Low or Medium unless brand text is clearly visible.
 
 Return this exact format:
 
 Possible Matches:
-1. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [high/medium/low]
+1. [year] [brand/set] [player] [parallel/insert] [numbering if visible] - Confidence: [High/Medium/Low]
 
 Best Guess:
 Player:
@@ -166,17 +209,11 @@ First Comment:
 
     const content = [
       { type: "text", text: prompt },
-      {
-        type: "image_url",
-        image_url: { url: imageBase64 },
-      },
+      { type: "image_url", image_url: { url: imageBase64 } },
     ];
 
     if (backImageBase64) {
-      content.push({
-        type: "image_url",
-        image_url: { url: backImageBase64 },
-      });
+      content.push({ type: "image_url", image_url: { url: backImageBase64 } });
     }
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -191,7 +228,7 @@ First Comment:
           {
             role: "system",
             content:
-              "You identify sports cards from images. Be conservative. Never invent missing details.",
+              "You identify sports cards from images only. Be conservative. Never invent missing details.",
           },
           {
             role: "user",
@@ -210,20 +247,25 @@ First Comment:
       });
     }
 
-    const text =
-      data?.choices?.[0]?.message?.content ||
-      "AI could not read this card.";
+    const aiText = cleanAiText(
+      data?.choices?.[0]?.message?.content || "AI could not read this card."
+    );
 
-    const soldCompQuery = buildSoldCompQuery(text);
-    const soldCompUrl = build130PointUrl(soldCompQuery);
+    const soldCompQuery =
+      cleanValue(getField(aiText, "Suggested 130point Search")) ||
+      buildSoldCompQuery(aiText);
+
+    const comps = await fetchSoldComps(soldCompQuery);
 
     const finalResults =
-      text +
-      "\n\nBACK OF CARD SCANNED SUCCESSFULLY" +
-      "\n\nCOPY SOLD COMP SEARCH:\n" +
+      aiText +
+      "\n\n✅ BACK OF CARD SCANNED SUCCESSFULLY" +
+      "\n\n🔎 COPY SOLD COMP SEARCH:\n" +
       soldCompQuery +
-      "\n\nREAL SOLD COMPS:\n" +
-      soldCompUrl;
+      "\n\n💰 AUTO-PULLED SOLD PRICE HITS:\n" +
+      comps.summary +
+      "\n\n🔗 REAL SOLD COMPS LINK:\n" +
+      comps.url;
 
     return res.status(200).json({
       results: finalResults,
