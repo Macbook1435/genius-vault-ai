@@ -1,0 +1,3 @@
+export function cleanCardField(value) { if (value == null) return ""; const text = String(value).trim(); return new Set(["unknown", "n/a", "none", "no", "not visible", "unidentified"]).has(text.toLowerCase()) ? "" : text; }
+export function hasUsableCardIdentity(card) { const player = cleanCardField(card?.player); if (!player || /^(?:sports? card|trading card|unknown player|unidentified player|player)$/i.test(player)) return false; return Boolean(cleanCardField(card?.cardNumber) || (cleanCardField(card?.brand) && cleanCardField(card?.set))); }
+export function scanConfidence(card) { if (!hasUsableCardIdentity(card)) return "low"; const score = Number(card?.matchScore); if (!Number.isFinite(score) || score < 0.6) return "low"; return score >= 0.85 ? "high" : "medium"; }
