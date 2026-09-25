@@ -305,7 +305,9 @@ const comps = data.comps || {};
     `Numbered: ${card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
     `Listing Title: ${data.soldComps?.query || "Sports card"}`,
     `Estimated Value Range: ${comps.count ? `$${comps.min}–$${comps.max} (${comps.count} sold listings; verify matches)` : "No sold prices auto-loaded"}`,
-    `Confidence: ${data.confidence || "Not available"}`,
+    `Sold comps status: ${comps.error || "No error reported"}`,
+`Sold comps status: ${comps.error || "No error reported"}`,
+  `Confidence: ${data.confidence || "Not available"}`,
     `Notes: ${card.notes || "None"}`
   ].join("\n");
 }
