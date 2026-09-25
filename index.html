@@ -292,7 +292,25 @@ async function aiScan() {
     });
 
     const data = await response.json();
-    const results = data.results || "No scan result returned.";
+    let results = data.results || "No scan result returned.";
+    const card = data.scan || {};
+const comps = data.comps || {};
+    if (data.scan) {
+  results = [
+    `Player: ${card.player || "Not identified"}`,
+    `Year: ${card.year || "Not identified"}`,
+    `Brand / Set: ${[card.brand, card.set].filter(Boolean).join(" ") || "Not identified"}`,
+    `Card Number: ${card.cardNumber || "Not identified"}`,
+    `Parallel / Insert: ${card.parallel || "Not identified"}`,
+    `Numbered: ${card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
+    `Listing Title: ${data.soldComps?.query || "Sports card"}`,
+    `Estimated Value Range: ${comps.count ? `$${comps.min}–$${comps.max} (${comps.count} sold listings; verify matches)` : "No sold prices auto-loaded"}`,
+    `Confidence: ${data.confidence || "Not available"}`,
+    `Notes: ${card.notes || "None"}`
+  ].join("\n");
+}
+
+
 
   const searchText = (data.soldComps?.query || "sports card").trim();
 
