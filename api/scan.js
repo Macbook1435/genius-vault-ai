@@ -769,6 +769,7 @@ const COMBINED_SCHEMA = {
     jerseyNumberText: { type: ["string", "null"] },
     brandNameText: { type: ["string", "null"] },
     sponsorNames: { type: "array", items: { type: "string" } },
+    eventYears: { type: "array", items: { type: "string" } },
   },
   required: [
     ...DETAIL_SCHEMA.required,
@@ -776,6 +777,7 @@ const COMBINED_SCHEMA = {
     "jerseyNumberText",
     "brandNameText",
     "sponsorNames",
+    "eventYears",
   ],
 };
 
@@ -799,6 +801,9 @@ SET AND PARALLEL:
 BRAND AND SPONSORS:
 - brandNameText: the card MANUFACTURER name exactly as printed anywhere on the card or in the copyright line (for example "Topps", "Panini", "Bowman", "Upper Deck", "Fleer", "Donruss", "Leaf"). Null if no manufacturer name is printed. Never guess from the card's design or era.
 - sponsorNames: names of sponsors, advertisers, or organizations shown on the card that are NOT the card manufacturer or set name (for example "Glaxo", "Adolescent CareUnit", a police department, a bank, a restaurant). Empty list if none.
+
+EVENT YEARS:
+- eventYears: every 4-digit year printed in the bio, draft line, stats, or write-up describing things that already happened (for example "DRAFTED: DETROIT (2) 2025" gives "2025"). Exclude birth dates and the copyright line. Empty list if none.
 
 ROOKIE:
 - rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a rookie year or season in a paragraph. Null if none.
@@ -1102,6 +1107,22 @@ Strict rules:
       }
     } else if (strongYear && !scanResult.year) {
       scanResult.year = strongYear;
+    }
+
+    // A card cannot be printed before events it describes (e.g. a 2025 draft).
+    const eventYears = (combinedCheck?.eventYears || [])
+      .map((y) => Number((String(y).match(/\b(19|20)\d\d\b/) || [])[0]))
+      .filter((y) => y && y <= new Date().getFullYear() + 1);
+    const latestEvent = eventYears.length ? Math.max(...eventYears) : null;
+    if (scanResult.year && latestEvent && scanResult.year < latestEvent) {
+      detailWarnings.push(
+        `Year removed: ${scanResult.year} is before ${latestEvent}, a year printed on the card (draft/bio). Check the copyright line.`,
+      );
+      scanResult.year = null;
+      if (scanResult.evidence) {
+        scanResult.evidence.yearText = null;
+        scanResult.evidence.copyrightLineText = null;
+      }
     }
 
     // Serial missed by the main scan: adopt it only if both independent checks agree.
