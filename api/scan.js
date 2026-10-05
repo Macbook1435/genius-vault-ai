@@ -887,6 +887,12 @@ function applyPrintedTextRules(card, combined, strong, warnings) {
     card.set = null;
   }
 
+  // Junk set names: a single letter/logo, or the brand repeated.
+  if (cleanPart(card.set) && (normWords(card.set).length < 2 || sameText(card.set, card.brand) || knownBrand(card.set) === knownBrand(card.brand) && knownBrand(card.set))) {
+    warnings.push(`Set "${card.set}" removed: it is not a real set name.`);
+    card.set = null;
+  }
+
   // 3. Brand must be printed on the card (logo text or copyright line), never guessed.
   const printedBrand = knownBrand(combined.brandNameText);
   const copyright = cleanPart(card.evidence?.copyrightLineText);
@@ -1164,7 +1170,7 @@ Strict rules:
 
     // Serial missed by the main scan: never adopt it automatically (two checks have
     // agreed on an invented serial before). Just tell the user to check.
-    if (!cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
+    if (!serialImage && !cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
       const a = cleanPart(combinedCheck?.stampedSerial);
       const b = cleanPart(strongCheck?.stampedSerial);
       if (a || b) {
