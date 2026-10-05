@@ -159,6 +159,7 @@ function buildSoldCompQuery(card) {
       : "",
     cleanPart(card.parallel),
     card.numberedTo ? `/${card.numberedTo}` : "",
+    card.rookie ? "RC" : "",
     card.autograph ? "auto" : "",
     cleanPart(card.gradingCompany),
     cleanPart(card.grade),
@@ -617,8 +618,16 @@ const DETAIL_SCHEMA = {
     productName: { type: ["string", "null"] },
     parallelName: { type: ["string", "null"] },
     parallelLocation: { type: ["string", "null"] },
+    rookieMarkText: { type: ["string", "null"] },
   },
-  required: ["cardNumberText", "cardNumberLocation", "productName", "parallelName", "parallelLocation"],
+  required: [
+    "cardNumberText",
+    "cardNumberLocation",
+    "productName",
+    "parallelName",
+    "parallelLocation",
+    "rookieMarkText",
+  ],
 };
 
 async function confirmDetails(frontImage, backImage) {
@@ -630,6 +639,7 @@ async function confirmDetails(frontImage, backImage) {
 1. cardNumberText: the card number, usually on the back in a corner, often after a label like "#", "No.", "Card", or "ID#". Return ONLY the number itself without the label (for example "FC-2", "145", "RC-12"). Keep letter prefixes. Do not add letters from nearby labels. Null if not readable.
 2. productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
 3. parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed.
+4. rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a player's rookie year or season in a paragraph. Null if no rookie mark is printed.
 Give the location of the card number and parallel text.`,
     },
     { type: "image_url", image_url: { url: frontImage, detail: "high" } },
@@ -665,6 +675,7 @@ function applyDetailCheck(card, check, warnings) {
     warnings.push("Detail check could not run; card number and parallel are unconfirmed.");
     card.cardNumber = null;
     card.parallel = null;
+    card.rookie = false;
     return;
   }
 
@@ -711,6 +722,17 @@ function applyDetailCheck(card, check, warnings) {
     card.parallel = null;
   }
   if (card.evidence) card.evidence.parallelText = card.parallel;
+
+  // --- Rookie: only true when a printed rookie mark is seen ---
+  const mark = cleanPart(check.rookieMarkText);
+  const isRookieMark = /\b(RC|ROOKIE)\b/i.test(mark);
+  if (isRookieMark && !card.rookie) {
+    warnings.push(`Rookie card mark found ("${mark}"); marked as rookie.`);
+  } else if (!isRookieMark && card.rookie) {
+    warnings.push("Rookie removed: no printed rookie mark (RC logo or \"Rookie\") was found.");
+  }
+  card.rookie = isRookieMark;
+  card.rookieMarkText = isRookieMark ? mark : null;
 }
 
 // Third read, only when the first two card-number reads disagree.
