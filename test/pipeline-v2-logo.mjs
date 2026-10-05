@@ -87,7 +87,7 @@ console.log("pipeline-v2 logo/year: all checks passed");
   x = await runPipelineV2({ scan: tbScan, raw, verification: ver, serialImage: true, tiebreak: async (c) => ({ answer: c[0].name, reason: "t", agreed: true }) });
   assert.equal(x.parallel.status, "confirmed");
   x = await runPipelineV2({ scan: tbScan, raw, verification: ver, serialImage: true, tiebreak: async (c) => ({ answer: c[0].name, reason: "t", agreed: false, second: null }) });
-  assert.equal(x.parallel.status, "confirmed"); // second look "unsure" = abstains
+  assert.equal(x.parallel.status, "probable"); // second look "unsure" → not confirmed
   // Close-up is only requested when photo reads do not agree.
   let calls = 0;
   const agreeing = reads({ copyrightYearSeen: "2026", eventYears: [] }, { copyrightYearText: "2026" }, { year: 2026 });

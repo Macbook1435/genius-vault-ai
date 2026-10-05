@@ -161,8 +161,9 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
         const pick = par.candidates.find((c) => c.name === tb.answer);
         if (pick) {
           // One closer look alone is a guess; it confirms only when a second, independent look agrees.
-          // An "unsure" second look abstains; a second look naming a DIFFERENT parallel blocks it.
-          const single = tb.agreed === false && Boolean(tb.second);
+          // Live testing showed one closer look can flip between runs, so both looks must name
+          // the same parallel to confirm it; "unsure" or a different answer leaves it Unconfirmed.
+          const single = tb.agreed === false;
           par = { ...par, parallel: pick, tiebreakAgreed: !single, tiebreakSecond: tb.second ?? null, status: printRunFromChecks || !productYearConfirmed || single ? "probable" : pick.verified ? "confirmed" : "single_source", tiebreak: tb.reason };
         }
       }
@@ -178,7 +179,7 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
     subset: sub ? { id: sub.subset.id, label: sub.subset.label, status: sub.status, steps: sub.steps, numberFits: sub.numberFits } : null,
     cardNumber: number,
     player,
-    parallel: { status: par.status, name: par.parallel?.name || null, verified: par.parallel?.verified ?? null, candidates: par.candidates.map((c) => `${c.name}${c.numberedTo ? ` /${c.numberedTo}` : ""}${c.verified ? "" : " (1 source)"}`), steps: par.steps, tiebreak: par.tiebreak || null },
+    parallel: { status: par.status, name: par.parallel?.name || null, verified: par.parallel?.verified ?? null, candidates: par.candidates.map((c) => `${c.name}${c.numberedTo ? ` /${c.numberedTo}` : ""}${c.verified ? "" : " (1 source)"}`), steps: par.steps, tiebreak: par.tiebreak || null, tiebreakAgreed: par.tiebreakAgreed ?? null, tiebreakSecond: par.tiebreakSecond ?? null },
     pipeline: fields,
     notes,
     diff: diffScans(scan, card),
