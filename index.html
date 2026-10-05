@@ -427,6 +427,17 @@ ${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector
 function generateEbay() {
   const scan = getScanText();
 
+  const verification = getLine("Verification", scan).toLowerCase();
+  if (verification.startsWith("rejected") || verification.startsWith("needs_review")) {
+    document.getElementById("ebayBox").innerHTML =
+`Listing blocked: the scan details could not be verified.
+
+${getLine("Verification", scan)}
+
+Rescan the front and back straight-on in bright light, then try again.`;
+    return;
+  }
+
   const clean = v => (v && !/not identified|needs review/i.test(v)) ? v : "";
 
   const player = clean(getLine("Player", scan)) || "Sports Card";

@@ -37,8 +37,19 @@ const CARD_SCHEMA = {
         cardNumberText: { type: ["string", "null"] },
         setOrBrandText: { type: ["string", "null"] },
         yearText: { type: ["string", "null"] },
+        copyrightLineText: { type: ["string", "null"] },
+        serialNumberText: { type: ["string", "null"] },
+        parallelText: { type: ["string", "null"] },
       },
-      required: ["playerNameText", "cardNumberText", "setOrBrandText", "yearText"],
+      required: [
+        "playerNameText",
+        "cardNumberText",
+        "setOrBrandText",
+        "yearText",
+        "copyrightLineText",
+        "serialNumberText",
+        "parallelText",
+      ],
     },
     matchScore: { type: "number", minimum: 0, maximum: 1 },
     alternates: {
@@ -365,43 +376,146 @@ function hasText(value) {
   return cleanPart(value).length >= 2;
 }
 
-// Confidence is computed from printed text the model says it read,
-// never from the model's own matchScore.
+const normalizeCode = (v) =>
+  cleanPart(v).toUpperCase().replace(/^#/, "").replace(/[^A-Z0-9]/g, "");
+
+const yearsIn = (v) => (cleanPart(v).match(/\b(18[89]\d|19\d\d|20\d\d)\b/g) || []).map(Number);
+
+// A date like 9/14/25 or 9-14-2025 is a printed date, not a serial number.
+const looksLikeDate = (v) => /^\s*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\s*$/.test(cleanPart(v));
+
+// Serial numbers look like 12/25 (numerator <= denominator).
+function parseSerial(v) {
+  const m = cleanPart(v).match(/^\s*(\d{1,4})\s*\/\s*(\d{1,4})\s*$/);
+  if (!m) return null;
+  const num = Number(m[1]);
+  const den = Number(m[2]);
+  if (!num || !den || num > den) return null;
+  return { num, den };
+}
+
+// Checks every detail against the text the model says it read off the card.
+// Hard conflicts -> "rejected" (no title, no pricing).
+// Unsupported details -> field is cleared and a warning is added.
+// Confidence never comes from the model's own matchScore.
 function verifyIdentity(card) {
   const ev = card.evidence || {};
   const warnings = [];
+  const rejected = [];
+  const cleared = [];
 
+  const clear = (field, reason) => {
+    if (card[field] !== null && card[field] !== undefined && card[field] !== false) {
+      cleared.push(field);
+      warnings.push(reason);
+    }
+    card[field] = typeof card[field] === "boolean" ? false : null;
+  };
+
+  // --- Player ---
   const playerOk = hasText(ev.playerNameText) && hasText(card.player);
-  const numberOk = cleanPart(ev.cardNumberText).length >= 1;
-  const setOk = hasText(ev.setOrBrandText);
-  const yearOk = hasText(ev.yearText);
-
   if (!playerOk) warnings.push("Player name is not printed clearly enough to verify.");
-  if (!numberOk) warnings.push("Card number was not readable.");
-  if (!setOk) warnings.push("Set or brand name was not readable.");
-  if (!yearOk) warnings.push("Year/copyright line was not readable.");
-
-  // If the player name read off the card doesn't match the identified player, block it.
   if (playerOk) {
     const last = cleanPart(card.player).split(/\s+/).pop().toLowerCase();
     if (!cleanPart(ev.playerNameText).toLowerCase().includes(last)) {
-      warnings.push("Identified player does not match the name printed on the card.");
+      rejected.push("Identified player does not match the name printed on the card.");
+    }
+  }
+
+  // --- Year: must match the copyright line when it is readable ---
+  const currentYear = new Date().getFullYear();
+  const copyrightYears = yearsIn(ev.copyrightLineText);
+  const evidenceYears = [...copyrightYears, ...yearsIn(ev.yearText)];
+  let yearOk = false;
+
+  if (card.year && (card.year < 1880 || card.year > currentYear + 1)) {
+    rejected.push(`Year ${card.year} is not a possible card year.`);
+  } else if (card.year && copyrightYears.length && !copyrightYears.includes(card.year)) {
+    // Card copyright years are usually the release year (or one year earlier for some sets).
+    const closest = Math.max(...copyrightYears);
+    if (card.year !== closest + 1) {
+      rejected.push(
+        `Year ${card.year} does not match the copyright line (${copyrightYears.join(", ")}).`,
+      );
+    } else yearOk = true;
+  } else if (card.year && evidenceYears.length && !evidenceYears.includes(card.year)) {
+    rejected.push(`Year ${card.year} does not match the year printed on the card.`);
+  } else if (card.year && evidenceYears.length) {
+    yearOk = true;
+  } else {
+    warnings.push("Year/copyright line was not readable.");
+  }
+
+  // --- Card number: must match the printed card number exactly ---
+  let numberOk = false;
+  if (cleanPart(card.cardNumber)) {
+    const printed = normalizeCode(ev.cardNumberText);
+    const claimed = normalizeCode(card.cardNumber);
+    if (!printed) {
+      clear("cardNumber", "Card number removed: it was not readable on the card.");
+    } else if (printed !== claimed && !printed.endsWith(claimed) && !claimed.endsWith(printed)) {
+      rejected.push(`Card number ${card.cardNumber} does not match the printed text "${ev.cardNumberText}".`);
+    } else if (printed !== claimed) {
+      // e.g. scanner said "C-2" but the card says "FC-2" -> partial read, reject.
+      rejected.push(`Card number ${card.cardNumber} is incomplete; the card shows "${ev.cardNumberText}".`);
+    } else {
+      numberOk = true;
+    }
+  } else {
+    warnings.push("Card number was not readable.");
+  }
+
+  // --- Set / brand ---
+  const setOk = hasText(ev.setOrBrandText);
+  if (!setOk) warnings.push("Set or brand name was not readable.");
+
+  // --- Serial number ---
+  const serialText = cleanPart(card.serialNumber) || cleanPart(ev.serialNumberText);
+  if (serialText && looksLikeDate(serialText)) {
+    clear("serialNumber", `"${serialText}" is a printed date, not a serial number.`);
+    clear("numberedTo", "Numbered-to removed: no real serial number was found.");
+  } else if (cleanPart(card.serialNumber)) {
+    const serial = parseSerial(card.serialNumber);
+    if (!serial) {
+      clear("serialNumber", `Serial number "${card.serialNumber}" is not a valid format (should look like 12/25).`);
+      clear("numberedTo", "Numbered-to removed: no valid serial number was found.");
+    } else if (!cleanPart(ev.serialNumberText)) {
+      clear("serialNumber", "Serial number removed: it was not read from the card.");
+      clear("numberedTo", "Numbered-to removed: no serial number was read from the card.");
+    } else if (card.numberedTo && card.numberedTo !== serial.den) {
+      rejected.push(`Numbered to /${card.numberedTo} does not match serial ${card.serialNumber}.`);
+    } else {
+      card.numberedTo = serial.den;
+    }
+  } else if (card.numberedTo) {
+    clear("numberedTo", "Numbered-to removed: no serial number was visible.");
+  }
+
+  // --- Parallel: must be a name, not a serial or date ---
+  const par = cleanPart(card.parallel);
+  if (par) {
+    if (/^\s*\d+\s*\/\s*\d+/.test(par) || looksLikeDate(par)) {
+      clear("parallel", `Parallel "${par}" looks like a number or date, not a parallel name.`);
+    } else if (!hasText(ev.parallelText)) {
+      warnings.push("Parallel was not printed on the card; please confirm it.");
     }
   }
 
   const strong = [playerOk, numberOk, setOk, yearOk].filter(Boolean).length;
-  const mismatch = warnings.some((w) => w.includes("does not match"));
+  warnings.unshift(...rejected);
 
   let status = "needs_review";
-  if (!mismatch && playerOk && strong >= 3) status = "verified";
-  else if (!mismatch && playerOk && strong >= 2) status = "likely";
+  if (rejected.length) status = "rejected";
+  else if (playerOk && strong >= 4) status = "verified";
+  else if (playerOk && strong >= 3) status = "likely";
 
-  return { status, warnings, strongIdentifiers: strong };
+  return { status, warnings, rejected, cleared, strongIdentifiers: strong };
 }
 
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
+  if (verification.status === "rejected") return "rejected";
   return "needs review";
 }
 
@@ -492,7 +606,14 @@ export default async function handler(req, res) {
         type: "text",
         text: `Identify this sports card from the supplied front and optional back images.
 
-Use visible evidence first. In "evidence", copy the EXACT text you can read printed on the card for the player name, card number, set/brand, and year/copyright line. If you cannot read it, use null. Never fill a field from team logos, uniforms, or what seems likely. If the player name is not legible, set player to null and matchScore below 0.5. The back image should confirm the year, set, card number, serial numbering, and parallel. matchScore must be from 0 to 1 and represent confidence in the complete identification. Provide 2 to 5 plausible alternate identifications, especially nearby parallels or sets that look similar. Do not claim a serial number, autograph, memorabilia feature, grade, or rookie designation unless it is visible or strongly supported. An alternate may repeat the player but must differ by set, card number, year, or parallel.`,
+Use visible evidence first. In "evidence", copy the EXACT text you can read printed on the card for the player name, card number, set/brand, and year/copyright line. If you cannot read it, use null. Never fill a field from team logos, uniforms, or what seems likely. If the player name is not legible, set player to null and matchScore below 0.5. The back image should confirm the year, set, card number, serial numbering, and parallel. matchScore must be from 0 to 1 and represent confidence in the complete identification. Provide 2 to 5 plausible alternate identifications, especially nearby parallels or sets that look similar. Do not claim a serial number, autograph, memorabilia feature, grade, or rookie designation unless it is visible or strongly supported. An alternate may repeat the player but must differ by set, card number, year, or parallel.
+
+Strict rules:
+- "year" must come from the copyright line on the back (for example "© 2025 The Topps Company"). Copy that whole line into evidence.copyrightLineText.
+- "cardNumber" must be copied character-for-character from the printed card number, including letter prefixes (for example "FC-2", not "C-2").
+- "serialNumber" is ONLY a stamped serial like "07/25" or "12/99". Dates such as "9/14/25" (often printed under "Rookie Debut" or similar) are NOT serial numbers. Copy a real serial into evidence.serialNumberText; otherwise use null for serialNumber, numberedTo, and serialNumberText.
+- "parallel" is the NAME of the parallel or insert printed on the card (for example "Signature Class Airlines", "Gold Refractor"). Never put a number or serial in "parallel". Copy the printed parallel/insert text into evidence.parallelText, or null.
+- Only list real, existing products as alternates.`,
       },
       {
         type: "image_url",
@@ -552,7 +673,8 @@ Use visible evidence first. In "evidence", copy the EXACT text you can read prin
 
     const verification = verifyIdentity(scanResult);
     const confidence = getConfidence(verification);
-    const identityTrusted = verification.status !== "needs_review";
+    const identityTrusted =
+      verification.status === "verified" || verification.status === "likely";
 
     // Unverified identities never reach pricing or listing titles.
     const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
@@ -571,6 +693,8 @@ Use visible evidence first. In "evidence", copy the EXACT text you can read prin
 
     const readoutSummary = identityTrusted
       ? buildReadoutSummary(scanResult, comps)
+      : verification.status === "rejected"
+      ? `Scan rejected: ${verification.rejected.join(" ")} Rescan the front and back straight-on in bright light.`
       : "Identification needs review. I could not reliably verify the player, set, or card number. Rescan the front and back in bright light with the nameplate and card number fully visible.";
 
     const legacySummary = comps.count
@@ -600,7 +724,7 @@ Use visible evidence first. In "evidence", copy the EXACT text you can read prin
         error: comps.error,
       },
       readoutSummary,
-      alternates,
+      alternates: identityTrusted ? alternates : [],
       soldComps: {
         query,
         url: comps.searchUrl,
