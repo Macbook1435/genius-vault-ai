@@ -2,9 +2,13 @@
 import assert from "assert/strict";
 import { runPipelineV2, pipelineV2Mode } from "../api/_lib/pipeline-v2.js";
 
-assert.equal(pipelineV2Mode({}), "off");
+assert.equal(pipelineV2Mode({}), "primary");
 assert.equal(pipelineV2Mode({ pipeline: ["v2-shadow"] }), "shadow");
-assert.equal(pipelineV2Mode({ pipeline: "v2" }), "off"); // only the exact test value turns it on
+assert.equal(pipelineV2Mode({ pipeline: "v1" }), "off");
+process.env.GV_PIPELINE = "v1";
+assert.equal(pipelineV2Mode({}), "off"); // emergency switch
+assert.equal(pipelineV2Mode({ pipeline: ["v2-shadow"] }), "shadow");
+delete process.env.GV_PIPELINE;
 
 const scan = { player: "ALEX DE'MARCO", year: 2025, brand: "Topps", set: "Chrome", cardNumber: "RA-XY5", parallel: "Rookie Autograph", numberedTo: 250, rookie: true, autograph: true, serialNumber: null };
 const raw = {

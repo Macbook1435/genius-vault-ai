@@ -770,10 +770,14 @@ async function askVision({ model, prompt, name, schema, frontImage, backImage, m
     completion = await call();
   } catch (e) {
     if (e?.status !== 429) throw e;
-    // Rate limited: wait briefly, then try once more.
-    const wait = Math.min(Number(e?.headers?.["retry-after"]) * 1000 || 2000, 8000);
-    await new Promise((r) => setTimeout(r, wait));
-    completion = await call();
+    // Rate limited: wait briefly and try again (up to 2 more times).
+    let last = e;
+    for (let i = 0; i < 2; i++) {
+      const wait = Math.min(Number(last?.headers?.["retry-after"]) * 1000 || 2000 * (i + 1), 8000);
+      await new Promise((r) => setTimeout(r, wait));
+      try { completion = await call(); last = null; break; } catch (e2) { if (e2?.status !== 429) throw e2; last = e2; }
+    }
+    if (last) throw last;
   }
 
   const text = completion.choices[0]?.message?.content;
@@ -1630,7 +1634,7 @@ Strict rules:
       if (setText.toLowerCase().startsWith(b.toLowerCase() + " ")) scanResult.set = setText.slice(b.length + 1);
     }
 
-    // ---- Pipeline v2 (switched off unless requested) ----
+    // ---- Pipeline v2 (the live scanner; GV_PIPELINE=v1 switches back to v1) ----
     let v2 = null;
     if (v2Mode !== "off") {
       try {
@@ -1658,6 +1662,15 @@ Strict rules:
         if (v2Mode === "primary" && v2?.scan) {
           for (const k of ["player", "cardNumber", "parallel"]) scanResult[k] = v2.scan[k];
           if (scanResult.evidence) scanResult.evidence.cardNumberText = v2.scan.cardNumber;
+          // Year and set from the checklist only when v2 confirmed them; otherwise keep the read.
+          const vf = v2.pipeline?.fields || {};
+          if (vf.year?.status === "confirmed" && vf.year.value) scanResult.year = vf.year.value;
+          if (vf.set?.status === "confirmed" && vf.set.value) {
+            const brand = String(scanResult.brand || "").trim();
+            let setName = String(vf.set.value).replace(/^\d{4}(-\d{2})?\s+/, "");
+            if (brand && setName.toLowerCase().startsWith(brand.toLowerCase() + " ")) setName = setName.slice(brand.length + 1);
+            scanResult.set = setName;
+          }
         }
       } catch (e) {
         console.error("pipeline v2 error:", e);

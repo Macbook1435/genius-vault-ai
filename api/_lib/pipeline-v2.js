@@ -1,10 +1,11 @@
 // Pipeline v2: generic card-number + player-name agreement and product/subset checklists.
 //
-// Switch:
-//   default                         → "off": nothing here runs; the scanner is unchanged.
-//   form field pipeline=v2-shadow   → "shadow": runs next to v1, result returned under "v2" only.
-//   env GV_PIPELINE=v2              → "primary": v2 results replace v1 player/card number/parallel.
-// Turning it off again = remove GV_PIPELINE (or set it to anything else).
+// Switch (v2 is the live scanner since 2026-10-05):
+//   default                         → "primary": v2 results replace v1 player/card number/parallel,
+//                                     and confirmed year/set.
+//   form field pipeline=v2-shadow   → "shadow": v1 result kept, v2 returned under "v2" with debug reads.
+//   form field pipeline=v1          → "off" for that one scan (comparison testing).
+//   env GV_PIPELINE=v1              → "off" for everyone: the emergency switch back to the old scanner.
 import { resolveCardNumberReads, cleanCardNumber } from "./card-number.js";
 import { resolvePlayerNameReads } from "./player-name.js";
 import { findProduct, findSubset, logoProducts, getProduct } from "./checklist-registry.js";
@@ -13,10 +14,11 @@ import { matchParallel, isCardTypeNotParallel } from "./parallel-match.js";
 import { buildFieldVerification } from "./verification.js";
 
 export function pipelineV2Mode(fields) {
-  if (process.env.GV_PIPELINE === "v2") return "primary";
   const f = fields?.pipeline;
   const v = Array.isArray(f) ? f[0] : f;
-  return v === "v2-shadow" ? "shadow" : "off";
+  if (v === "v2-shadow") return "shadow";
+  if (process.env.GV_PIPELINE === "v1" || v === "v1") return "off";
+  return "primary";
 }
 
 // Extra fields the two checks return when v2 runs: sport, the copyright year (check A did
