@@ -512,6 +512,98 @@ function verifyIdentity(card) {
   return { status, warnings, rejected, cleared, strongIdentifiers: strong };
 }
 
+// Second, independent read focused only on serial numbers.
+// The first scan's serial is kept only if this pass confirms the same serial
+// and it is not part of a printed date.
+const SERIAL_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    slashTexts: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          text: { type: "string" },
+          location: { type: "string" },
+          kind: { type: "string", enum: ["stamped_serial", "date", "other"] },
+        },
+        required: ["text", "location", "kind"],
+      },
+    },
+    stampedSerial: { type: ["string", "null"] },
+  },
+  required: ["slashTexts", "stampedSerial"],
+};
+
+async function confirmSerial(frontImage, backImage) {
+  const content = [
+    {
+      type: "text",
+      text: `Look ONLY for text containing a slash ("/") on this sports card.
+List every piece of text with a slash exactly as printed, where it is, and its kind:
+- "stamped_serial": a standalone serial number such as "07/25" or "112/199", usually foil-stamped or printed alone in a small area.
+- "date": any date such as "9/14/25" or "09/14/2025", including dates under labels like "Rookie Debut".
+- "other": anything else.
+Set stampedSerial to the exact stamped serial text, or null if there is none.
+Never build a serial from parts of a date or from other numbers such as gate or seat numbers. If unsure, use null.`,
+    },
+    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
+  ];
+  if (backImage) {
+    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
+  }
+
+  const completion = await openai.chat.completions.create({
+    model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+    messages: [{ role: "user", content }],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "serial_check", strict: true, schema: SERIAL_SCHEMA },
+    },
+    max_tokens: 500,
+  });
+
+  const text = completion.choices[0]?.message?.content;
+  return text ? JSON.parse(text) : null;
+}
+
+function applySerialCheck(card, check, warnings) {
+  if (!cleanPart(card.serialNumber) && !card.numberedTo) return;
+
+  const claimed = parseSerial(card.serialNumber);
+  const confirmed = check ? parseSerial(check.stampedSerial) : null;
+  const dates = (check?.slashTexts || [])
+    .filter((t) => t.kind === "date" || looksLikeDate(t.text))
+    .map((t) => t.text);
+
+  // Do the serial's numbers come from a printed date? e.g. "09/25" from "9/14/25".
+  const fromDate =
+    claimed &&
+    dates.some((d) => {
+      const parts = d.split(/[\/.-]/).map(Number);
+      return parts.includes(claimed.num) && parts.includes(claimed.den);
+    });
+
+  let reason = null;
+  if (!check) reason = "Serial number removed: the serial check could not run.";
+  else if (!confirmed) reason = "Serial number removed: a second check found no stamped serial on the card.";
+  else if (!claimed || confirmed.num !== claimed.num || confirmed.den !== claimed.den)
+    reason = `Serial number removed: the second check read "${check.stampedSerial}", not "${card.serialNumber}".`;
+  else if (fromDate)
+    reason = `Serial number removed: "${card.serialNumber}" matches the printed date ${dates.join(", ")}.`;
+
+  if (reason) {
+    card.serialNumber = null;
+    card.numberedTo = null;
+    if (card.evidence) card.evidence.serialNumberText = null;
+    warnings.push(reason);
+  } else {
+    card.numberedTo = claimed.den;
+  }
+}
+
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
@@ -672,6 +764,17 @@ Strict rules:
     delete scanResult.alternates;
 
     const verification = verifyIdentity(scanResult);
+
+    if (cleanPart(scanResult.serialNumber) || scanResult.numberedTo) {
+      let serialCheck = null;
+      try {
+        serialCheck = await confirmSerial(frontImage, backImage);
+      } catch (e) {
+        console.error("serial check failed:", e);
+      }
+      applySerialCheck(scanResult, serialCheck, verification.warnings);
+      verification.serialCheck = serialCheck;
+    }
     const confidence = getConfidence(verification);
     const identityTrusted =
       verification.status === "verified" || verification.status === "likely";
