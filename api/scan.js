@@ -1721,7 +1721,7 @@ Strict rules:
         error: comps.error,
       },
       pipeline: v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline,
-      ...(v2Mode !== "off" ? { v2: { mode: v2Mode, ...v2, pipelineV1: pipeline } } : {}),
+      ...(v2Mode !== "off" ? { v2: { mode: v2Mode, ...v2, pipelineV1: pipeline, ...(v2Mode === "shadow" ? { debug: { raw: rawReads } } : {}) } } : {}),
       market,
       integrations: integrationStatus({ cardsight: cardsightConfigured(), ebay: ebayConfigured() }),
       readoutSummary,
