@@ -1,0 +1,182 @@
+SOURCE: https://cardsmithsbreaks.com/full-checklist/2025-panini-prizm-football/
+## Base veterans (#1-300)
+Base Prizm Black and Blue Checker — unnumbered  
+Base Prizm Black and Red Checker — unnumbered  
+Base Prizm Black and White Checker — unnumbered  
+Base Prizm Blue — unnumbered  
+Base Prizm Choice Blue Yellow and Green — unnumbered  
+Base Prizm Choice Tiger Stripe — unnumbered  
+Base Prizm Green Flash — unnumbered  
+Base Prizm Green Ice — unnumbered  
+Base Prizm Green Wave — unnumbered  
+Base Prizm Lazer — unnumbered  
+Base Prizm Neon Green Pulsar — unnumbered  
+Base Prizm No Huddle — unnumbered  
+Base Prizm Orange Ice — unnumbered  
+Base Prizm Pink — unnumbered  
+Base Prizm Pink Wave — unnumbered  
+Base Prizm Press Proof — unnumbered  
+Base Prizm Purple Pulsar — unnumbered  
+Base Prizm Red — unnumbered  
+Base Prizm Red Flash — unnumbered  
+Base Prizm Red Sparkle — unnumbered  
+Base Prizm Red White and Blue — unnumbered  
+Base Prizm Silver — unnumbered  
+Base Prizm Snakeskin — unnumbered  
+Base Prizm White Disco — unnumbered  
+Base Prizm White Sparkle — unnumbered  
+Base Prizm Pandora — /400  
+Base Prizm Orange — /249  
+Base Prizm Blue Wave — /230  
+Base Prizm Purple Ice — /225  
+Base Prizm Hyper — /200  
+Base Prizm Pigskin — /180  
+Base Prizm Red Wave — /149  
+Base Prizm No Huddle Blue — /125  
+Base Prizm Purple — /125  
+Base Prizm Blue Ice — /99  
+Base Prizm No Huddle Red — /99  
+Base Prizm Purple Wave — /99  
+Base Prizm Blue Sparkle — /96  
+Base Prizm Green Scope — /75  
+Base Prizm No Huddle Purple — /75  
+Base Prizm Orange Wave — /65  
+Base Prizm Kangaroo — /61  
+Base Prizm Super Bowl LX — /60  
+Base Prizm Purple Power — /49  
+Base Prizm Red Shimmer — /49  
+Base Prizm Red and Yellow — /44  
+Base Prizm Blue Shimmer — /35  
+Base Prizm White — /35  
+Base Prizm Navy Camo — /25  
+Base Prizm No Huddle Pink — /25  
+Base Prizm Gold Sparkle — /24  
+Base Prizm Choice Red — /20  
+Base Prizm Panini Logo — /20  
+Base Prizm Lotus Flower — /18  
+Base Prizm Choice Cherry Blossom — /15  
+Base Prizm Forest Camo — /15  
+Base Prizm Purple Shimmer — /15  
+Base Prizm Choice Blue — /14  
+Base Prizm Choice Gold — /10  
+Base Prizm Gold — /10  
+Base Prizm Gold Shimmer — /10  
+Base Prizm Gold Wave — /10  
+Base Prizm No Huddle Neon Green — /10  
+Base Prizm Green Sparkle — /8  
+Base Prizm Plum Blossom — /8  
+Base Prizm Gold Vinyl — /5  
+Base Prizm Green Shimmer — /5  
+Base Prizm White Knight — /3  
+Base Prizm Black Finite — 1/1  
+Base Prizm Black Shimmer — 1/1  
+Base Prizm Black Stars — 1/1  
+Base Prizm Choice Nebula — 1/1  
+
+## Base rookies (#301-400)
+Rookie Prizm Black and Blue Checker — unnumbered  
+Rookie Prizm Black and Red Checker — unnumbered  
+Rookie Prizm Black and White Checker — unnumbered  
+Rookie Prizm Blue — unnumbered  
+Rookie Prizm Choice Blue Yellow and Green — unnumbered  
+Rookie Prizm Choice Tiger Stripe — unnumbered  
+Rookie Prizm Green Flash — unnumbered  
+Rookie Prizm Green Ice — unnumbered  
+Rookie Prizm Green Wave — unnumbered  
+Rookie Prizm Lazer — unnumbered  
+Rookie Prizm Neon Green Pulsar — unnumbered  
+Rookie Prizm No Huddle — unnumbered  
+Rookie Prizm Orange Ice — unnumbered  
+Rookie Prizm Pink — unnumbered  
+Rookie Prizm Pink Wave — unnumbered  
+Rookie Prizm Press Proof — unnumbered  
+Rookie Prizm Purple Pulsar — unnumbered  
+Rookie Prizm Red — unnumbered  
+Rookie Prizm Red Flash — unnumbered  
+Rookie Prizm Red Sparkle — unnumbered  
+Rookie Prizm Red White and Blue — unnumbered  
+Rookie Prizm Silver — unnumbered  
+Rookie Prizm Snakeskin — unnumbered  
+Rookie Prizm White Disco — unnumbered  
+Rookie Prizm White Sparkle — unnumbered  
+Rookie Prizm Pandora — /400  
+Rookie Prizm Orange — /249  
+Rookie Prizm Blue Wave — /230  
+Rookie Prizm Purple Ice — /225  
+Rookie Prizm Hyper — /200  
+Rookie Prizm Pigskin — /180  
+Rookie Prizm Red Wave — /149  
+Rookie Prizm No Huddle Blue — /125  
+Rookie Prizm Purple — /125  
+Rookie Prizm Blue Ice — /99  
+Rookie Prizm No Huddle Red — /99  
+Rookie Prizm Purple Wave — /99  
+Rookie Prizm Blue Sparkle — /96  
+Rookie Prizm Green Scope — /75  
+Rookie Prizm No Huddle Purple — /75  
+Rookie Prizm Orange Wave — /65  
+Rookie Prizm Kangaroo — /61  
+Rookie Prizm Super Bowl LX — /60  
+Rookie Prizm Purple Power — /49  
+Rookie Prizm Red Shimmer — /49  
+Rookie Prizm Red and Yellow — /44  
+Rookie Prizm Blue Shimmer — /35  
+Rookie Prizm White — /35  
+Rookie Prizm Navy Camo — /25  
+Rookie Prizm No Huddle Pink — /25  
+Rookie Prizm Gold Sparkle — /24  
+Rookie Prizm Choice Red — /20  
+Rookie Prizm Panini Logo — /20  
+Rookie Prizm Lotus Flower — /18  
+Rookie Prizm Choice Cherry Blossom — /15  
+Rookie Prizm Forest Camo — /15  
+Rookie Prizm Purple Shimmer — /15  
+Rookie Prizm Choice Blue — /14  
+Rookie Prizm Choice Gold — /10  
+Rookie Prizm Gold — /10  
+Rookie Prizm Gold Shimmer — /10  
+Rookie Prizm Gold Wave — /10  
+Rookie Prizm No Huddle Neon Green — /10  
+Rookie Prizm Green Sparkle — /8  
+Rookie Prizm Plum Blossom — /8  
+Rookie Prizm Gold Vinyl — /5  
+Rookie Prizm Green Shimmer — /5  
+Rookie Prizm White Knight — /3  
+Rookie Prizm Black Finite — 1/1  
+Rookie Prizm Black Shimmer — 1/1  
+Rookie Prizm Choice Nebula — 1/1  
+Rookies Prizm Black Stars — 1/1  
+
+## Rookie autographs (#301-400)
+Rookie Autographs Prizm Silver — unnumbered  
+Rookie Autographs Prizm No Huddle — unnumbered  
+Rookie Autographs Prizm Pink — unnumbered  
+Rookie Autographs Prizm Purple Pulsar — unnumbered  
+Rookie Autographs Prizm Red Wave — /149  
+Rookie Prizm Choice Auto — /100  
+Rookie Autographs Prizm Green Scope — /75  
+Rookie Autographs Prizm Purple Power — /49  
+Rookie Autographs Prizm Red Shimmer — /35  
+Rookie Autographs Prizm Blue Shimmer — /25  
+Rookie Autographs Prizm Camo — /25  
+Rookie Autographs Prizm Gold — /10  
+Rookie Autographs Prizm No Huddle Gold — /10  
+Rookie Autographs Prizm Gold Vinyl — /5  
+Rookie Autographs Prizm Green Shimmer — /5  
+Rookie Autographs Prizm Black Finite — 1/1  
+Rookie Autographs Prizm Black Shimmer — 1/1  
+Rookie Autographs Prizm No Huddle Black — 1/1  
+Rookie Autographs Prizm White Sparkle — 1/1  
+
+## Base autographs (#1-300)
+Base Autographs Prizm Silver — unnumbered  
+Base Autographs Prizm Red Shimmer — /35  
+Base Autographs Prizm Blue Shimmer — /25  
+Base Autographs Prizm Green Shimmer — /5  
+Base Autographs Prizm Black Shimmer — 1/1  
+
+## Prospects (not listed)
+The page does not list a prospects subset or prospect parallels.
+
+## Prospect autographs (not listed)
+The page does not list a prospect-autographs subset or prospect-autograph parallels.

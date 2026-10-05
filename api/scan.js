@@ -3,6 +3,8 @@ import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
+import { promptExamples } from "./_lib/prompt-examples.js";
+import { runPipelineV2, pipelineV2Mode, V2_COMBINED_EXTRA } from "./_lib/pipeline-v2.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 
@@ -461,7 +463,7 @@ function verifyIdentity(card) {
     } else if (printed !== claimed && !printed.endsWith(claimed) && !claimed.endsWith(printed)) {
       rejected.push(`Card number ${card.cardNumber} does not match the printed text "${ev.cardNumberText}".`);
     } else if (printed !== claimed) {
-      // e.g. scanner said "C-2" but the card says "FC-2" -> partial read, reject.
+      // e.g. scanner said "B-7" but the card says "AB-7" -> partial read, reject.
       rejected.push(`Card number ${card.cardNumber} is incomplete; the card shows "${ev.cardNumberText}".`);
     } else {
       numberOk = true;
@@ -666,7 +668,7 @@ function applyDetailCheck(card, check, warnings) {
     card.parallel = null;
   }
 
-  // Remove a parallel name that leaked into the brand, e.g. "Topps Signature Class Airlines".
+  // Remove a parallel name that leaked into the brand, e.g. "Topps Gold Refractor".
   if (card.parallel && cleanPart(card.brand).toLowerCase().includes(card.parallel.toLowerCase())) {
     card.brand = cleanPart(card.brand.replace(new RegExp(card.parallel, "i"), "")) || card.brand;
   }
@@ -699,7 +701,7 @@ function resolveCardNumber(earlier, strongText) {
     return { value: null, warning: "Card number removed: the stronger check could not read it." };
   }
   const lookAlike = (v) => v.replace(/5/g, "S").replace(/0/g, "O").replace(/[1L]/g, "I").replace(/8/g, "B").replace(/2/g, "Z");
-  // Tie between look-alike spellings (e.g. "RA-ITS" vs "RA-1TS"): prefer the one whose
+  // Tie between look-alike spellings (e.g. "AB-XYS" vs "AB-XY5"): prefer the one whose
   // dash-separated parts are all letters or all digits, which is how card codes are printed.
   const raw = [...earlier.map(cleanPart).filter(Boolean), cleanPart(strongText)];
   const lookGroup = raw.filter((v) => lookAlike(strip(v)) === lookAlike(strong));
@@ -730,7 +732,7 @@ function resolveCardNumber(earlier, strongText) {
       };
     }
   }
-  // Earlier reads dropped a prefix (e.g. "C-2" vs "FC-2"): trust the fuller strong read.
+  // Earlier reads dropped a prefix (e.g. "B-7" vs "AB-7"): trust the fuller strong read.
   if (reads.length && reads.every((r) => strong.endsWith(r) && strong.length > r.length)) {
     return {
       value: cleanPart(strongText).replace(/^#/, ""),
@@ -785,11 +787,11 @@ Set stampedSerial to the exact stamped serial text, or null if there is none.
 Never build a serial from parts of a date or from other numbers such as gate, seat, row, flight, or jersey numbers. Most cards have NO serial number; null is the expected answer unless you can clearly see one.
 If you report a stamped serial, set stampedSerialSide to "front" or "back" and describe it in stampedSerialAppearance (for example "gold foil, bottom right corner"). Otherwise set both to null.`;
 
-const CARD_NUMBER_PROMPT = `CARD NUMBER:
+const cardNumberPrompt = (ex) => `CARD NUMBER:
 The card number is usually on the back, often in a corner box, sometimes after a label like "ID#", "#", "No.", or "Card".
-Zoom in and read every character, especially any letters before a dash (for example "FC-2", "RC-12", "BDC-45", "101").
+Zoom in and read every character, especially any letters before a dash (for example ${ex.cardNumberLetters}).
 Return ONLY the number itself without the label text. Null if you cannot read it with certainty.
-A JERSEY/UNIFORM number is NOT a card number. Numbers shown next to the player's name or position (for example "Freshman #32", "QB #8") or on the uniform are jersey numbers. If the only number you see is a jersey number, return null.
+A JERSEY/UNIFORM number is NOT a card number. Numbers shown next to the player's name or position (for example ${ex.jerseyExample}) or on the uniform are jersey numbers. If the only number you see is a jersey number, return null.
 Also report the jersey number in jerseyNumberText (digits only, e.g. "32"), or null if none is printed.`;
 
 // Check A (cheaper model): card number, set, parallel, rookie mark, and serial — one call.
@@ -820,41 +822,45 @@ const COMBINED_SCHEMA = {
   ],
 };
 
-function runCombinedCheck(frontImage, backImage) {
+function runCombinedCheck(frontImage, backImage, ex = promptExamples(false), v2 = false) {
   return askVision({
     model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
     name: "combined_check",
-    schema: COMBINED_SCHEMA,
+    schema: v2 ? {
+      ...COMBINED_SCHEMA,
+      properties: { ...COMBINED_SCHEMA.properties, ...V2_COMBINED_EXTRA.properties },
+      required: [...COMBINED_SCHEMA.required, ...V2_COMBINED_EXTRA.required],
+    } : COMBINED_SCHEMA,
     maxTokens: 800,
     frontImage,
     backImage,
     prompt: `Read these details from this sports card exactly as printed. Do not guess.
 
-${CARD_NUMBER_PROMPT}
+${cardNumberPrompt(ex)}
 Put it in cardNumberText and its location in cardNumberLocation.
 
 SET AND PARALLEL:
-- productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
-- parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed. Give its location in parallelLocation.
+- productName: the product/set name from the main logo (for example ${ex.productName}). Not the parallel.
+- parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example ${ex.parallelName}). Must be different from productName. Null if none is printed. Give its location in parallelLocation.
 
 PLAYER NAME:
-- playerNameText: the player's full name exactly as printed on the nameplate, letter by letter (stylized capitals like "TeSlaa" are one word). Null if not readable.
+- playerNameText: the player's full name exactly as printed on the nameplate, letter by letter (stylized capitals like ${ex.stylizedName} are one word). Null if not readable.
 
 BRAND AND SPONSORS:
 - brandNameText: the card MANUFACTURER name exactly as printed anywhere on the card or in the copyright line (for example "Topps", "Panini", "Bowman", "Upper Deck", "Fleer", "Donruss", "Leaf"). Null if no manufacturer name is printed. Never guess from the card's design or era.
-- sponsorNames: names of sponsors, advertisers, or organizations shown on the card that are NOT the card manufacturer or set name (for example "Glaxo", "Adolescent CareUnit", a police department, a bank, a restaurant). Empty list if none.
+- sponsorNames: names of sponsors, advertisers, or organizations shown on the card that are NOT the card manufacturer or set name (for example ${ex.sponsorList}). Empty list if none.
 
 PARALLEL APPEARANCE (describe what you SEE, do not name the parallel):
 - parallelColor: the main color of the card's colored border/background tint that marks the parallel, as one simple word (pink, blue, gold, green, purple, orange, red, black, aqua, teal, yellow, white, silver). Null if the card is the plain base color.
 - parallelFinish: the surface pattern. "plain_refractor" = smooth rainbow shine with no pattern; "wave" = wavy lines; "lava" = bubbly lava-lamp blobs; "geometric" = repeating shapes; "football_leather" = pebbled leather texture; "prizm" = cracked-glass/prizm lines; "xfractor" = grid of small squares; "pulsar" = dots; "raywave" = rays; "shimmer"; "mojo"; "cracked_ice"; "no_shine" = paper/matte; "other"; or "unknown".
 
 EVENT YEARS:
-- eventYears: every 4-digit year printed in the bio, draft line, stats, or write-up describing things that already happened (for example "DRAFTED: DETROIT (2) 2025" gives "2025"). Exclude birth dates and the copyright line. Empty list if none.
+- eventYears: every 4-digit year printed in the bio, draft line, stats, or write-up describing things that already happened (for example ${ex.draftLine}). Exclude birth dates and the copyright line. Empty list if none.
 
 ROOKIE:
 - rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a rookie year or season in a paragraph. Null if none.
 
-${SERIAL_PROMPT}`,
+${SERIAL_PROMPT}${v2 ? V2_COMBINED_EXTRA.prompt : ""}`,
   });
 }
 
@@ -874,7 +880,7 @@ const STRONG_SCHEMA = {
   required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", "playerNameText", ...SERIAL_SCHEMA.required],
 };
 
-function runStrongCheck(frontImage, backImage) {
+function runStrongCheck(frontImage, backImage, ex = promptExamples(false)) {
   return askVision({
     model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
     name: "strong_check",
@@ -884,11 +890,11 @@ function runStrongCheck(frontImage, backImage) {
     backImage,
     prompt: `Read two things from this sports card exactly as printed. Do not guess.
 
-${CARD_NUMBER_PROMPT}
+${cardNumberPrompt(ex)}
 Put it in cardNumberText and its location in location.
 
 PLAYER NAME:
-Copy the player's full name exactly as printed on the nameplate, letter by letter, into playerNameText (stylized capitals like "TeSlaa" are one word). Null if not readable.
+Copy the player's full name exactly as printed on the nameplate, letter by letter, into playerNameText (stylized capitals like ${ex.stylizedName} are one word). Null if not readable.
 
 COPYRIGHT YEAR:
 Find the copyright line (starts with "©", usually tiny text at the bottom of the back). Zoom in and copy ONLY its 4-digit year into copyrightYearText (for example "2025"). Read each digit carefully; do not use birth dates, draft years, or stats. Null if not readable.
@@ -978,7 +984,7 @@ const CLOSEUP_SCHEMA = {
   required: ["stampedSerial", "isDate"],
 };
 
-function readSerialCloseup(serialImage, model) {
+function readSerialCloseup(serialImage, model, ex = promptExamples(false)) {
   return askVision({
     model,
     name: "serial_closeup",
@@ -986,7 +992,7 @@ function readSerialCloseup(serialImage, model) {
     maxTokens: 100,
     frontImage: serialImage,
     backImage: null,
-    prompt: `This is a close-up photo of part of a sports card, taken to show its stamped serial number (for example "06/10" or "112/199").
+    prompt: `This is a close-up photo of part of a sports card, taken to show its stamped serial number (for example ${ex.closeupSerial}).
 Read every digit carefully and copy the serial exactly as printed into stampedSerial. Keep leading zeros.
 If the text is a date (for example "9/14/25") set isDate to true. If there is no serial number, or you cannot read every digit with certainty, set stampedSerial to null. Do not guess digits.`,
   });
@@ -1223,7 +1229,7 @@ function resolvePlayerName(card, combined, strong, warnings) {
   const counts = reads.reduce((a, v) => ((a[norm(v)] = (a[norm(v)] || 0) + 1), a), {});
   const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   if (ranked.length === 1) {
-    // Same letters, different punctuation (e.g. "TE'SLAA" vs "TESLAA" for TeSlaa): use the spelling most reads gave.
+    // Same letters, different punctuation (e.g. "DE'MARCO" vs "DEMARCO"): use the spelling most reads gave.
     const spell = reads.reduce((a, v) => ((a[v.toUpperCase()] = (a[v.toUpperCase()] || 0) + 1), a), {});
     const best = Object.entries(spell).sort((x, y) => y[1] - x[1])[0];
     if (best[1] >= 2 && best[0] !== cleanPart(card.player).toUpperCase()) {
@@ -1337,7 +1343,11 @@ export default async function handler(req, res) {
       });
     }
 
-    const { files } = await parseForm(req);
+    const { files, fields: formFields } = await parseForm(req);
+    // Pipeline v2: "off" (default, today's scanner), "shadow" (test only: runs v2 next to
+    // v1 and returns it under "v2"), or "primary" (only when GV_PIPELINE=v2 is set).
+    const v2Mode = pipelineV2Mode(formFields);
+    const ex = promptExamples(v2Mode !== "off");
 
     const frontFile =
       getFile(files, "front") ||
@@ -1366,12 +1376,12 @@ Use visible evidence first. In "evidence", copy the EXACT text you can read prin
 
 Strict rules:
 - "year" must come from the copyright line on the back (for example "© 2025 The Topps Company"). Copy that whole line into evidence.copyrightLineText.
-- "cardNumber" must be copied character-for-character from the printed card number, including letter prefixes (for example "FC-2", not "C-2").
+- "cardNumber" must be copied character-for-character from the printed card number, including letter prefixes (for example ${ex.mainCardNumber}).
 - "serialNumber" is ONLY a stamped serial like "07/25" or "12/99". Dates such as "9/14/25" (often printed under "Rookie Debut" or similar) are NOT serial numbers. Copy a real serial into evidence.serialNumberText; otherwise use null for serialNumber, numberedTo, and serialNumberText.
-- "parallel" is the NAME of the parallel or insert printed on the card (for example "Signature Class Airlines", "Gold Refractor"). Never put a number or serial in "parallel". Copy the printed parallel/insert text into evidence.parallelText, or null.
+- "parallel" is the NAME of the parallel or insert printed on the card (for example ${ex.mainParallel}). Never put a number or serial in "parallel". Copy the printed parallel/insert text into evidence.parallelText, or null.
 - Only list real, existing products as alternates.
 - A jersey/uniform number (for example "#32" next to the player's name or position) is NOT the card number.
-- Sponsor or advertiser names (for example "Glaxo", a police department, a bank) are NOT the brand or set.
+- Sponsor or advertiser names (for example ${ex.mainSponsor}) are NOT the brand or set.
 - "brand" must be a manufacturer name printed on the card or in the copyright line. If none is printed, use null; never guess from the design or era.`,
       },
       {
@@ -1416,13 +1426,15 @@ Strict rules:
 
     const [scanResult, combinedCheck, strongCheck] = await Promise.all([
       mainScan,
-      safe("combined check", runCombinedCheck(frontImage, backImage)),
-      safe("strong check", runStrongCheck(frontImage, backImage)),
+      safe("combined check", runCombinedCheck(frontImage, backImage, ex, v2Mode !== "off")),
+      safe("strong check", runStrongCheck(frontImage, backImage, ex)),
     ]);
 
     if (!scanResult) {
       throw new Error("OpenAI returned an empty identification.");
     }
+    // Raw reads, before any rule touches them (v2 works from these; also kept for test replay).
+    const rawReads = v2Mode !== "off" ? structuredClone({ main: scanResult, combined: combinedCheck, strong: strongCheck }) : null;
 
     for (const [k, v] of Object.entries(scanResult)) {
       if (typeof v === "string" && !cleanPart(v)) scanResult[k] = null;
@@ -1514,8 +1526,8 @@ Strict rules:
     let verification_closeup = null;
     if (serialImage) {
       const [c1, c2] = await Promise.all([
-        safe("serial close-up read 1", readSerialCloseup(serialImage, process.env.OPENAI_VISION_MODEL || "gpt-4o-mini")),
-        safe("serial close-up read 2", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o")),
+        safe("serial close-up read 1", readSerialCloseup(serialImage, process.env.OPENAI_VISION_MODEL || "gpt-4o-mini", ex)),
+        safe("serial close-up read 2", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o", ex)),
       ]);
       let p1 = c1 && !c1.isDate ? parseSerial(c1.stampedSerial) : null;
       const p2 = c2 && !c2.isDate ? parseSerial(c2.stampedSerial) : null;
@@ -1523,7 +1535,7 @@ Strict rules:
       // The smaller model missed the serial (no conflicting value): take one more independent
       // read with the stronger model; the two stronger reads must still agree exactly.
       if (!p1 && p2 && !cleanPart(c1?.stampedSerial)) {
-        const c3 = await safe("serial close-up read 3", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o"));
+        const c3 = await safe("serial close-up read 3", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o", ex));
         const p3 = c3 && !c3.isDate ? parseSerial(c3.stampedSerial) : null;
         shown += ` / "${c3?.stampedSerial ?? "none"}"`;
         if (p3) p1 = p3;
@@ -1608,6 +1620,27 @@ Strict rules:
       if (setText.toLowerCase().startsWith(b.toLowerCase() + " ")) scanResult.set = setText.slice(b.length + 1);
     }
 
+    // ---- Pipeline v2 (switched off unless requested) ----
+    let v2 = null;
+    if (v2Mode !== "off") {
+      try {
+        v2 = await runPipelineV2({
+          scan: scanResult,
+          raw: rawReads,
+          verification,
+          serialImage: Boolean(serialImage),
+          tiebreak: (candidates) => parallelTiebreak(frontImage, candidates),
+        });
+        if (v2Mode === "primary" && v2?.scan) {
+          for (const k of ["player", "cardNumber", "parallel"]) scanResult[k] = v2.scan[k];
+          if (scanResult.evidence) scanResult.evidence.cardNumberText = v2.scan.cardNumber;
+        }
+      } catch (e) {
+        console.error("pipeline v2 error:", e);
+        v2 = { error: e.message };
+      }
+    }
+
     const confidence = getConfidence(verification);
     const identityTrusted =
       verification.status === "verified" || verification.status === "likely";
@@ -1687,7 +1720,8 @@ Strict rules:
         status: comps.status,
         error: comps.error,
       },
-      pipeline,
+      pipeline: v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline,
+      ...(v2Mode !== "off" ? { v2: { mode: v2Mode, ...v2, pipelineV1: pipeline } } : {}),
       market,
       integrations: integrationStatus({ cardsight: cardsightConfigured(), ebay: ebayConfigured() }),
       readoutSummary,

@@ -1,0 +1,165 @@
+SOURCE: https://www.checklistinsider.com/2025-bowman-chrome-baseball
+## Base veterans (#1-100)
+
+Pearl Refractor — unnumbered  
+Refractor — /499  
+Geometric Refractor — /499  
+Pulsar Refractor — /399  
+Fuchsia Refractor — /299  
+Fuchsia Wave Refractor — /299  
+Purple Geometric Refractor — /250  
+Aqua RayWave Refractor — /199  
+Blue Refractor — /150  
+Blue Wave Refractor — /150  
+Blue Geometric Refractor — /150  
+Aqua Geometric Refractor — /125  
+Wave Refractor — /100  
+Green Refractor — /99  
+Green Wave Refractor — /99  
+Green Geometric Refractor — /99  
+Yellow Geometric Refractor — /75  
+Yellow Refractor — /75  
+Gold Refractor — /50  
+Gold Geometric Refractor — /50  
+Orange Refractor — /25  
+Orange Geometric Refractor — /25  
+Black Geometric Refractor — /10  
+Black Refractor — /10  
+Red Refractor — /5  
+Red Geometric Refractor — /5  
+SuperFractor — 1/1  
+
+## Base rookies (#1-100)
+
+Pearl Refractor — unnumbered  
+Refractor — /499  
+Geometric Refractor — /499  
+Pulsar Refractor — /399  
+Fuchsia Refractor — /299  
+Fuchsia Wave Refractor — /299  
+Purple Geometric Refractor — /250  
+Aqua RayWave Refractor — /199  
+Blue Refractor — /150  
+Blue Wave Refractor — /150  
+Blue Geometric Refractor — /150  
+Aqua Geometric Refractor — /125  
+Wave Refractor — /100  
+Green Refractor — /99  
+Green Wave Refractor — /99  
+Green Geometric Refractor — /99  
+Yellow Geometric Refractor — /75  
+Yellow Refractor — /75  
+Gold Refractor — /50  
+Gold Geometric Refractor — /50  
+Orange Refractor — /25  
+Orange Geometric Refractor — /25  
+Black Geometric Refractor — /10  
+Black Refractor — /10  
+Red Refractor — /5  
+Red Geometric Refractor — /5  
+SuperFractor — 1/1  
+
+## Rookie autographs (CRA-XXX)
+
+Refractor — /499  
+Blue Refractor — /150  
+Green Refractor — /99  
+Gold Refractor — /50  
+Orange Refractor — /25  
+Black Refractor — /10  
+Red Refractor — /5  
+SuperFractor — 1/1  
+
+## Base autographs (card-number format not specified)
+
+The page does not list a subset named “Base Autographs” or provide a parallel list for one.
+
+## Prospects (BCP-153–BCP-252)
+
+Mini-Diamond Refractor — unnumbered  
+Shimmer Refractor — unnumbered  
+Pearl Refractor — unnumbered  
+Gum Ball Refractor — unnumbered  
+Peanuts Refractor — unnumbered  
+Popcorn Refractor — unnumbered  
+Sunflower Seeds Refractor — unnumbered  
+Refractor — /499  
+Geometric Refractor — /499  
+Pulsar Refractor — /399  
+Speckle Refractor — /299  
+Purple Refractor — /250  
+Purple Pulsar Refractor — /250  
+Purple Shimmer Refractor — /250  
+Purple Wave Refractor — /250  
+Purple Geometric Refractor — /250  
+Fuchsia Shimmer Refractor — /199  
+Fuchsia Geometric Refractor — /199  
+Blue Refractor — /150  
+Blue Wave Refractor — /150  
+Reptilian Blue Refractor — /150  
+Blue Geometric Refractor — /150  
+Aqua Refractor — /125  
+Aqua Pulsar Refractor — /125  
+Aqua Geometric Refractor — /125  
+Wave Refractor — /100  
+Green Refractor — /99  
+Reptilian Green Refractor — /99  
+Green Shimmer Refractor — /99  
+Green Wave Refractor — /99  
+Green Geometric Refractor — /99  
+Yellow Refractor — /75  
+Yellow Wave Refractor — /75  
+Yellow Geometric Refractor — /75  
+Gold Refractor — /50  
+Gold Shimmer Refractor — /50  
+Reptilian Gold Refractor — /50  
+Gold Wave Refractor — /50  
+Gold Geometric Refractor — /50  
+Orange Refractor — /25  
+Reptilian Orange Refractor — /25  
+Orange Shimmer Refractor — /25  
+Orange Wave Refractor — /25  
+Orange Geometric Refractor — /25  
+Black Refractor — /10  
+Reptilian Black Refractor — /10  
+Black Wave Refractor — /10  
+Black Geometric Refractor — /10  
+Red Refractor — /5  
+Reptilian Red Refractor — /5  
+Red Shimmer Refractor — /5  
+Red Wave Refractor — /5  
+Red Geometric Refractor — /5  
+SuperFractor — 1/1  
+
+## Prospect autographs (CPA-XXX)
+
+Black & White Shimmer Refractor — unnumbered  
+Refractor — /499  
+Speckle Refractor — /299  
+Purple Refractor — /250  
+Blue Refractor — /150  
+Reptilian Blue Refractor — /150  
+Blue RayWave Refractor — /150  
+HTA Choice — /150  
+Mini-Diamond Refractor — /100  
+Reptilian Green Refractor — /99  
+Green Refractor — /99  
+Green Lava Refractor — /99  
+Yellow Refractor — /75  
+Gold Refractor — /50  
+Gold Mini-Diamond Refractor — /50  
+Gold Shimmer Refractor — /50  
+Orange Refractor — /25  
+Orange Shimmer Refractor — /25  
+Orange Wave Refractor — /25  
+Reptilian Black Refractor — /10  
+Black Refractor — /10  
+Gum Ball Refractor — /5  
+Peanuts Refractor — /5  
+Popcorn Refractor — /5  
+Red Refractor — /5  
+Red Shimmer Refractor — /5  
+Red Wave Refractor — /5  
+Reptilian Red Refractor — /5  
+Sunflower Seeds Refractor — /5  
+SuperFractor — 1/1

@@ -1,0 +1,80 @@
+{
+  "id": "2025-panini-prizm-football",
+  "sourcesDir": "prizm-fb",
+  "label": "2025 Panini Prizm Football",
+  "year": 2025,
+  "sport": "football",
+  "brand": "Panini",
+  "product": "Prizm",
+  "match": {
+    "include": [
+      "prizm"
+    ],
+    "exclude": [
+      "draft",
+      "monopoly",
+      "select",
+      "mosaic",
+      "optic"
+    ]
+  },
+  "subsets": [
+    {
+      "id": "base_vet",
+      "label": "Base",
+      "rookie": false,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            300
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base_rookie",
+      "label": "Base Rookies",
+      "rookie": true,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            301,
+            400
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rookie_auto",
+      "label": "Rookie Autographs",
+      "rookie": true,
+      "auto": true,
+      "numberFormats": [
+        {
+          "range": [
+            301,
+            400
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base_auto",
+      "label": "Base Autographs",
+      "rookie": false,
+      "auto": true,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            300
+          ]
+        }
+      ]
+    }
+  ],
+  "baseFinish": "prizm"
+}

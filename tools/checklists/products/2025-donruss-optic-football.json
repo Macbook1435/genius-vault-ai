@@ -1,0 +1,77 @@
+{
+  "id": "2025-donruss-optic-football",
+  "sourcesDir": "optic-fb",
+  "label": "2025 Donruss Optic Football",
+  "year": 2025,
+  "sport": "football",
+  "brand": "Panini",
+  "brandAliases": [
+    "Donruss"
+  ],
+  "product": "Optic",
+  "match": {
+    "include": [
+      "optic"
+    ],
+    "exclude": []
+  },
+  "subsets": [
+    {
+      "id": "base_vet",
+      "label": "Base",
+      "rookie": false,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            200
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base_rookie",
+      "label": "Rated Rookies",
+      "rookie": true,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            201,
+            300
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rookie_auto",
+      "label": "Rated Rookie Autographs",
+      "rookie": true,
+      "auto": true,
+      "numberFormats": [
+        {
+          "range": [
+            201,
+            300
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base_auto",
+      "label": "Base Autographs",
+      "rookie": false,
+      "auto": true,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            200
+          ]
+        }
+      ]
+    }
+  ],
+  "baseFinish": "prizm"
+}

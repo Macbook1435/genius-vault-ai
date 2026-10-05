@@ -1,0 +1,18 @@
+{
+  "id": "2025-bowman-chrome-baseball",
+  "sourcesDir": "bc-bb",
+  "label": "2025 Bowman Chrome Baseball",
+  "year": 2025,
+  "sport": "baseball",
+  "brand": "Bowman",
+  "brandAliases": ["Topps"],
+  "product": "Bowman Chrome",
+  "match": { "include": ["bowman", "chrome"], "exclude": ["draft", "sapphire", "university", "sterling", "best", "mega"] },
+  "subsets": [
+    { "id": "base_vet", "label": "Base", "rookie": false, "auto": false, "numberFormats": [{ "range": [1, 100] }] },
+    { "id": "base_rookie", "label": "Base Rookies", "rookie": true, "auto": false, "numberFormats": [{ "range": [1, 100] }] },
+    { "id": "rookie_auto", "label": "Rookie Autographs", "rookie": true, "auto": true, "numberFormats": [{ "regex": "^CRA-[A-Z]{2,5}$" }] },
+    { "id": "prospects", "label": "Prospects", "rookie": false, "auto": false, "prospect": true, "numberFormats": [{ "regex": "^BCP-\\d{1,3}$" }] },
+    { "id": "prospect_auto", "label": "Prospect Autographs", "rookie": false, "auto": true, "prospect": true, "numberFormats": [{ "regex": "^CPA-[A-Z]{2,5}$" }] }
+  ]
+}

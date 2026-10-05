@@ -1,0 +1,18 @@
+# Names/numbers from our own test cards. They must not appear in scanner logic,
+# prompts, or checklist data (only in the LEGACY prompt block, until v2 is the default).
+# One case-insensitive regex per line.
+teslaa
+jaxson
+\bdart\b
+ratledge
+laettner
+hirsch
+\bFC-2\b
+\bRA-ITS\b
+\bRA-IT5\b
+signature class airlines
+157/250
+\b06/10\b
+glaxo
+careunit
+DETROIT \(2\)

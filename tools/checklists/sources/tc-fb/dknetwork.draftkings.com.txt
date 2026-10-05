@@ -1,0 +1,82 @@
+SOURCE: https://dknetwork.draftkings.com/2026/04/14/2025-topps-chrome-football-checklist/
+## Base veterans (card-number format not stated)
+Refractor — unnumbered
+Prism Refractor — unnumbered
+Neon Pulse Refractor — /400
+Teal Refractor — /299
+Pink Refractor — /250
+Pink Wave Refractor — /250
+Aqua Refractor — /199
+Aqua Wave Refractor — /199
+Blue Refractor — /150
+Blue Wave Refractor — /150
+Green Refractor — /99
+Green Lava Refractor — /99
+Green Wave Refractor — /99
+Purple Refractor — /75
+Purple Lava Refractor — /75
+Purple Wave Refractor — /75
+Gold Refractor — /50
+Gold Lava Refractor — /50
+Gold Wave Refractor — /50
+White Refractor — /30
+Orange Refractor — /25
+Orange Lava Refractor — /25
+Orange Wave Refractor — /25
+Black Refractor — /10
+Black Lava Refractor — /10
+Black Wave Refractor — /10
+Red Refractor — /5
+Red Lava Refractor — /5
+Red Wave Refractor — /5
+Frozenfractor — /-5
+Superfractor — 1/1
+
+## Base rookies (card-number format not stated)
+Refractor — unnumbered
+Prism Refractor — unnumbered
+Neon Pulse Refractor — /400
+Teal Refractor — /299
+Pink Refractor — /250
+Pink Wave Refractor — /250
+Aqua Refractor — /199
+Aqua Wave Refractor — /199
+Blue Refractor — /150
+Blue Wave Refractor — /150
+Green Refractor — /99
+Green Lava Refractor — /99
+Green Wave Refractor — /99
+Purple Refractor — /75
+Purple Lava Refractor — /75
+Purple Wave Refractor — /75
+Gold Refractor — /50
+Gold Lava Refractor — /50
+Gold Wave Refractor — /50
+White Refractor — /30
+Orange Refractor — /25
+Orange Lava Refractor — /25
+Orange Wave Refractor — /25
+Black Refractor — /10
+Black Lava Refractor — /10
+Black Wave Refractor — /10
+Red Refractor — /5
+Red Lava Refractor — /5
+Red Wave Refractor — /5
+Frozenfractor — /-5
+Superfractor — 1/1
+
+## Rookie autographs (card-number format not stated)
+Gold Rookie Autographs — /50
+Orange Rookie Autographs — /25
+Black Rookie Autographs — /10
+Red Rookie Autographs — /5
+Superfractor Rookie Autographs — 1/1
+
+## Base autographs (card-number format not stated)
+The page does not state a base-autograph parallel checklist or print runs.
+
+## Prospects (card-number format not stated)
+The page does not state a prospects parallel checklist or print runs.
+
+## Prospect autographs (card-number format not stated)
+The page does not state a prospect-autograph parallel checklist or print runs.

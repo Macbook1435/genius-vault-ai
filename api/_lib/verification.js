@@ -102,7 +102,7 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "confirmed", "Two separate reads of the close-up agree.");
   } else {
     // Full-card photo: the print run is reliable when reads agree, but a glare-hidden
-    // digit can make every read agree on the wrong number (e.g. "15/250" for 157/250).
+    // digit can make every read agree on the wrong number (e.g. "15/99" for 151/99).
     fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "unconfirmed",
       `Read from the full photo; the exact number is not close-up verified. Print run /${card.numberedTo} is confirmed.`);
     fields.serial.printRun = card.numberedTo;

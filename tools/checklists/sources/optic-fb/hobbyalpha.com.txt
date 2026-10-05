@@ -1,0 +1,65 @@
+SOURCE: https://hobbyalpha.com/parallels/2025-panini-donruss-optic-football
+## Base (all base cards)
+Black — /1
+Gold Vinyl — /1
+Nebula — /1
+Green — /5
+Gold — /10
+Ice — /15
+Neon Yellow — /15
+Purple Stars — /15
+Footballs — /16
+Dragon — /24
+Black Pandora — /25
+Team Logo — /32
+Lime Green — /50
+Blue Mojo — /55
+Purple — /60
+Electricity — /75
+Orange Scope — /79
+Pink Velocity — /99
+Red — /149
+Neon Green — /199
+Flex — /199
+Blue — /249
+Orange — /299
+Wave — /300
+Aqua — /349
+Neon Blue — /399
+Purple Shock — unnumbered
+Blue Hyper — unnumbered
+Green Hyper — unnumbered
+Red Hyper — unnumbered
+Blue Scope — unnumbered
+Purple Scope — unnumbered
+Red Scope — unnumbered
+Green Velocity — unnumbered
+Teal Velocity — unnumbered
+Red Mojo — unnumbered
+Blue Glitter — unnumbered
+Pink — unnumbered
+Red Stars — unnumbered
+Stars — unnumbered
+Fire — unnumbered
+Freedom — unnumbered
+Jazz — unnumbered
+One Hundred — unnumbered
+Rocket — unnumbered
+White Sparkle — unnumbered
+Holo — unnumbered
+
+## Autographs (all)
+Gold Vinyl Auto — /1
+Green Auto — /5
+Gold Auto — /10
+Ice Auto — /25
+Black Pandora Auto — /35
+Purple Stars Auto — /42
+Purple Auto — /50
+Red Stars Auto — /50
+Black Gold Auto — /60
+Pink Velocity Auto — /75
+Red Auto — /99
+Blue Auto — /149
+Holo Auto — /199
+Base Auto — /350

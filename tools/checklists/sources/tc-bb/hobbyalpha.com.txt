@@ -1,0 +1,36 @@
+SOURCE: https://hobbyalpha.com/parallels/2025-topps-chrome-baseball
+## Base (all base cards)
+#1 Superfractor — /1
+#2 Red Refractor — /5
+#3 Red Wave Refractor — /5
+#4 Black Refractor — /10
+#5 RayWave Black Refractor — /10
+#6 Orange Refractor — /25
+#7 Orange Wave Refractor — /25
+#8 Gold Refractor — /50
+#9 Gold Wave Refractor — /50
+#10 Blue Wave Refractor — /75
+#11 Green Refractor — /99
+#12 Green Wave Refractor — /99
+#13 Sonar Green Refractor — /99
+#14 Sonar Blue Refractor — /125
+#15 Blue Refractor — /150
+#16 Aqua Refractor — /199
+#17 Aqua Lava Refractor — /199
+#18 Purple Refractor — /250
+#19 Purple Speckle Refractor — /299
+#20 Magenta Speckle Refractor — /350
+#21 Sepia Refractor (Walmart Hanger) — unnumbered
+#22 Negative Refractor (Retail Blaster) — unnumbered
+#23 Refractor — unnumbered
+
+## Autographs (all)
+#24 Superfractor Auto — /1
+#25 Red Refractor Auto — /5
+#26 Orange Refractor Auto — /25
+#27 Gold Refractor Auto — /50
+#28 Green Refractor Auto — /99
+#29 Blue Refractor Auto — /150
+#30 Aqua Refractor Auto — /199
+#31 Purple Refractor Auto — /250
+#32 Refractor Auto — unnumbered
