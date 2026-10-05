@@ -144,7 +144,7 @@ function fileToDataUrl(file) {
 function cleanPart(value) {
   if (value === null || value === undefined) return "";
   const cleaned = String(value).trim();
-  const bad = new Set(["unknown", "n/a", "none", "no", "not visible"]);
+  const bad = new Set(["unknown", "n/a", "none", "no", "not visible", "null", "undefined"]);
   return bad.has(cleaned.toLowerCase()) ? "" : cleaned;
 }
 
