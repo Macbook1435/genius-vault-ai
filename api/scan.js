@@ -755,14 +755,28 @@ If you report a stamped serial, set stampedSerialSide to "front" or "back" and d
 const CARD_NUMBER_PROMPT = `CARD NUMBER:
 The card number is usually on the back, often in a corner box, sometimes after a label like "ID#", "#", "No.", or "Card".
 Zoom in and read every character, especially any letters before a dash (for example "FC-2", "RC-12", "BDC-45", "101").
-Return ONLY the number itself without the label text. Null if you cannot read it with certainty.`;
+Return ONLY the number itself without the label text. Null if you cannot read it with certainty.
+A JERSEY/UNIFORM number is NOT a card number. Numbers shown next to the player's name or position (for example "Freshman #32", "QB #8") or on the uniform are jersey numbers. If the only number you see is a jersey number, return null.
+Also report the jersey number in jerseyNumberText (digits only, e.g. "32"), or null if none is printed.`;
 
 // Check A (cheaper model): card number, set, parallel, rookie mark, and serial — one call.
 const COMBINED_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  properties: { ...DETAIL_SCHEMA.properties, ...SERIAL_SCHEMA.properties },
-  required: [...DETAIL_SCHEMA.required, ...SERIAL_SCHEMA.required],
+  properties: {
+    ...DETAIL_SCHEMA.properties,
+    ...SERIAL_SCHEMA.properties,
+    jerseyNumberText: { type: ["string", "null"] },
+    brandNameText: { type: ["string", "null"] },
+    sponsorNames: { type: "array", items: { type: "string" } },
+  },
+  required: [
+    ...DETAIL_SCHEMA.required,
+    ...SERIAL_SCHEMA.required,
+    "jerseyNumberText",
+    "brandNameText",
+    "sponsorNames",
+  ],
 };
 
 function runCombinedCheck(frontImage, backImage) {
@@ -782,6 +796,10 @@ SET AND PARALLEL:
 - productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
 - parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed. Give its location in parallelLocation.
 
+BRAND AND SPONSORS:
+- brandNameText: the card MANUFACTURER name exactly as printed anywhere on the card or in the copyright line (for example "Topps", "Panini", "Bowman", "Upper Deck", "Fleer", "Donruss", "Leaf"). Null if no manufacturer name is printed. Never guess from the card's design or era.
+- sponsorNames: names of sponsors, advertisers, or organizations shown on the card that are NOT the card manufacturer or set name (for example "Glaxo", "Adolescent CareUnit", a police department, a bank, a restaurant). Empty list if none.
+
 ROOKIE:
 - rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a rookie year or season in a paragraph. Null if none.
 
@@ -797,9 +815,10 @@ const STRONG_SCHEMA = {
   properties: {
     cardNumberText: { type: ["string", "null"] },
     location: { type: ["string", "null"] },
+    jerseyNumberText: { type: ["string", "null"] },
     ...SERIAL_SCHEMA.properties,
   },
-  required: ["cardNumberText", "location", ...SERIAL_SCHEMA.required],
+  required: ["cardNumberText", "location", "jerseyNumberText", ...SERIAL_SCHEMA.required],
 };
 
 function runStrongCheck(frontImage, backImage) {
@@ -817,6 +836,52 @@ Put it in cardNumberText and its location in location.
 
 ${SERIAL_PROMPT}`,
   });
+}
+
+// Jersey numbers, sponsor names, and guessed brands never reach the listing.
+function applyPrintedTextRules(card, combined, strong, warnings) {
+  // 1. Card number must not be the player's jersey number.
+  const digits = (v) => cleanPart(v).replace(/[^0-9]/g, "");
+  const jerseys = [combined?.jerseyNumberText, strong?.jerseyNumberText].map(digits).filter(Boolean);
+  const num = normalizeCode(card.cardNumber);
+  if (num && /^[0-9]+$/.test(num) && jerseys.includes(String(Number(num)))) {
+    warnings.push(`Card number removed: #${card.cardNumber} is the player's jersey number, not a card number.`);
+    card.cardNumber = null;
+    if (card.evidence) card.evidence.cardNumberText = null;
+  }
+
+  if (!combined) return;
+
+  // 2. Sponsor names are not the brand or set.
+  const sponsors = (combined.sponsorNames || []).map(cleanPart).filter(Boolean);
+  const isSponsor = (v) => cleanPart(v) && sponsors.some((sp) => sameText(sp, v));
+  if (isSponsor(card.brand)) {
+    warnings.push(`Brand "${card.brand}" removed: it is a sponsor, not the card maker.`);
+    card.brand = null;
+  }
+  if (isSponsor(card.set)) {
+    warnings.push(`Set "${card.set}" removed: it is a sponsor, not the set name.`);
+    card.set = null;
+  }
+
+  // 3. Brand must be printed on the card (logo text or copyright line), never guessed.
+  const printedBrand = cleanPart(combined.brandNameText);
+  const copyright = cleanPart(card.evidence?.copyrightLineText);
+  if (cleanPart(card.brand)) {
+    const supported =
+      (printedBrand && sameText(printedBrand, card.brand)) ||
+      (copyright && copyright.toLowerCase().includes(cleanPart(card.brand).toLowerCase()));
+    if (!supported) {
+      warnings.push(
+        printedBrand
+          ? `Brand changed from "${card.brand}" to "${printedBrand}", the name printed on the card.`
+          : `Brand "${card.brand}" removed: no manufacturer name is printed on the card.`,
+      );
+      card.brand = printedBrand && !isSponsor(printedBrand) ? printedBrand : null;
+    }
+  } else if (printedBrand && !isSponsor(printedBrand)) {
+    card.brand = printedBrand;
+  }
 }
 
 function getConfidence(verification) {
@@ -920,7 +985,10 @@ Strict rules:
 - "cardNumber" must be copied character-for-character from the printed card number, including letter prefixes (for example "FC-2", not "C-2").
 - "serialNumber" is ONLY a stamped serial like "07/25" or "12/99". Dates such as "9/14/25" (often printed under "Rookie Debut" or similar) are NOT serial numbers. Copy a real serial into evidence.serialNumberText; otherwise use null for serialNumber, numberedTo, and serialNumberText.
 - "parallel" is the NAME of the parallel or insert printed on the card (for example "Signature Class Airlines", "Gold Refractor"). Never put a number or serial in "parallel". Copy the printed parallel/insert text into evidence.parallelText, or null.
-- Only list real, existing products as alternates.`,
+- Only list real, existing products as alternates.
+- A jersey/uniform number (for example "#32" next to the player's name or position) is NOT the card number.
+- Sponsor or advertiser names (for example "Glaxo", a police department, a bank) are NOT the brand or set.
+- "brand" must be a manufacturer name printed on the card or in the copyright line. If none is printed, use null; never guess from the design or era.`,
       },
       {
         type: "image_url",
@@ -992,6 +1060,8 @@ Strict rules:
       if (scanResult.evidence) scanResult.evidence.cardNumberText = null;
       detailWarnings.push("Card number removed: the stronger check could not run.");
     }
+
+    applyPrintedTextRules(scanResult, combinedCheck, strongCheck, detailWarnings);
 
     const verification = verifyIdentity(scanResult);
     verification.warnings.push(...detailWarnings);
