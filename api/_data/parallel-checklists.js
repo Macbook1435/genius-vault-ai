@@ -4,6 +4,7 @@
 export const PARALLEL_CHECKLISTS = [
   {
     id: "2025-topps-chrome-football",
+    label: "2025 Topps Chrome Football",
     year: 2025,
     sport: "football",
     // set/brand text must contain all "include" words and none of the "exclude" words

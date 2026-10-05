@@ -1,7 +1,8 @@
 import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
-import { cardsightConfigured, cardsightIdentify, resolveParallel } from "./cardsight.js";
+import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps } from "./cardsight.js";
+import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 
@@ -515,7 +516,7 @@ function verifyIdentity(card) {
   else if (playerOk && strong >= 4) status = "verified";
   else if (playerOk && strong >= 3) status = "likely";
 
-  return { status, warnings, rejected, cleared, strongIdentifiers: strong };
+  return { status, warnings, rejected, cleared, strongIdentifiers: strong, identity: { playerOk, yearOk, numberOk, setOk } };
 }
 
 // Second, independent read focused only on serial numbers.
@@ -1000,7 +1001,7 @@ function applyCatalogMatch(card, cs, warnings) {
   if (!cs || cs.error) { out.status = "error"; out.error = cs?.error || "no response"; return out; }
   const c = cs.detection?.card;
   if (!c?.name) { out.status = "no_match"; return out; }
-  out.match = { name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null };
+  out.match = { id: c.id || null, name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null };
 
   const last = cleanPart(card.player).split(/\s+/).pop()?.toLowerCase();
   const playerOk = last && c.name.toLowerCase().includes(last);
@@ -1529,9 +1530,10 @@ Strict rules:
       ? (catalog.rawParallels || []).map((p) => ({ name: p.name, numberedTo: p.numberedTo || null }))
       : null;
     const ebayMatches = await ebayOutsideMatches(scanResult);
+    // Active listings are not catalog data: a year they agree on is only a suggestion.
     if (ebayMatches.topYear && !scanResult.year) {
-      scanResult.year = ebayMatches.topYear;
-      detailWarnings.push(`Year ${ebayMatches.topYear} filled from matching eBay listings.`);
+      ebayMatches.suggestedYear = ebayMatches.topYear;
+      detailWarnings.push(`Year not read from the card; matching eBay listings suggest ${ebayMatches.topYear} (unconfirmed).`);
     }
     if (catalog.status === "accepted" && scanResult.evidence && scanResult.year) {
       scanResult.evidence.yearText = String(scanResult.year);
@@ -1597,6 +1599,34 @@ Strict rules:
           error: "Price estimate unavailable until the card identity is confirmed.",
         };
 
+    // Field-level verification + market data (additive; a failure here never breaks the scan).
+    let pipeline = null;
+    let market = null;
+    try {
+      pipeline = buildFieldVerification(scanResult, verification, {
+        checklist: findChecklist(scanResult),
+        serialImage: Boolean(serialImage),
+        identity: verification.identity,
+        strongCheck,
+      });
+    } catch (e) {
+      console.error("pipeline error:", e);
+    }
+    try {
+      let catalogSold = null;
+      if (identityTrusted && catalog.status === "accepted" && catalog.match?.id) {
+        catalogSold = await cardsightSoldComps(catalog.match.id).catch((e) => ({ error: e.message, count: 0 }));
+      }
+      market = buildMarket(comps, ebayMatches, catalogSold);
+      // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
+      if (catalogSold?.count) {
+        Object.assign(comps, { min: catalogSold.min, max: catalogSold.max, median: catalogSold.median, count: catalogSold.count,
+          items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null });
+      }
+    } catch (e) {
+      console.error("market error:", e);
+    }
+
     const readoutSummary = identityTrusted
       ? buildReadoutSummary(scanResult, comps)
       : verification.status === "rejected"
@@ -1629,6 +1659,9 @@ Strict rules:
         status: comps.status,
         error: comps.error,
       },
+      pipeline,
+      market,
+      integrations: integrationStatus({ cardsight: cardsightConfigured(), ebay: ebayConfigured() }),
       readoutSummary,
       alternates: identityTrusted ? alternates : [],
       soldComps: {

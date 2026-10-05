@@ -346,7 +346,8 @@ const comps = data.comps || {};
     `Sold comps status: ${comps.error || "No error reported"}`,
     `Verification: ${data.verification?.status || "needs_review"}${data.verification?.warnings?.length ? " — " + data.verification.warnings.join(" ") : ""}`,
   `Confidence: ${data.confidence || "Not available"}`,
-    `Notes: ${card.notes || "None"}`
+    `Notes: ${card.notes || "None"}`,
+    ...fieldCheckLines(data)
   ].join("\n");
 }
 
@@ -383,6 +384,29 @@ const comps = data.comps || {};
     output.innerHTML = error.message || "AI scan failed.";
   }
 }
+// Field-by-field verification from the server pipeline. Unresolved fields say "Unconfirmed".
+function fieldCheckLines(data) {
+  const p = data.pipeline;
+  const lines = [];
+  if (p && p.fields) {
+    const names = { year: "Year", set: "Set", cardNumber: "Card number", parallel: "Parallel", serial: "Serial" };
+    lines.push("", "FIELD CHECK:");
+    for (const [k, f] of Object.entries(p.fields)) {
+      const val = f.value === null || f.value === undefined ? "—" : f.value;
+      lines.push(`${names[k] || k} check: ${f.status === "confirmed" ? "Confirmed" : "Unconfirmed"} (${val}) — ${f.basis}`);
+    }
+    lines.push(`Unconfirmed: ${p.unconfirmed.length ? p.unconfirmed.map(k => names[k] || k).join(", ") : "None"}`);
+    if (p.serialCloseup?.needed) lines.push(`Serial close-up: Recommended — ${p.serialCloseup.reason}`);
+  }
+  const a = data.market?.active;
+  if (a) {
+    lines.push(a.count
+      ? `Active eBay asking prices: $${a.low}–$${a.high} (median $${a.median}, ${a.count} listings) — asking prices, not sales`
+      : `Active eBay asking prices: ${a.configured ? "none matched" : "not connected yet"} — asking prices, not sales`);
+  }
+  return lines;
+}
+
 function copySearchText() {
   const copyInput = document.getElementById("searchCopyBox");
 
@@ -481,7 +505,12 @@ Rescan the front and back straight-on in bright light, then try again.`;
     ? `Estimated Value Range: ${value}`
     : "Recent sold prices were not automatically available. Please check comparable sold listings before setting your price.";
 
-  document.getElementById("ebayBox").innerHTML = `Title:
+  const unconf = clean(getLine("Unconfirmed", scan));
+  const checkNote = unconf && !/^none$/i.test(unconf)
+    ? `CHECK BEFORE POSTING — unconfirmed: ${unconf}. Compare these against the card or a checklist.\n\n`
+    : "";
+
+  document.getElementById("ebayBox").innerHTML = `${checkNote}Title:
 
 ${title}
 
