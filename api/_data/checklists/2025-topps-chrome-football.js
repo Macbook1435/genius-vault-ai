@@ -26,6 +26,10 @@ export const P_2025_topps_chrome_football = {
    "first class"
   ]
  },
+ "copyrightYears": [
+  2025,
+  2026
+ ],
  "sources": [
   "https://cardsmithsbreaks.com/full-checklist/2025-topps-chrome-football/",
   "https://dknetwork.draftkings.com/2026/04/14/2025-topps-chrome-football-checklist/",

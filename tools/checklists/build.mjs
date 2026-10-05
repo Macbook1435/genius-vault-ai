@@ -142,6 +142,7 @@ function build(cfg) {
   return {
     id: cfg.id, label: cfg.label, year: cfg.year, sport: cfg.sport, brand: cfg.brand,
     brandAliases: cfg.brandAliases || [], product: cfg.product, baseFinish: cfg.baseFinish || "plain_refractor", match: cfg.match,
+    copyrightYears: cfg.copyrightYears || [cfg.year], ...(cfg.logo ? { logo: cfg.logo } : {}),
     sources: sources.map((s) => s.url).filter(Boolean),
     subsets,
   };

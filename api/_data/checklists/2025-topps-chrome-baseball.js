@@ -24,6 +24,9 @@ export const P_2025_topps_chrome_baseball = {
    "logofractor"
   ]
  },
+ "copyrightYears": [
+  2025
+ ],
  "sources": [
   "https://baseballcardpedia.com/index.php/2025_Topps_Chrome",
   "https://cardsmithsbreaks.com/full-checklist/2025-topps-chrome-baseball/",

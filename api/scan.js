@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
-import { runPipelineV2, pipelineV2Mode, V2_COMBINED_EXTRA } from "./_lib/pipeline-v2.js";
+import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 
@@ -828,8 +828,8 @@ function runCombinedCheck(frontImage, backImage, ex = promptExamples(false), v2 
     name: "combined_check",
     schema: v2 ? {
       ...COMBINED_SCHEMA,
-      properties: { ...COMBINED_SCHEMA.properties, ...V2_COMBINED_EXTRA.properties },
-      required: [...COMBINED_SCHEMA.required, ...V2_COMBINED_EXTRA.required],
+      properties: { ...COMBINED_SCHEMA.properties, ...v2Extras("combined").properties },
+      required: [...COMBINED_SCHEMA.required, ...v2Extras("combined").required],
     } : COMBINED_SCHEMA,
     maxTokens: 800,
     frontImage,
@@ -860,7 +860,7 @@ EVENT YEARS:
 ROOKIE:
 - rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a rookie year or season in a paragraph. Null if none.
 
-${SERIAL_PROMPT}${v2 ? V2_COMBINED_EXTRA.prompt : ""}`,
+${SERIAL_PROMPT}${v2 ? v2Extras("combined").prompt : ""}`,
   });
 }
 
@@ -880,11 +880,15 @@ const STRONG_SCHEMA = {
   required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", "playerNameText", ...SERIAL_SCHEMA.required],
 };
 
-function runStrongCheck(frontImage, backImage, ex = promptExamples(false)) {
+function runStrongCheck(frontImage, backImage, ex = promptExamples(false), v2 = false) {
   return askVision({
     model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
     name: "strong_check",
-    schema: STRONG_SCHEMA,
+    schema: v2 ? {
+      ...STRONG_SCHEMA,
+      properties: { ...STRONG_SCHEMA.properties, ...v2Extras("strong").properties },
+      required: [...STRONG_SCHEMA.required, ...v2Extras("strong").required],
+    } : STRONG_SCHEMA,
     maxTokens: 500,
     frontImage,
     backImage,
@@ -899,7 +903,7 @@ Copy the player's full name exactly as printed on the nameplate, letter by lette
 COPYRIGHT YEAR:
 Find the copyright line (starts with "©", usually tiny text at the bottom of the back). Zoom in and copy ONLY its 4-digit year into copyrightYearText (for example "2025"). Read each digit carefully; do not use birth dates, draft years, or stats. Null if not readable.
 
-${SERIAL_PROMPT}`,
+${SERIAL_PROMPT}${v2 ? v2Extras("strong").prompt : ""}`,
   });
 }
 
@@ -1427,7 +1431,7 @@ Strict rules:
     const [scanResult, combinedCheck, strongCheck] = await Promise.all([
       mainScan,
       safe("combined check", runCombinedCheck(frontImage, backImage, ex, v2Mode !== "off")),
-      safe("strong check", runStrongCheck(frontImage, backImage, ex)),
+      safe("strong check", runStrongCheck(frontImage, backImage, ex, v2Mode !== "off")),
     ]);
 
     if (!scanResult) {

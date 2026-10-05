@@ -6,6 +6,15 @@ import { cleanCardNumber, fitsFormat } from "./card-number.js";
 
 const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
+/** Products whose cards carry no printed set name, described by their logo (for the AI prompt). */
+export function logoProducts(products = PRODUCTS) {
+  return products.filter((p) => p.logo).map((p) => ({ id: p.id, label: p.label, logo: p.logo }));
+}
+
+export function getProduct(id, products = PRODUCTS) {
+  return products.find((p) => p.id === id) || null;
+}
+
 export function listProducts() {
   return PRODUCTS.map((p) => ({ id: p.id, label: p.label, year: p.year, sport: p.sport, subsets: p.subsets.map((s) => s.id) }));
 }
@@ -15,13 +24,15 @@ export function listProducts() {
  * conflict. If two products fit equally (e.g. same brand/set in two sports and sport is
  * unknown), nothing is chosen.
  */
-export function findProduct(card, products = PRODUCTS) {
+export function findProduct(card, products = PRODUCTS, opts = {}) {
   const text = ` ${norm(card.brand)} ${norm(card.set)} `;
   const brand = norm(card.brand);
   const sport = norm(card.sport);
   const scored = [];
   for (const p of products) {
-    if (!card.year || Number(card.year) !== p.year) continue;
+    // Year: by default the card's year must equal the product year. Pipeline v2 passes its
+    // own year test (copyright reads may be the product year or the next year).
+    if (opts.yearTest ? !opts.yearTest(p) : !card.year || Number(card.year) !== p.year) continue;
     if (sport && sport !== "unknown" && sport !== "other" && p.sport && sport !== p.sport) continue;
     const brands = [p.brand, ...(p.brandAliases || [])].map(norm);
     const brandOk = brands.some((b) => brand === b || text.includes(` ${b} `));

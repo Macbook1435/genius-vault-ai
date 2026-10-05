@@ -76,5 +76,9 @@
       ]
     }
   ],
-  "baseFinish": "prizm"
+  "baseFinish": "prizm",
+  "copyrightYears": [
+    2025,
+    2026
+  ]
 }

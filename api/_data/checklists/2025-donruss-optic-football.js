@@ -17,6 +17,10 @@ export const P_2025_donruss_optic_football = {
   ],
   "exclude": []
  },
+ "copyrightYears": [
+  2025,
+  2026
+ ],
  "sources": [
   "https://cardsmithsbreaks.com/full-checklist/2025-donruss-optic-football/",
   "https://hobbyalpha.com/parallels/2025-panini-donruss-optic-football",

@@ -21,6 +21,10 @@ export const P_2025_panini_prizm_football = {
    "optic"
   ]
  },
+ "copyrightYears": [
+  2025,
+  2026
+ ],
  "sources": [
   "https://cardsmithsbreaks.com/full-checklist/2025-panini-prizm-football/",
   "https://hobbyalpha.com/parallels/2025-panini-prizm-football",

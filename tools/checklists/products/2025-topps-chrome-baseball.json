@@ -6,10 +6,63 @@
   "sport": "baseball",
   "brand": "Topps",
   "product": "Chrome",
-  "match": { "include": ["chrome"], "exclude": ["black", "sapphire", "update", "cosmic", "bowman", "platinum", "heritage", "logofractor"] },
+  "match": {
+    "include": [
+      "chrome"
+    ],
+    "exclude": [
+      "black",
+      "sapphire",
+      "update",
+      "cosmic",
+      "bowman",
+      "platinum",
+      "heritage",
+      "logofractor"
+    ]
+  },
   "subsets": [
-    { "id": "base_vet", "label": "Base", "rookie": false, "auto": false, "numberFormats": [{ "range": [1, 300] }] },
-    { "id": "base_rookie", "label": "Base Rookies", "rookie": true, "auto": false, "numberFormats": [{ "range": [1, 300] }] },
-    { "id": "rookie_auto", "label": "Rookie Autographs", "rookie": true, "auto": true, "numberFormats": [{ "regex": "^RA-[A-Z]{2,5}$" }] }
+    {
+      "id": "base_vet",
+      "label": "Base",
+      "rookie": false,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            300
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base_rookie",
+      "label": "Base Rookies",
+      "rookie": true,
+      "auto": false,
+      "numberFormats": [
+        {
+          "range": [
+            1,
+            300
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rookie_auto",
+      "label": "Rookie Autographs",
+      "rookie": true,
+      "auto": true,
+      "numberFormats": [
+        {
+          "regex": "^RA-[A-Z]{2,5}$"
+        }
+      ]
+    }
+  ],
+  "copyrightYears": [
+    2025
   ]
 }

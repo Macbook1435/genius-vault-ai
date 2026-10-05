@@ -15,6 +15,11 @@ export const P_2025_topps_resurgence_football = {
   ],
   "exclude": []
  },
+ "copyrightYears": [
+  2025,
+  2026
+ ],
+ "logo": "No set name printed on the card; the logo is a stylized letter \"R\" with a lightning bolt through it (front corner and top of the back).",
  "sources": [
   "https://cardsmithsbreaks.com/full-checklist/2025-topps-resurgence-football/",
   "https://www.checklistcenter.com/2025-topps-resurgence-football-card-checklist/",

@@ -25,6 +25,9 @@ export const P_2025_bowman_chrome_baseball = {
    "mega"
   ]
  },
+ "copyrightYears": [
+  2025
+ ],
  "sources": [
   "https://baseballcardpedia.com/index.php/2025_Bowman_Chrome",
   "https://cardsmithsbreaks.com/full-checklist/2025-bowman-chrome-baseball/",

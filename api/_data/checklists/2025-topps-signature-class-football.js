@@ -26,6 +26,10 @@ export const P_2025_topps_signature_class_football = {
    "resurgence"
   ]
  },
+ "copyrightYears": [
+  2025,
+  2026
+ ],
  "sources": [
   "https://cardsmithsbreaks.com/full-checklist/2025-topps-signature-class-football/",
   "https://degreegrading.com/checklists/2025-topps-signature-class-football/",
