@@ -1415,9 +1415,6 @@ Strict rules:
     const catalogParallels = catalog.status === "accepted" && !catalog.parallelConfirmed
       ? (catalog.rawParallels || []).map((p) => ({ name: p.name, numberedTo: p.numberedTo || null }))
       : null;
-    const parallelId = catalog.parallelConfirmed
-      ? { source: "catalog", status: "confirmed" }
-      : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, detailWarnings);
     const ebayMatches = await ebayOutsideMatches(scanResult);
     if (ebayMatches.topYear && !scanResult.year) {
       scanResult.year = ebayMatches.topYear;
@@ -1430,7 +1427,7 @@ Strict rules:
 
     const verification = verifyIdentity(scanResult);
     verification.outside = { catalog, ebay: ebayMatches };
-    verification.parallelId = parallelId;
+
     verification.warnings.push(...detailWarnings);
     verification.detailCheck = combinedCheck;
 
@@ -1445,6 +1442,11 @@ Strict rules:
         c ? { stampedSerial: c.stampedSerial, side: c.stampedSerialSide, slashTexts: c.slashTexts } : null,
       );
     }
+    // Parallel is resolved AFTER the serial checks, so an invented serial can never pick a parallel.
+    verification.parallelId = catalog.parallelConfirmed
+      ? { source: "catalog", status: "confirmed" }
+      : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, verification.warnings);
+
     const confidence = getConfidence(verification);
     const identityTrusted =
       verification.status === "verified" || verification.status === "likely";
