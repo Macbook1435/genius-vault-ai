@@ -182,6 +182,10 @@
 <label style="display:block;margin-top:10px;">Upload Back of Card</label>
 <input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()">
 
+<label style="display:block;margin-top:10px;">Optional: Close-up of Serial Number (e.g. 06/10)</label>
+<input type="file" id="serialUpload" accept="image/*" onchange="previewSerialImage()">
+<img id="serialPreview" style="max-width:200px;width:100%;display:none;margin:10px auto;border-radius:12px;">
+
 <img id="backPreview" style="max-width:320px;width:100%;display:none;margin:15px auto;border-radius:12px;">
   <div class="preview-container">
     
@@ -236,6 +240,16 @@ function previewImage() {
 function previewBackImage() {
   const file = document.getElementById("backImageUpload").files[0];
   const preview = document.getElementById("backPreview");
+
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+  }
+}
+
+function previewSerialImage() {
+  const file = document.getElementById("serialUpload").files[0];
+  const preview = document.getElementById("serialPreview");
 
   if (file) {
     preview.src = URL.createObjectURL(file);
@@ -299,6 +313,12 @@ async function aiScan() {
   if (backFile) {
     const backBlob = await compressImage(backFile);
     formData.append("back", backBlob, "back.jpg");
+  }
+
+  const serialFile = document.getElementById("serialUpload").files[0];
+  if (serialFile) {
+    const serialBlob = await compressImage(serialFile);
+    formData.append("serial", serialBlob, "serial.jpg");
   }
 
   try {

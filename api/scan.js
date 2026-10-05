@@ -911,6 +911,31 @@ function applyPrintedTextRules(card, combined, strong, warnings) {
   }
 }
 
+// Reads the serial from the optional close-up photo, twice with two models.
+const CLOSEUP_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    stampedSerial: { type: ["string", "null"] },
+    isDate: { type: "boolean" },
+  },
+  required: ["stampedSerial", "isDate"],
+};
+
+function readSerialCloseup(serialImage, model) {
+  return askVision({
+    model,
+    name: "serial_closeup",
+    schema: CLOSEUP_SCHEMA,
+    maxTokens: 100,
+    frontImage: serialImage,
+    backImage: null,
+    prompt: `This is a close-up photo of part of a sports card, taken to show its stamped serial number (for example "06/10" or "112/199").
+Read every digit carefully and copy the serial exactly as printed into stampedSerial. Keep leading zeros.
+If the text is a date (for example "9/14/25") set isDate to true. If there is no serial number, or you cannot read every digit with certainty, set stampedSerial to null. Do not guess digits.`,
+  });
+}
+
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
@@ -993,6 +1018,8 @@ export default async function handler(req, res) {
 
     const frontImage = fileToDataUrl(frontFile);
     const backImage = fileToDataUrl(backFile);
+    // Optional close-up photo of the serial number.
+    const serialImage = fileToDataUrl(getFile(files, "serial"));
 
     if (!frontImage) {
       return res.status(400).json({
@@ -1147,12 +1174,41 @@ Strict rules:
       }
     }
 
+    // Close-up serial photo: if both reads agree on a valid, non-date serial, use it.
+    let closeupSerial = null;
+    let verification_closeup = null;
+    if (serialImage) {
+      const [c1, c2] = await Promise.all([
+        safe("serial close-up read 1", readSerialCloseup(serialImage, process.env.OPENAI_VISION_MODEL || "gpt-4o-mini")),
+        safe("serial close-up read 2", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o")),
+      ]);
+      const p1 = c1 && !c1.isDate ? parseSerial(c1.stampedSerial) : null;
+      const p2 = c2 && !c2.isDate ? parseSerial(c2.stampedSerial) : null;
+      const shown = `"${c1?.stampedSerial ?? "none"}" / "${c2?.stampedSerial ?? "none"}"`;
+      if (p1 && p2 && p1.num === p2.num && p1.den === p2.den) {
+        closeupSerial = { text: cleanPart(c2.stampedSerial), ...p1 };
+        detailWarnings.push(`Serial ${closeupSerial.text} confirmed from the close-up photo by two separate reads.`);
+      } else {
+        detailWarnings.push(`Serial close-up could not be confirmed (reads: ${shown}). Retake it closer, with less glare.`);
+      }
+      verification_closeup = { reads: [c1, c2] };
+    }
+    // Close-up result replaces whatever the full-card scan said about the serial.
+    if (serialImage) {
+      scanResult.serialNumber = closeupSerial ? closeupSerial.text : null;
+      scanResult.numberedTo = closeupSerial ? closeupSerial.den : null;
+      if (scanResult.evidence) scanResult.evidence.serialNumberText = scanResult.serialNumber;
+    }
+
     const verification = verifyIdentity(scanResult);
     verification.warnings.push(...detailWarnings);
     verification.detailCheck = combinedCheck;
 
+    if (serialImage) verification.serialCloseup = verification_closeup;
+
     // Serial: the two checks above double as the two independent serial reads.
-    if (cleanPart(scanResult.serialNumber) || scanResult.numberedTo) {
+    // (Skipped when a close-up photo already confirmed or ruled out the serial.)
+    if (!serialImage && (cleanPart(scanResult.serialNumber) || scanResult.numberedTo)) {
       const serialChecks = [combinedCheck, strongCheck];
       applySerialCheck(scanResult, serialChecks, verification.warnings);
       verification.serialCheck = serialChecks.map((c) =>
