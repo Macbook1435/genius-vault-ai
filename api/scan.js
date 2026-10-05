@@ -713,6 +713,48 @@ function applyDetailCheck(card, check, warnings) {
   if (card.evidence) card.evidence.parallelText = card.parallel;
 }
 
+// Third read, only when the first two card-number reads disagree.
+// Shows both candidates and asks which one is printed (or neither).
+async function tiebreakCardNumber(frontImage, backImage, candidates) {
+  const content = [
+    {
+      type: "text",
+      text: `Look closely at the card number printed on this sports card (usually on the back, in a corner box, sometimes after a label like "ID#" or "#").
+Two earlier reads disagreed. Candidates: ${candidates.map((c) => `"${c}"`).join(" or ")}.
+Zoom in on every character, including any letters before the dash. Answer with the candidate that is printed EXACTLY, or "neither" if neither matches exactly.`,
+    },
+    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
+  ];
+  if (backImage) {
+    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
+  }
+
+  const completion = await openai.chat.completions.create({
+    model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+    messages: [{ role: "user", content }],
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "card_number_tiebreak",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            answer: { type: "string", enum: [...candidates, "neither"] },
+            printedText: { type: ["string", "null"] },
+          },
+          required: ["answer", "printedText"],
+        },
+      },
+    },
+    max_tokens: 150,
+  });
+
+  const text = completion.choices[0]?.message?.content;
+  return text ? JSON.parse(text) : null;
+}
+
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
@@ -879,7 +921,26 @@ Strict rules:
     } catch (e) {
       console.error("detail check failed:", e);
     }
+    const firstCardNumber = cleanPart(scanResult.cardNumber).replace(/^#/, "");
     applyDetailCheck(scanResult, detailCheck, detailWarnings);
+
+    // Reads disagreed: run one tiebreak read instead of leaving the number blank.
+    const secondCardNumber = cleanPart(detailCheck?.cardNumberText).replace(/^#/, "");
+    if (!scanResult.cardNumber && firstCardNumber && secondCardNumber) {
+      const candidates = [...new Set([firstCardNumber, secondCardNumber])];
+      try {
+        const tb = await tiebreakCardNumber(frontImage, backImage, candidates);
+        if (tb && tb.answer !== "neither") {
+          scanResult.cardNumber = tb.answer;
+          if (scanResult.evidence) scanResult.evidence.cardNumberText = tb.answer;
+          const i = detailWarnings.findIndex((w) => w.startsWith("Card number removed"));
+          if (i >= 0) detailWarnings.splice(i, 1);
+          detailWarnings.push(`Card number confirmed as ${tb.answer} by a tiebreak read.`);
+        }
+      } catch (e) {
+        console.error("card number tiebreak failed:", e);
+      }
+    }
 
     const verification = verifyIdentity(scanResult);
     verification.warnings.push(...detailWarnings);
