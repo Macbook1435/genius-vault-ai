@@ -65,7 +65,11 @@ export function resolveCardNumberReads(reads, opts = {}) {
   if (dropped.length) notes.push(`Ignored ${dropped.length} read(s) equal to the jersey number.`);
   cleaned = cleaned.filter((r) => !dropped.includes(r));
   if (!cleaned.length) return { value: null, status: "unreadable", agreeing: 0, reads: [], notes };
-  if (cleaned.length === 1) return { value: cleaned[0], status: "single_read", agreeing: 1, reads: cleaned, notes };
+  // One read alone is not enough to fill in a card number (the others saw none).
+  if (cleaned.length === 1) {
+    notes.push(`Only one read saw a card number (${cleaned[0]}); left blank.`);
+    return { value: null, status: "single_read", agreeing: 1, reads: cleaned, notes };
+  }
 
   const fits = (v) => opts.formats?.length ? fitsFormat(v, opts.formats) : null;
   const countBy = (list, key) => list.reduce((m, x) => ((m[key(x)] = (m[key(x)] || []).concat([x])), m), {});

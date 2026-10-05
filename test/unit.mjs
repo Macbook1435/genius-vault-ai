@@ -41,6 +41,7 @@ t("agreement", () => {
   assert.equal(resolveCardNumberReads(["131", "131", "131"]).value, "131");
   assert.equal(resolveCardNumberReads(["131", "31", "31"]).value, "31");              // digit prefix not assumed
   assert.equal(resolveCardNumberReads([null, null, null]).status, "unreadable");
+  assert.equal(resolveCardNumberReads(["225", null, null]).value, null);               // one read only
   assert.ok(fitsFormat("350", [{ range: [301, 400] }]));
   assert.ok(!fitsFormat("250", [{ range: [301, 400] }]));
 });
