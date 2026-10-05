@@ -1669,7 +1669,7 @@ Strict rules:
             const brand = String(scanResult.brand || "").trim();
             let setName = String(vf.set.value).replace(/^\d{4}(-\d{2})?\s+/, "");
             if (brand && setName.toLowerCase().startsWith(brand.toLowerCase() + " ")) setName = setName.slice(brand.length + 1);
-            scanResult.set = setName;
+            scanResult.set = setName.replace(/\s+—\s+/g, " "); // plain words for titles/searches
           }
         }
       } catch (e) {
