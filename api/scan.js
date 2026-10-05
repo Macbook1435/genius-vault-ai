@@ -1116,7 +1116,9 @@ function resolveParallelFromCandidates(candidates, { numberedTo, color, finish }
   }
   let list = candidates.slice();
   const steps = [];
-  if (numberedTo) {
+  if (numberedTo === "any") {
+    steps.push("print run unknown");
+  } else if (numberedTo) {
     list = list.filter((p) => Number(p.numberedTo) === Number(numberedTo));
     steps.push(`/${numberedTo}`);
   } else {
@@ -1149,7 +1151,7 @@ function resolveParallelFromCandidates(candidates, { numberedTo, color, finish }
   return { parallel: list.length === 1 ? list[0] : null, candidates: list.slice(0, 6), steps };
 }
 
-function applyParallelIdentification(card, combined, catalogCandidates, warnings) {
+function applyParallelIdentification(card, combined, catalogCandidates, warnings, printRunHint = null) {
   const out = { source: null, status: "not_checked", candidates: [] };
   const scanned = cleanPart(card.parallel);
   if (scanned && isCardTypeNotParallel(scanned)) {
@@ -1158,6 +1160,15 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
   }
 
   const evidence = { numberedTo: card.numberedTo, color: combined?.parallelColor, finish: combined?.parallelFinish };
+  // No confirmed serial, but both checks saw one: use the print run they agree on
+  // ("/250") for narrowing, or skip print-run narrowing if they don't agree.
+  let printRunUncertain = false;
+  if (!card.numberedTo && printRunHint?.seen) {
+    if (printRunHint.numberedTo) evidence.numberedTo = printRunHint.numberedTo;
+    else evidence.numberedTo = "any";
+    printRunUncertain = true;
+    evidence.printRunFrom = printRunHint.numberedTo ? "both checks agree on the print run" : "print run unreadable";
+  }
   const checklist = findChecklist(card);
   const candidates = catalogCandidates?.length ? catalogCandidates : checklist?.parallels || null;
   out.source = catalogCandidates?.length ? "catalog" : checklist ? checklist.id : null;
@@ -1172,10 +1183,18 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
   const r = resolveParallelFromCandidates(candidates, evidence);
   out.candidates = r.candidates.map((p) => `${p.name}${p.numberedTo ? ` /${p.numberedTo}` : ""}`);
   out.candidateObjects = r.candidates;
+  out.printRunUncertain = printRunUncertain;
   if (r.base) {
     out.status = "base";
     if (card.parallel) warnings.push(`Parallel "${card.parallel}" removed: the card looks like a base card (no serial, color, or special finish).`);
     card.parallel = null;
+    return out;
+  }
+  if (r.parallel && printRunUncertain) {
+    // Serial not confirmed: report it as probable, never write it to the card.
+    out.status = "probable";
+    out.probable = r.parallel.name;
+    warnings.push(`Parallel probably "${r.parallel.name}" (checklist), but the serial was not confirmed. Add a serial close-up to confirm.`);
     return out;
   }
   if (r.parallel) {
@@ -1560,11 +1579,20 @@ Strict rules:
     // Parallel is resolved AFTER the serial checks, so an invented serial can never pick a parallel.
     verification.parallelId = catalog.parallelConfirmed
       ? { source: "catalog", status: "confirmed" }
-      : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, verification.warnings);
+      : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, verification.warnings, (() => {
+          const a = parseSerial(combinedCheck?.stampedSerial);
+          const b = parseSerial(strongCheck?.stampedSerial);
+          if (!a || !b) return null;
+          return { seen: true, numberedTo: a.den === b.den ? a.den : null };
+        })());
 
     if (verification.parallelId.status === "ambiguous" && verification.parallelId.candidateObjects?.length <= 4) {
       const tb = await parallelTiebreak(frontImage, verification.parallelId.candidateObjects).catch(() => null);
-      if (tb) {
+      if (tb && verification.parallelId.printRunUncertain) {
+        verification.parallelId.status = "probable";
+        verification.parallelId.probable = tb.answer;
+        verification.warnings.push(`Parallel probably "${tb.answer}" (closer look), but the serial was not confirmed. Add a serial close-up to confirm.`);
+      } else if (tb) {
         scanResult.parallel = tb.answer;
         verification.parallelId.status = "confirmed_by_tiebreak";
         const i = verification.warnings.findIndex((w) => w.startsWith("Parallel unclear"));
