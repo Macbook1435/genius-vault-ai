@@ -11,6 +11,7 @@
 // No individual cards are hard-coded here; checklists live in api/_data and are per product.
 
 const FIELDS = ["year", "set", "cardNumber", "parallel", "serial"];
+// The exact serial (e.g. 157 of /250) only needs a close-up when it matters to the seller.
 
 function present(v) {
   return v !== null && v !== undefined && String(v).trim() !== "";
@@ -100,7 +101,12 @@ export function buildFieldVerification(card, v, ctx = {}) {
   } else if (ctx.serialImage) {
     fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "confirmed", "Two separate reads of the close-up agree.");
   } else {
-    fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "confirmed", "Two separate reads of the card agree.");
+    // Full-card photo: the print run is reliable when reads agree, but a glare-hidden
+    // digit can make every read agree on the wrong number (e.g. "15/250" for 157/250).
+    fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "unconfirmed",
+      `Read from the full photo; the exact number is not close-up verified. Print run /${card.numberedTo} is confirmed.`);
+    fields.serial.printRun = card.numberedTo;
+    fields.serial.printRunConfirmed = true;
   }
   // "No serial" is only a safe call when nothing hinted at one.
   if (!present(card.serialNumber) && !ctx.serialImage && serialHinted(v, ctx.strongCheck)) {
@@ -128,6 +134,9 @@ function serialHinted(v, strongCheck) {
 function serialCloseupAdvice(card, v, ctx, fields) {
   if (ctx.serialImage) {
     return { needed: false, reason: fields.serial.status === "confirmed" ? "Close-up used." : "Close-up was unreadable; retake it closer with less glare." };
+  }
+  if (fields.serial.printRunConfirmed) {
+    return { needed: false, optional: true, reason: "Optional: only to confirm the exact serial number. The print run and parallel did not need it." };
   }
   if (fields.serial.status !== "confirmed") {
     return { needed: true, reason: "A serial number may be on the card but could not be read reliably." };

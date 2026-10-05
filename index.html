@@ -338,7 +338,7 @@ const comps = data.comps || {};
     `Brand / Set: ${[card.brand, card.set].filter(Boolean).join(" ") || "Not identified"}`,
     `Card Number: ${card.cardNumber || "Not identified"}`,
     `Parallel / Insert: ${card.parallel || "Not identified"}`,
-    `Numbered: ${card.serialNumber ? card.serialNumber : card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
+    `Numbered: ${card.serialNumber && !data.pipeline?.fields?.serial?.printRunConfirmed ? card.serialNumber : card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
     `Autograph: ${card.autograph ? "Yes" : "No"}`,
     `Rookie: ${card.rookie ? "Yes" : "No"}`,
     `Listing Title: ${data.soldComps?.query || "Needs review — confirm card details first"}`,
@@ -397,6 +397,7 @@ function fieldCheckLines(data) {
     }
     lines.push(`Unconfirmed: ${p.unconfirmed.length ? p.unconfirmed.map(k => names[k] || k).join(", ") : "None"}`);
     if (p.serialCloseup?.needed) lines.push(`Serial close-up: Recommended — ${p.serialCloseup.reason}`);
+    else if (p.serialCloseup?.optional) lines.push(`Serial close-up: ${p.serialCloseup.reason}`);
   }
   const a = data.market?.active;
   if (a) {
