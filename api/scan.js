@@ -1074,6 +1074,14 @@ const FINISH_WORDS = {
   pulsar: ["pulsar"], raywave: ["raywave"], prism: ["prism"], shimmer: ["shimmer"], mojo: ["mojo"], cracked_ice: ["cracked ice"],
 };
 const ALL_FINISH_WORDS = [...Object.values(FINISH_WORDS).flat(), "neon pulse", "molten", "frozenfractor", "superfractor", "tie-dye"];
+// Colors that look alike under different light / phone cameras.
+const COLOR_FAMILIES = [
+  ["pink", "magenta", "purple", "fuchsia"],
+  ["blue", "aqua", "teal", "sky"],
+  ["gold", "yellow", "orange"],
+  ["red", "orange"],
+  ["silver", "white"],
+];
 const COLOR_WORDS = ["pink", "blue", "gold", "green", "purple", "orange", "red", "black", "aqua", "teal", "yellow", "white", "silver", "bronze", "magenta", "sky"];
 
 function findChecklist(card) {
@@ -1103,9 +1111,14 @@ function resolveParallelFromCandidates(candidates, { numberedTo, color, finish }
   // Color and finish must AGREE with a candidate; a conflict means no confirmation.
   const words = (p) => p.name.toLowerCase().split(/[\s,-]+/);
   const col = cleanPart(color).toLowerCase();
+  let colorConflict = false;
   if (col) {
-    list = list.filter((p) => words(p).includes(col));
-    steps.push(col);
+    const exact = list.filter((p) => words(p).includes(col));
+    const family = (COLOR_FAMILIES.find((f) => f.includes(col)) || [col]);
+    const near = list.filter((p) => family.some((c) => words(p).includes(c)));
+    if (exact.length) { list = exact; steps.push(col); }
+    else if (near.length) { list = near; steps.push(`${col} (close to ${family.join("/")})`); }
+    else { colorConflict = true; } // keep the print-run candidates; a closer look decides
   } else {
     list = list.filter((p) => !COLOR_WORDS.some((c) => words(p).includes(c)));
     steps.push("no color");
@@ -1117,6 +1130,7 @@ function resolveParallelFromCandidates(candidates, { numberedTo, color, finish }
       : list.filter((p) => !ALL_FINISH_WORDS.some((w) => p.name.toLowerCase().includes(w))); // plain refractor
     steps.push(finish.replace(/_/g, " "));
   }
+  if (colorConflict) return { parallel: null, candidates: list.slice(0, 6), steps, colorConflict: true };
   return { parallel: list.length === 1 ? list[0] : null, candidates: list.slice(0, 6), steps };
 }
 
