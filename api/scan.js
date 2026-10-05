@@ -697,12 +697,26 @@ function resolveCardNumber(earlier, strongText) {
   if (!strong) {
     return { value: null, warning: "Card number removed: the stronger check could not read it." };
   }
+  const lookAlike = (v) => v.replace(/5/g, "S").replace(/0/g, "O").replace(/[1L]/g, "I").replace(/8/g, "B").replace(/2/g, "Z");
+  // Tie between look-alike spellings (e.g. "RA-ITS" vs "RA-1TS"): prefer the one whose
+  // dash-separated parts are all letters or all digits, which is how card codes are printed.
+  const raw = [...earlier.map(cleanPart).filter(Boolean), cleanPart(strongText)];
+  const lookGroup = raw.filter((v) => lookAlike(strip(v)) === lookAlike(strong));
+  const clean = (v) => v.replace(/^#/, "").split("-").every((seg) => /^[A-Z]+$/i.test(seg) || /^[0-9]+$/.test(seg));
+  if (lookGroup.length >= 2 && new Set(lookGroup.map(strip)).size > 1) {
+    const tidy = [...new Set(lookGroup.filter(clean).map((v) => v.replace(/^#/, "")))];
+    if (tidy.length === 1) {
+      return {
+        value: tidy[0],
+        warning: `Card number ${tidy[0]} chosen; other reads saw look-alike characters (${lookGroup.filter((v) => !clean(v)).join(", ")}).`,
+      };
+    }
+  }
   if (reads.includes(strong)) {
     return { value: cleanPart(strongText).replace(/^#/, ""), warning: null };
   }
   // Reads differ only by look-alike characters (5/S, 0/O, 1/I/L, 8/B, 2/Z):
   // take the majority spelling across all three reads.
-  const lookAlike = (v) => v.replace(/5/g, "S").replace(/0/g, "O").replace(/[1L]/g, "I").replace(/8/g, "B").replace(/2/g, "Z");
   const all = [...earlier.map(strip).filter(Boolean), strong];
   if (all.length >= 3 && all.every((v) => lookAlike(v) === lookAlike(strong))) {
     const counts = all.reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
@@ -1188,7 +1202,15 @@ function resolvePlayerName(card, combined, strong, warnings) {
   if (reads.length < 2) return;
   const counts = reads.reduce((a, v) => ((a[norm(v)] = (a[norm(v)] || 0) + 1), a), {});
   const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (ranked.length === 1) return; // all agree
+  if (ranked.length === 1) {
+    // Same letters, different punctuation (e.g. "TE'SLAA" vs "TESLAA" for TeSlaa): use the spelling most reads gave.
+    const spell = reads.reduce((a, v) => ((a[v.toUpperCase()] = (a[v.toUpperCase()] || 0) + 1), a), {});
+    const best = Object.entries(spell).sort((x, y) => y[1] - x[1])[0];
+    if (best[1] >= 2 && best[0] !== cleanPart(card.player).toUpperCase()) {
+      card.player = reads.find((r) => r.toUpperCase() === best[0]);
+    }
+    return;
+  }
   if (ranked[0][1] >= 2) {
     const winner = reads.find((r) => norm(r) === ranked[0][0]);
     if (norm(winner) !== norm(card.player)) {
