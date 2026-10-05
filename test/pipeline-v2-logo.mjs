@@ -53,4 +53,27 @@ assert.equal(r.product.id, "2025-topps-chrome-football");
 assert.equal(r.product.route, "printed_name");
 assert.equal(r.pipeline.fields.year.value, 2025);
 assert.equal(r.pipeline.fields.year.status, "confirmed");
+// 2 of 3: main scan + check B see the logo, check A does not → used.
+r = await run(reads({ productLogo: "none" }, {}, { productLogo: LOGO }));
+assert.equal(r.product.route, "logo");
+// A check naming a different product blocks the logo route.
+r = await run(reads({ productLogo: "none" }, { productLogo: "2025-topps-chrome-football" }, { productLogo: LOGO }));
+assert.equal(r.product.status, "no_product");
+
+// Zoomed copyright crop: two agreeing close-up reads outrank full-photo misreads.
+const withCrop = (y1, y2, a = {}, b = {}) => ({ ...reads({ copyrightYearSeen: "2023", ...a }, { copyrightYearText: "2023", ...b }, { year: 2023 }), copyright: { status: "ok", reads: [{ by: "close-up A", year: y1 }, { by: "close-up B", year: y2 }] } });
+r = await run(withCrop("2026", "2026", { eventYears: [] }));
+assert.equal(r.year.closeup, 2026);
+assert.equal(r.product.yearConfirmed, true);
+assert.equal(r.pipeline.fields.year.value, 2025);
+assert.equal(r.pipeline.fields.year.status, "confirmed");
+assert.ok(r.pipeline.fields.year.basis.startsWith("Zoomed-in"));
+assert.equal(r.year.superseded.length, 3);
+// Close-up reads disagree → no override; full-photo 2023 reads (no event year) block the product.
+r = await run(withCrop("2026", "2028", { eventYears: [] }));
+assert.equal(r.year.closeup, null);
+assert.equal(r.product.status, "no_product");
+// One close-up read missing → just one more read, not an override.
+r = await run(withCrop("2026", null));
+assert.equal(r.year.closeup, null);
 console.log("pipeline-v2 logo/year: all checks passed");

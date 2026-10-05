@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "formidable": "^3.5.4",
- "openai": "^4.0.0"
+ "openai": "^4.0.0",
+    "jimp": "^1.6.0"
    
   }
 }

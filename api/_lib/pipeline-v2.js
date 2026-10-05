@@ -33,7 +33,7 @@ ${list.map((p) => `  - "${p.id}": ${p.logo}`).join("\n")}
 }
 const logoIds = () => [...logoProducts().map((p) => p.id), "none"];
 
-export function v2Extras(kind) {
+export function v2Extras(kind) { // "main" | "combined" | "strong"
   const props = { productLogo: { type: "string", enum: logoIds() } };
   const req = ["productLogo"];
   let prompt = logoPrompt();
@@ -79,7 +79,7 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   // 2. Product: printed set name (brand + set words + sport), or — when no name is printed —
   //    the logo, if BOTH checks name the same product and the card number fits its numbering.
   card.sport = A.sport || null;
-  const years = yearEvidence(main, A, B);
+  const years = yearEvidence(main, A, B, raw?.copyright);
   const yearTest = (p) => {
     const { fit, against } = yearSupport(p, years);
     return fit > 0 ? fit > against : !years.valid.length && (!years.latestEvent || p.year >= years.latestEvent);
@@ -87,19 +87,24 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   let prod = findProduct(card, undefined, { yearTest });
   let route = prod.product ? "printed_name" : null;
   const firstNumber = resolveCardNumberReads([main.cardNumber, A.cardNumberText, B.cardNumberText], { jerseyNumbers: [A.jerseyNumberText, B.jerseyNumberText] });
-  if (!prod.product && A.productLogo && A.productLogo !== "none" && A.productLogo === B.productLogo) {
-    const p = getProduct(A.productLogo);
+  // Logo: at least 2 of the 3 checks must name the same product, and none may name another.
+  const logoVotes = [main.productLogo, A.productLogo, B.productLogo].filter((v) => v && v !== "none");
+  const logoCounts = logoVotes.reduce((m, v) => ((m[v] = (m[v] || 0) + 1), m), {});
+  const logoIds = Object.keys(logoCounts);
+  const logoPick = logoIds.length === 1 && logoCounts[logoIds[0]] >= 2 ? logoIds[0] : null;
+  if (!prod.product && logoPick) {
+    const p = getProduct(logoPick);
     const reads = [firstNumber.value, ...firstNumber.reads].filter(Boolean);
     const fitsP = p && reads.some((r) => p.subsets.some((sub) => fitsFormat(r, sub.numberFormats)));
     if (p && fitsP && yearTest(p) && (!card.sport || card.sport === "unknown" || card.sport === p.sport)) {
       prod = { product: p, status: "matched" };
       route = "logo";
-      notes.push(`Product: no set name printed; both checks matched the ${p.label} logo and the card number fits its numbering.`);
+      notes.push(`Product: no set name printed; ${logoCounts[logoPick]} of 3 checks matched the ${p.label} logo and the card number fits its numbering.`);
     } else if (p) {
-      notes.push(`Product: both checks matched the ${p.label} logo, but the card number/year/sport do not fit it, so it was not used.`);
+      notes.push(`Product: ${logoCounts[logoPick]} of 3 checks matched the ${p.label} logo, but the card number/year/sport do not fit it, so it was not used.`);
     }
-  } else if (!prod.product && (A.productLogo || "none") !== (B.productLogo || "none")) {
-    notes.push("Product: the two checks disagree on the logo; not used.");
+  } else if (!prod.product && logoVotes.length) {
+    notes.push(`Product: logo votes ${JSON.stringify(logoCounts)} — need 2 of 3 agreeing on one product; not used.`);
   }
   const product = prod.product;
   const ysup = product ? yearSupport(product, years) : null;
@@ -157,7 +162,7 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   const fields = buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub, number, player, par, serialImage, route, years, ysup, productYearConfirmed });
   return {
     scan: card,
-    year: { reads: years.reads, ignored: years.ignored, latestEvent: years.latestEvent, productYearConfirmed },
+    year: { reads: years.reads, ignored: years.ignored, superseded: years.superseded, closeup: years.closeup, closeupStatus: years.closeupStatus, closeupFallback: years.closeupFallback, latestEvent: years.latestEvent, productYearConfirmed },
     product: product ? { id: product.id, label: product.label, status: prod.status, route, yearConfirmed: productYearConfirmed, sources: product.sources.length } : { status: prod.status, candidates: prod.candidates || [] },
     subset: sub ? { id: sub.subset.id, label: sub.subset.label, status: sub.status, steps: sub.steps, numberFits: sub.numberFits } : null,
     cardNumber: number,
@@ -184,7 +189,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   // Year (the product year; the copyright line may show the next year, e.g. a 2025 set released in 2026)
   const readList = years.reads.map((r) => `${r.year} (${r.by})`).join(", ") || "none";
   if (catalogOk && Number(catalog.match?.year) === Number(card.year)) f.year = C(card.year, "Matches the catalog (CardSight).");
-  else if (product && productYearConfirmed) f.year = C(product.year, `Copyright read${ysup.fit > 1 ? "s" : ""} ${ysup.fitYears.join(", ")} fit the ${product.label} (${product.copyrightYears.join(" or ")} copyright).`);
+  else if (product && productYearConfirmed) f.year = C(product.year, `${years.closeup ? "Zoomed-in copyright line read twice:" : `Copyright read${ysup.fit > 1 ? "s" : ""}`} ${ysup.fitYears.join(", ")} fit the ${product.label} (${product.copyrightYears.join(" or ")} copyright).`);
   else if (product) f.year = U(card.year, `Copyright year not confirmed (reads: ${readList}${years.ignored.length ? `; ignored ${years.ignored.join(", ")} as earlier than a year printed on the card` : ""}).`);
   else if (!present(card.year)) f.year = U(null, "Not readable on the card.");
   else f.year = U(card.year, "No catalog/checklist for this product yet.");
@@ -193,7 +198,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   const setText = [card.brand, card.set].filter(present).join(" ");
   if (catalogOk) f.set = C(setText, "Matches the catalog (CardSight).");
   else if (product && productYearConfirmed) f.set = C(`${product.label}${sub && sub.status === "matched" ? ` — ${sub.subset.label}` : ""}`, route === "logo"
-    ? `No set name printed; both checks matched the ${product.label} logo, the card number fits ${sub?.subset.label || "its numbering"}, and the copyright year fits (${product.sources.length} sources).`
+    ? `No set name printed; 2+ of 3 checks matched the ${product.label} logo, the card number fits ${sub?.subset.label || "its numbering"}, and the copyright year fits (${product.sources.length} sources).`
     : `Matches the ${product.label} checklist (${product.sources.length} sources).`);
   else if (product) f.set = U(card.set ? setText : null, `Probably ${product.label}${route === "logo" ? " (logo + card number)" : ""}, but the copyright year was not confirmed.`);
   else if (prod.status === "ambiguous") f.set = U(setText, `Could be ${prod.candidates.join(" or ")}; sport/set not clear enough.`);
@@ -241,18 +246,24 @@ function diffScans(a, b) {
 
 // Year reads from the three checks. A copyright year earlier than a year printed on the card
 // (draft line, bio) is impossible and is ignored.
-function yearEvidence(main, A, B) {
+function yearEvidence(main, A, B, closeup) {
   const y = (v) => { const m = String(v ?? "").match(/\b(19|20)\d\d\b/); return m ? Number(m[0]) : null; };
   const events = (A.eventYears || []).map(y).filter((v) => v && v <= new Date().getFullYear() + 1);
   const latestEvent = events.length ? Math.max(...events) : null;
-  const reads = [
+  const photo = [
     { by: "main scan", year: y(main.evidence?.copyrightLineText) || y(main.year) },
     { by: "check A", year: y(A.copyrightYearSeen) },
     { by: "check B", year: y(B.copyrightYearText) },
   ].filter((r) => r.year);
-  const ignored = reads.filter((r) => latestEvent && r.year < latestEvent).map((r) => `${r.year} (${r.by})`);
-  const valid = reads.filter((r) => !(latestEvent && r.year < latestEvent));
-  return { reads, valid, ignored, latestEvent };
+  const close = (closeup?.reads || []).map((r) => ({ by: r.by, year: y(r.year) })).filter((r) => r.year);
+  const possible = (r) => !(latestEvent && r.year < latestEvent);
+  // Two agreeing reads of the enlarged copyright crop outrank reads of the whole photo.
+  const closeAgree = close.length === 2 && close[0].year === close[1].year && possible(close[0]);
+  const reads = closeAgree ? close : [...photo, ...close];
+  const ignored = reads.filter((r) => !possible(r)).map((r) => `${r.year} (${r.by})`);
+  const valid = reads.filter(possible);
+  const superseded = closeAgree ? photo.filter((r) => r.year !== close[0].year).map((r) => `${r.year} (${r.by})`) : [];
+  return { reads, valid, ignored, superseded, latestEvent, closeup: closeAgree ? close[0].year : null, closeupStatus: closeup?.status || null, closeupFallback: closeup?.usedFallback || false };
 }
 
 function yearSupport(p, years) {

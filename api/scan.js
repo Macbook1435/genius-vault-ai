@@ -5,6 +5,7 @@ import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldC
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
+import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 
@@ -1417,28 +1418,41 @@ Strict rules:
     const mainScan = askVision({
       model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
       name: "sports_card_identification",
-      schema: CARD_SCHEMA,
+      schema: v2Mode !== "off" ? {
+        ...CARD_SCHEMA,
+        properties: { ...CARD_SCHEMA.properties, ...v2Extras("main").properties },
+        required: [...CARD_SCHEMA.required, ...v2Extras("main").required],
+      } : CARD_SCHEMA,
       maxTokens: 1200,
       frontImage,
       backImage,
-      prompt: content[0].text,
+      prompt: content[0].text + (v2Mode !== "off" ? v2Extras("main").prompt : ""),
     });
 
     const catalogPromise = cardsightConfigured()
       ? cardsightIdentify(fs.readFileSync(frontFile.filepath), frontFile.mimetype).catch((e) => ({ error: e.message }))
       : Promise.resolve(null);
 
-    const [scanResult, combinedCheck, strongCheck] = await Promise.all([
+    // v2 only: zoomed-in copyright crop, read twice (runs alongside the other reads).
+    const copyrightPromise = v2Mode !== "off"
+      ? readCopyrightCloseup(backImage, askVision, {
+        fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+        strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+      }).catch((e) => ({ reads: [], status: "error", error: e.message }))
+      : Promise.resolve(null);
+
+    const [scanResult, combinedCheck, strongCheck, copyrightCloseup] = await Promise.all([
       mainScan,
       safe("combined check", runCombinedCheck(frontImage, backImage, ex, v2Mode !== "off")),
       safe("strong check", runStrongCheck(frontImage, backImage, ex, v2Mode !== "off")),
+      copyrightPromise,
     ]);
 
     if (!scanResult) {
       throw new Error("OpenAI returned an empty identification.");
     }
     // Raw reads, before any rule touches them (v2 works from these; also kept for test replay).
-    const rawReads = v2Mode !== "off" ? structuredClone({ main: scanResult, combined: combinedCheck, strong: strongCheck }) : null;
+    const rawReads = v2Mode !== "off" ? structuredClone({ main: scanResult, combined: combinedCheck, strong: strongCheck, copyright: copyrightCloseup }) : null;
 
     for (const [k, v] of Object.entries(scanResult)) {
       if (typeof v === "string" && !cleanPart(v)) scanResult[k] = null;
