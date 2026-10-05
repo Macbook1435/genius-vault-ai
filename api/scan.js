@@ -542,39 +542,6 @@ const SERIAL_SCHEMA = {
   required: ["slashTexts", "stampedSerial", "stampedSerialSide", "stampedSerialAppearance"],
 };
 
-async function confirmSerial(frontImage, backImage) {
-  const content = [
-    {
-      type: "text",
-      text: `Look ONLY for text containing a slash ("/") on this sports card.
-List every piece of text with a slash exactly as printed, where it is, and its kind:
-- "stamped_serial": a standalone serial number such as "07/25" or "112/199", usually foil-stamped or printed alone in a small area.
-- "date": any date such as "9/14/25" or "09/14/2025", including dates under labels like "Rookie Debut".
-- "other": anything else.
-Set stampedSerial to the exact stamped serial text, or null if there is none.
-Never build a serial from parts of a date or from other numbers such as gate, seat, row, flight, or jersey numbers. Most cards have NO serial number; null is the expected answer unless you can clearly see one.
-If you report a stamped serial, set stampedSerialSide to "front" or "back" and describe how it looks in stampedSerialAppearance (for example "gold foil, bottom right corner"). Otherwise set both to null.`,
-    },
-    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
-  ];
-  if (backImage) {
-    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
-  }
-
-  const completion = await openai.chat.completions.create({
-    model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
-    messages: [{ role: "user", content }],
-    response_format: {
-      type: "json_schema",
-      json_schema: { name: "serial_check", strict: true, schema: SERIAL_SCHEMA },
-    },
-    max_tokens: 500,
-  });
-
-  const text = completion.choices[0]?.message?.content;
-  return text ? JSON.parse(text) : null;
-}
-
 // Keeps a serial only if:
 //  - two separate serial reads both report a stamped serial,
 //  - both reads match each other AND the first scan exactly,
@@ -644,38 +611,6 @@ const DETAIL_SCHEMA = {
     "rookieMarkText",
   ],
 };
-
-async function confirmDetails(frontImage, backImage) {
-  const content = [
-    {
-      type: "text",
-      text: `Read three things from this sports card exactly as printed. Do not guess.
-
-1. cardNumberText: the card number, usually on the back in a corner, often after a label like "#", "No.", "Card", or "ID#". Return ONLY the number itself without the label (for example "FC-2", "145", "RC-12"). Keep letter prefixes. Do not add letters from nearby labels. Null if not readable.
-2. productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
-3. parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed.
-4. rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a player's rookie year or season in a paragraph. Null if no rookie mark is printed.
-Give the location of the card number and parallel text.`,
-    },
-    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
-  ];
-  if (backImage) {
-    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
-  }
-
-  const completion = await openai.chat.completions.create({
-    model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
-    messages: [{ role: "user", content }],
-    response_format: {
-      type: "json_schema",
-      json_schema: { name: "detail_check", strict: true, schema: DETAIL_SCHEMA },
-    },
-    max_tokens: 400,
-  });
-
-  const text = completion.choices[0]?.message?.content;
-  return text ? JSON.parse(text) : null;
-}
 
 const LABEL_PREFIX = /^(ID|NO|CARD|NUM|NUMBER)(?=[A-Z0-9])/;
 const normWords = (v) => cleanPart(v).toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -750,48 +685,6 @@ function applyDetailCheck(card, check, warnings) {
   card.rookieMarkText = isRookieMark ? mark : null;
 }
 
-// Stronger-model card-number read. Runs on EVERY scan and does not see the
-// earlier answers, so it cannot just agree with a shared misread like "C-2".
-async function strongCardNumberRead(frontImage, backImage) {
-  const content = [
-    {
-      type: "text",
-      text: `Find the card number printed on this sports card. It is usually on the back, often in a corner box, sometimes after a label like "ID#", "#", "No.", or "Card".
-Zoom in and read every character, especially any letters before a dash (for example "FC-2", "RC-12", "BDC-45", "101").
-Return ONLY the number itself, without the label text. Return null if you cannot read it with certainty.`,
-    },
-    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
-  ];
-  if (backImage) {
-    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
-  }
-
-  const completion = await openai.chat.completions.create({
-    model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
-    messages: [{ role: "user", content }],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "card_number_read",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            cardNumberText: { type: ["string", "null"] },
-            location: { type: ["string", "null"] },
-          },
-          required: ["cardNumberText", "location"],
-        },
-      },
-    },
-    max_tokens: 150,
-  });
-
-  const text = completion.choices[0]?.message?.content;
-  return text ? JSON.parse(text) : null;
-}
-
 // Decide the final card number from the earlier reads and the strong read.
 function resolveCardNumber(earlier, strongText) {
   const strip = (v) => normalizeCode(v).replace(LABEL_PREFIX, "");
@@ -815,6 +708,115 @@ function resolveCardNumber(earlier, strongText) {
     value: null,
     warning: `Card number removed: the stronger check read "${cleanPart(strongText)}", which does not match earlier reads (${earlier.filter(Boolean).join(", ") || "none"}).`,
   };
+}
+
+// ---- Shared OpenAI vision call with one retry on rate limits ----
+async function askVision({ model, prompt, name, schema, frontImage, backImage, maxTokens }) {
+  const content = [
+    { type: "text", text: prompt },
+    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
+  ];
+  if (backImage) {
+    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
+  }
+
+  const call = () =>
+    openai.chat.completions.create({
+      model,
+      messages: [{ role: "user", content }],
+      response_format: { type: "json_schema", json_schema: { name, strict: true, schema } },
+      max_tokens: maxTokens,
+    });
+
+  let completion;
+  try {
+    completion = await call();
+  } catch (e) {
+    if (e?.status !== 429) throw e;
+    // Rate limited: wait briefly, then try once more.
+    const wait = Math.min(Number(e?.headers?.["retry-after"]) * 1000 || 2000, 8000);
+    await new Promise((r) => setTimeout(r, wait));
+    completion = await call();
+  }
+
+  const text = completion.choices[0]?.message?.content;
+  return text ? JSON.parse(text) : null;
+}
+
+const SERIAL_PROMPT = `SERIAL NUMBER:
+List every piece of text containing a slash ("/") exactly as printed in slashTexts, with where it is and its kind:
+- "stamped_serial": a standalone serial number such as "07/25" or "112/199", usually foil-stamped or printed alone in a small area.
+- "date": any date such as "9/14/25" or "09/14/2025", including dates under labels like "Rookie Debut".
+- "other": anything else.
+Set stampedSerial to the exact stamped serial text, or null if there is none.
+Never build a serial from parts of a date or from other numbers such as gate, seat, row, flight, or jersey numbers. Most cards have NO serial number; null is the expected answer unless you can clearly see one.
+If you report a stamped serial, set stampedSerialSide to "front" or "back" and describe it in stampedSerialAppearance (for example "gold foil, bottom right corner"). Otherwise set both to null.`;
+
+const CARD_NUMBER_PROMPT = `CARD NUMBER:
+The card number is usually on the back, often in a corner box, sometimes after a label like "ID#", "#", "No.", or "Card".
+Zoom in and read every character, especially any letters before a dash (for example "FC-2", "RC-12", "BDC-45", "101").
+Return ONLY the number itself without the label text. Null if you cannot read it with certainty.`;
+
+// Check A (cheaper model): card number, set, parallel, rookie mark, and serial — one call.
+const COMBINED_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: { ...DETAIL_SCHEMA.properties, ...SERIAL_SCHEMA.properties },
+  required: [...DETAIL_SCHEMA.required, ...SERIAL_SCHEMA.required],
+};
+
+function runCombinedCheck(frontImage, backImage) {
+  return askVision({
+    model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+    name: "combined_check",
+    schema: COMBINED_SCHEMA,
+    maxTokens: 800,
+    frontImage,
+    backImage,
+    prompt: `Read these details from this sports card exactly as printed. Do not guess.
+
+${CARD_NUMBER_PROMPT}
+Put it in cardNumberText and its location in cardNumberLocation.
+
+SET AND PARALLEL:
+- productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
+- parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed. Give its location in parallelLocation.
+
+ROOKIE:
+- rookieMarkText: if the card shows an official rookie mark, copy it exactly: the "RC" rookie logo (often a small shield/badge), "Rookie Card", "Rookie", or "Rated Rookie". Do not count text that only mentions a rookie year or season in a paragraph. Null if none.
+
+${SERIAL_PROMPT}`,
+  });
+}
+
+// Check B (stronger model): independent card-number read + second serial read — one call.
+// It never sees earlier answers, so it cannot just agree with a shared misread.
+const STRONG_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    cardNumberText: { type: ["string", "null"] },
+    location: { type: ["string", "null"] },
+    ...SERIAL_SCHEMA.properties,
+  },
+  required: ["cardNumberText", "location", ...SERIAL_SCHEMA.required],
+};
+
+function runStrongCheck(frontImage, backImage) {
+  return askVision({
+    model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+    name: "strong_check",
+    schema: STRONG_SCHEMA,
+    maxTokens: 500,
+    frontImage,
+    backImage,
+    prompt: `Read two things from this sports card exactly as printed. Do not guess.
+
+${CARD_NUMBER_PROMPT}
+Put it in cardNumberText and its location in location.
+
+${SERIAL_PROMPT}`,
+  });
 }
 
 function getConfidence(verification) {
@@ -939,36 +941,32 @@ Strict rules:
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model:
-        process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content,
-        },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "sports_card_identification",
-          strict: true,
-          schema: CARD_SCHEMA,
-        },
-      },
-      max_tokens: 1200,
+    // All three reads run at the same time and do not depend on each other.
+    const safe = (label, promise) =>
+      promise.catch((e) => {
+        console.error(`${label} failed:`, e);
+        return null;
+      });
+
+    const mainScan = askVision({
+      model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+      name: "sports_card_identification",
+      schema: CARD_SCHEMA,
+      maxTokens: 1200,
+      frontImage,
+      backImage,
+      prompt: content[0].text,
     });
 
-    const text =
-      completion.choices[0]?.message?.content;
+    const [scanResult, combinedCheck, strongCheck] = await Promise.all([
+      mainScan,
+      safe("combined check", runCombinedCheck(frontImage, backImage)),
+      safe("strong check", runStrongCheck(frontImage, backImage)),
+    ]);
 
-    if (!text) {
-      throw new Error(
-        "OpenAI returned an empty identification.",
-      );
+    if (!scanResult) {
+      throw new Error("OpenAI returned an empty identification.");
     }
-
-    const scanResult = JSON.parse(text);
 
     const alternates = Array.isArray(scanResult.alternates)
       ? scanResult.alternates.slice(0, 5)
@@ -977,25 +975,13 @@ Strict rules:
     delete scanResult.alternates;
 
     const detailWarnings = [];
-    let detailCheck = null;
-    try {
-      detailCheck = await confirmDetails(frontImage, backImage);
-    } catch (e) {
-      console.error("detail check failed:", e);
-    }
     const firstCardNumber = cleanPart(scanResult.cardNumber).replace(/^#/, "");
-    applyDetailCheck(scanResult, detailCheck, detailWarnings);
+    applyDetailCheck(scanResult, combinedCheck, detailWarnings);
 
-    // Always run the stronger card-number check.
-    const secondCardNumber = cleanPart(detailCheck?.cardNumberText).replace(/^#/, "");
-    let strongRead = null;
-    try {
-      strongRead = await strongCardNumberRead(frontImage, backImage);
-    } catch (e) {
-      console.error("strong card number read failed:", e);
-    }
-    if (strongRead) {
-      const resolved = resolveCardNumber([firstCardNumber, secondCardNumber], strongRead.cardNumberText);
+    // Card number: strong read decides, checked against the two cheaper reads.
+    const secondCardNumber = cleanPart(combinedCheck?.cardNumberText).replace(/^#/, "");
+    if (strongCheck) {
+      const resolved = resolveCardNumber([firstCardNumber, secondCardNumber], strongCheck.cardNumberText);
       scanResult.cardNumber = resolved.value;
       if (scanResult.evidence) scanResult.evidence.cardNumberText = resolved.value;
       const i = detailWarnings.findIndex((w) => w.startsWith("Card number removed: the two reads"));
@@ -1009,17 +995,15 @@ Strict rules:
 
     const verification = verifyIdentity(scanResult);
     verification.warnings.push(...detailWarnings);
-    verification.detailCheck = detailCheck;
+    verification.detailCheck = combinedCheck;
 
+    // Serial: the two checks above double as the two independent serial reads.
     if (cleanPart(scanResult.serialNumber) || scanResult.numberedTo) {
-      const safeRead = () =>
-        confirmSerial(frontImage, backImage).catch((e) => {
-          console.error("serial check failed:", e);
-          return null;
-        });
-      const serialChecks = await Promise.all([safeRead(), safeRead()]);
+      const serialChecks = [combinedCheck, strongCheck];
       applySerialCheck(scanResult, serialChecks, verification.warnings);
-      verification.serialCheck = serialChecks;
+      verification.serialCheck = serialChecks.map((c) =>
+        c ? { stampedSerial: c.stampedSerial, side: c.stampedSerialSide, slashTexts: c.slashTexts } : null,
+      );
     }
     const confidence = getConfidence(verification);
     const identityTrusted =
