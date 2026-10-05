@@ -62,7 +62,7 @@ function parseSerial(text) {
   return m ? { num: Number(m[1]), den: Number(m[2]) } : null;
 }
 
-export async function runPipelineV2({ scan, raw, verification, serialImage, tiebreak }) {
+export async function runPipelineV2({ scan, raw, verification, serialImage, tiebreak, copyrightCloseup }) {
   const card = structuredClone(scan);
   const main = raw?.main || {};
   const A = raw?.combined || {};
@@ -79,7 +79,13 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   // 2. Product: printed set name (brand + set words + sport), or — when no name is printed —
   //    the logo, if BOTH checks name the same product and the card number fits its numbering.
   card.sport = A.sport || null;
-  const years = yearEvidence(main, A, B, raw?.copyright);
+  let years = yearEvidence(main, A, B, raw?.copyright);
+  // Zoom in on the copyright line only when the full-photo reads do not already agree.
+  const photoYears = new Set(years.valid.map((r) => r.year));
+  if (!raw?.copyright && copyrightCloseup && (years.valid.length < 2 || photoYears.size !== 1)) {
+    raw.copyright = await copyrightCloseup();
+    years = yearEvidence(main, A, B, raw.copyright);
+  }
   const yearTest = (p) => {
     const { fit, against } = yearSupport(p, years);
     return fit > 0 ? fit > against : !years.valid.length && (!years.latestEvent || p.year >= years.latestEvent);
@@ -153,7 +159,8 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
         const pick = par.candidates.find((c) => c.name === tb.answer);
         if (pick) {
           // One closer look alone is a guess; it confirms only when a second, independent look agrees.
-          const single = tb.agreed === false;
+          // An "unsure" second look abstains; a second look naming a DIFFERENT parallel blocks it.
+          const single = tb.agreed === false && Boolean(tb.second);
           par = { ...par, parallel: pick, tiebreakAgreed: !single, tiebreakSecond: tb.second ?? null, status: printRunFromChecks || !productYearConfirmed || single ? "probable" : pick.verified ? "confirmed" : "single_source", tiebreak: tb.reason };
         }
       }

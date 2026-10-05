@@ -1434,26 +1434,17 @@ Strict rules:
       ? cardsightIdentify(fs.readFileSync(frontFile.filepath), frontFile.mimetype).catch((e) => ({ error: e.message }))
       : Promise.resolve(null);
 
-    // v2 only: zoomed-in copyright crop, read twice (runs alongside the other reads).
-    const copyrightPromise = v2Mode !== "off"
-      ? readCopyrightCloseup(backImage, askVision, {
-        fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
-        strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
-      }).catch((e) => ({ reads: [], status: "error", error: e.message }))
-      : Promise.resolve(null);
-
-    const [scanResult, combinedCheck, strongCheck, copyrightCloseup] = await Promise.all([
+    const [scanResult, combinedCheck, strongCheck] = await Promise.all([
       mainScan,
       safe("combined check", runCombinedCheck(frontImage, backImage, ex, v2Mode !== "off")),
       safe("strong check", runStrongCheck(frontImage, backImage, ex, v2Mode !== "off")),
-      copyrightPromise,
     ]);
 
     if (!scanResult) {
       throw new Error("OpenAI returned an empty identification.");
     }
     // Raw reads, before any rule touches them (v2 works from these; also kept for test replay).
-    const rawReads = v2Mode !== "off" ? structuredClone({ main: scanResult, combined: combinedCheck, strong: strongCheck, copyright: copyrightCloseup }) : null;
+    const rawReads = v2Mode !== "off" ? structuredClone({ main: scanResult, combined: combinedCheck, strong: strongCheck }) : null;
 
     for (const [k, v] of Object.entries(scanResult)) {
       if (typeof v === "string" && !cleanPart(v)) scanResult[k] = null;
@@ -1648,6 +1639,12 @@ Strict rules:
           raw: rawReads,
           verification,
           serialImage: Boolean(serialImage),
+          // v2 only, and only when the full-photo reads do not settle the copyright year:
+          // a zoomed-in copyright crop read twice.
+          copyrightCloseup: () => readCopyrightCloseup(backImage, askVision, {
+            fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+            strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+          }).catch((e) => ({ reads: [], status: "error", error: e.message })),
           // v2: two independent closer looks (strong + fast model); both must agree to confirm.
           tiebreak: async (candidates) => {
             const [a, b] = await Promise.all([
