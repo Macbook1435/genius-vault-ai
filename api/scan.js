@@ -1094,9 +1094,24 @@ Strict rules:
 
     applyPrintedTextRules(scanResult, combinedCheck, strongCheck, detailWarnings);
 
+    const eventYears = (combinedCheck?.eventYears || [])
+      .map((y) => Number((String(y).match(/\b(19|20)\d\d\b/) || [])[0]))
+      .filter((y) => y && y <= new Date().getFullYear() + 1);
+    const latestEvent = eventYears.length ? Math.max(...eventYears) : null;
+
     // Year: the stronger model reads the copyright year independently.
     const strongYear = Number((cleanPart(strongCheck?.copyrightYearText).match(/\b(19|20)\d\d\b/) || [])[0]);
-    if (strongYear && scanResult.year && strongYear !== scanResult.year) {
+    const tooEarly = (y) => latestEvent && y < latestEvent;
+    if (strongYear && scanResult.year && strongYear !== scanResult.year && tooEarly(strongYear) && !tooEarly(scanResult.year)) {
+      // Strong read is impossible (before a printed draft/bio year): keep the main read.
+    } else if (strongYear && scanResult.year && strongYear !== scanResult.year && tooEarly(scanResult.year) && !tooEarly(strongYear)) {
+      detailWarnings.push(`Year corrected from ${scanResult.year} to ${strongYear}: ${scanResult.year} is before ${latestEvent}, a year printed on the card.`);
+      scanResult.year = strongYear;
+      if (scanResult.evidence) {
+        scanResult.evidence.yearText = String(strongYear);
+        scanResult.evidence.copyrightLineText = `© ${strongYear}`;
+      }
+    } else if (strongYear && scanResult.year && strongYear !== scanResult.year) {
       detailWarnings.push(
         `Year removed: the reads disagree on the copyright year (${scanResult.year} vs ${strongYear}).`,
       );
@@ -1109,11 +1124,6 @@ Strict rules:
       scanResult.year = strongYear;
     }
 
-    // A card cannot be printed before events it describes (e.g. a 2025 draft).
-    const eventYears = (combinedCheck?.eventYears || [])
-      .map((y) => Number((String(y).match(/\b(19|20)\d\d\b/) || [])[0]))
-      .filter((y) => y && y <= new Date().getFullYear() + 1);
-    const latestEvent = eventYears.length ? Math.max(...eventYears) : null;
     if (scanResult.year && latestEvent && scanResult.year < latestEvent) {
       detailWarnings.push(
         `Year removed: ${scanResult.year} is before ${latestEvent}, a year printed on the card (draft/bio). Check the copyright line.`,
@@ -1125,18 +1135,14 @@ Strict rules:
       }
     }
 
-    // Serial missed by the main scan: adopt it only if both independent checks agree.
+    // Serial missed by the main scan: never adopt it automatically (two checks have
+    // agreed on an invented serial before). Just tell the user to check.
     if (!cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
       const a = cleanPart(combinedCheck?.stampedSerial);
       const b = cleanPart(strongCheck?.stampedSerial);
-      if (a && b && parseSerial(a) && parseSerial(b)) {
-        scanResult.serialNumber = a;
-        scanResult.numberedTo = parseSerial(a).den;
-        if (scanResult.evidence) scanResult.evidence.serialNumberText = a;
-        // applySerialCheck below confirms agreement, side, and the date rule.
-      } else if (a || b) {
+      if (a || b) {
         detailWarnings.push(
-          `Possible serial not added: the checks read "${a || "none"}" and "${b || "none"}".`,
+          `Possible serial number seen ("${a || "none"}" / "${b || "none"}") but not confirmed. Check the card and enter it manually.`,
         );
       }
     }
