@@ -838,6 +838,20 @@ ${SERIAL_PROMPT}`,
   });
 }
 
+// Real trading-card manufacturers. A "brand" outside this list (a sponsor,
+// a printer, a team) is never used as the brand.
+const KNOWN_BRANDS = [
+  "Topps", "Bowman", "Panini", "Donruss", "Upper Deck", "Fleer", "Score", "Leaf",
+  "Pinnacle", "Pacific", "SkyBox", "Playoff", "Press Pass", "Sage", "Wild Card",
+  "Classic", "Pro Set", "Hoops", "O-Pee-Chee", "Futera", "Collector's Edge",
+  "Action Packed", "Star", "Goudey", "Philadelphia", "Parkhurst", "Onyx", "Tristar",
+  "Leaf Trading Cards", "Select", "Stadium Club",
+];
+const knownBrand = (v) => {
+  const x = normWords(v);
+  return x ? KNOWN_BRANDS.find((b) => x === normWords(b) || x.startsWith(normWords(b))) || null : null;
+};
+
 // Jersey numbers, sponsor names, and guessed brands never reach the listing.
 function applyPrintedTextRules(card, combined, strong, warnings) {
   // 1. Card number must not be the player's jersey number.
@@ -865,8 +879,12 @@ function applyPrintedTextRules(card, combined, strong, warnings) {
   }
 
   // 3. Brand must be printed on the card (logo text or copyright line), never guessed.
-  const printedBrand = cleanPart(combined.brandNameText);
+  const printedBrand = knownBrand(combined.brandNameText);
   const copyright = cleanPart(card.evidence?.copyrightLineText);
+  if (cleanPart(card.brand) && !knownBrand(card.brand)) {
+    warnings.push(`Brand "${card.brand}" removed: it is not a trading-card manufacturer.`);
+    card.brand = null;
+  }
   if (cleanPart(card.brand)) {
     const supported =
       (printedBrand && sameText(printedBrand, card.brand)) ||
@@ -1034,6 +1052,10 @@ Strict rules:
 
     if (!scanResult) {
       throw new Error("OpenAI returned an empty identification.");
+    }
+
+    for (const [k, v] of Object.entries(scanResult)) {
+      if (typeof v === "string" && !cleanPart(v)) scanResult[k] = null;
     }
 
     const alternates = Array.isArray(scanResult.alternates)
