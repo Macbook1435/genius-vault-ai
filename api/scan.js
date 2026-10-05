@@ -786,6 +786,7 @@ const COMBINED_SCHEMA = {
     ...SERIAL_SCHEMA.properties,
     jerseyNumberText: { type: ["string", "null"] },
     brandNameText: { type: ["string", "null"] },
+    playerNameText: { type: ["string", "null"] },
     sponsorNames: { type: "array", items: { type: "string" } },
     eventYears: { type: "array", items: { type: "string" } },
     parallelColor: { type: ["string", "null"] },
@@ -795,6 +796,7 @@ const COMBINED_SCHEMA = {
     ...DETAIL_SCHEMA.required,
     ...SERIAL_SCHEMA.required,
     "jerseyNumberText",
+    "playerNameText",
     "brandNameText",
     "sponsorNames",
     "eventYears",
@@ -819,6 +821,9 @@ Put it in cardNumberText and its location in cardNumberLocation.
 SET AND PARALLEL:
 - productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
 - parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed. Give its location in parallelLocation.
+
+PLAYER NAME:
+- playerNameText: the player's full name exactly as printed on the nameplate, letter by letter (stylized capitals like "TeSlaa" are one word). Null if not readable.
 
 BRAND AND SPONSORS:
 - brandNameText: the card MANUFACTURER name exactly as printed anywhere on the card or in the copyright line (for example "Topps", "Panini", "Bowman", "Upper Deck", "Fleer", "Donruss", "Leaf"). Null if no manufacturer name is printed. Never guess from the card's design or era.
@@ -848,9 +853,10 @@ const STRONG_SCHEMA = {
     location: { type: ["string", "null"] },
     jerseyNumberText: { type: ["string", "null"] },
     copyrightYearText: { type: ["string", "null"] },
+    playerNameText: { type: ["string", "null"] },
     ...SERIAL_SCHEMA.properties,
   },
-  required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", ...SERIAL_SCHEMA.required],
+  required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", "playerNameText", ...SERIAL_SCHEMA.required],
 };
 
 function runStrongCheck(frontImage, backImage) {
@@ -865,6 +871,9 @@ function runStrongCheck(frontImage, backImage) {
 
 ${CARD_NUMBER_PROMPT}
 Put it in cardNumberText and its location in location.
+
+PLAYER NAME:
+Copy the player's full name exactly as printed on the nameplate, letter by letter, into playerNameText (stylized capitals like "TeSlaa" are one word). Null if not readable.
 
 COPYRIGHT YEAR:
 Find the copyright line (starts with "©", usually tiny text at the bottom of the back). Zoom in and copy ONLY its 4-digit year into copyrightYearText (for example "2025"). Read each digit carefully; do not use birth dates, draft years, or stats. Null if not readable.
@@ -1133,6 +1142,7 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
 
   const r = resolveParallelFromCandidates(candidates, evidence);
   out.candidates = r.candidates.map((p) => `${p.name}${p.numberedTo ? ` /${p.numberedTo}` : ""}`);
+  out.candidateObjects = r.candidates;
   if (r.base) {
     out.status = "base";
     if (card.parallel) warnings.push(`Parallel "${card.parallel}" removed: the card looks like a base card (no serial, color, or special finish).`);
@@ -1155,6 +1165,49 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
     card.parallel = null;
   }
   return out;
+}
+
+// Player name: majority of three independent reads (main scan + two checks).
+function resolvePlayerName(card, combined, strong, warnings) {
+  const norm = (v) => cleanPart(v).toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, "");
+  const reads = [card.player, combined?.playerNameText, strong?.playerNameText].map(cleanPart).filter(Boolean);
+  if (reads.length < 2) return;
+  const counts = reads.reduce((a, v) => ((a[norm(v)] = (a[norm(v)] || 0) + 1), a), {});
+  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (ranked.length === 1) return; // all agree
+  if (ranked[0][1] >= 2) {
+    const winner = reads.find((r) => norm(r) === ranked[0][0]);
+    if (norm(winner) !== norm(card.player)) {
+      warnings.push(`Player name corrected from "${card.player}" to "${winner}" (2 of 3 reads agree).`);
+      card.player = winner;
+      if (card.evidence) card.evidence.playerNameText = winner;
+    }
+  } else {
+    warnings.push(`Player name unclear: reads were ${reads.map((r) => `"${r}"`).join(", ")}.`);
+    card.player = null;
+  }
+}
+
+// When the checklist leaves 2+ candidates, ask the stronger model to pick one, from the list only.
+async function parallelTiebreak(frontImage, candidates) {
+  const options = candidates.map((c) => c.name);
+  const r = await askVision({
+    model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+    name: "parallel_tiebreak",
+    maxTokens: 150,
+    frontImage,
+    backImage: null,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { answer: { type: "string", enum: [...options, "unsure"] }, reason: { type: "string" } },
+      required: ["answer", "reason"],
+    },
+    prompt: `This sports card is one of these parallels: ${options.map((o) => `"${o}"`).join(", ")}.
+Pattern guide: plain "Refractor" = smooth rainbow shine with NO repeating pattern; "Wave" = clear wavy lines across the card; "Lava" = bubbly blobs; "Geometric" = repeating shapes; "Football Leather" = pebbled texture.
+Look only at the card's background/border surface. Answer with the matching name, or "unsure" if you cannot tell.`,
+  });
+  return r && options.includes(r.answer) ? r : null;
 }
 
 function getConfidence(verification) {
@@ -1345,6 +1398,7 @@ Strict rules:
     }
 
     applyPrintedTextRules(scanResult, combinedCheck, strongCheck, detailWarnings);
+    resolvePlayerName(scanResult, combinedCheck, strongCheck, detailWarnings);
 
     const eventYears = (combinedCheck?.eventYears || [])
       .map((y) => Number((String(y).match(/\b(19|20)\d\d\b/) || [])[0]))
@@ -1461,6 +1515,24 @@ Strict rules:
     verification.parallelId = catalog.parallelConfirmed
       ? { source: "catalog", status: "confirmed" }
       : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, verification.warnings);
+
+    if (verification.parallelId.status === "ambiguous" && verification.parallelId.candidateObjects?.length <= 4) {
+      const tb = await parallelTiebreak(frontImage, verification.parallelId.candidateObjects).catch(() => null);
+      if (tb) {
+        scanResult.parallel = tb.answer;
+        verification.parallelId.status = "confirmed_by_tiebreak";
+        const i = verification.warnings.findIndex((w) => w.startsWith("Parallel unclear"));
+        if (i >= 0) verification.warnings.splice(i, 1);
+        verification.warnings.push(`Parallel "${tb.answer}" picked from the checklist candidates by a closer look (${tb.reason}).`);
+      }
+    }
+
+    // Avoid "Topps Topps Chrome": drop a repeated brand from the start of the set name.
+    if (cleanPart(scanResult.brand) && cleanPart(scanResult.set)) {
+      const b = cleanPart(scanResult.brand);
+      const setText = cleanPart(scanResult.set);
+      if (setText.toLowerCase().startsWith(b.toLowerCase() + " ")) scanResult.set = setText.slice(b.length + 1);
+    }
 
     const confidence = getConfidence(verification);
     const identityTrusted =
