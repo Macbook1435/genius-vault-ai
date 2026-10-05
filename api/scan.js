@@ -750,15 +750,15 @@ function applyDetailCheck(card, check, warnings) {
   card.rookieMarkText = isRookieMark ? mark : null;
 }
 
-// Third read, only when the first two card-number reads disagree.
-// Shows both candidates and asks which one is printed (or neither).
-async function tiebreakCardNumber(frontImage, backImage, candidates) {
+// Stronger-model card-number read. Runs on EVERY scan and does not see the
+// earlier answers, so it cannot just agree with a shared misread like "C-2".
+async function strongCardNumberRead(frontImage, backImage) {
   const content = [
     {
       type: "text",
-      text: `Look closely at the card number printed on this sports card (usually on the back, in a corner box, sometimes after a label like "ID#" or "#").
-Two earlier reads disagreed. Candidates: ${candidates.map((c) => `"${c}"`).join(" or ")}.
-Zoom in on every character, including any letters before the dash. Answer with the candidate that is printed EXACTLY, or "neither" if neither matches exactly.`,
+      text: `Find the card number printed on this sports card. It is usually on the back, often in a corner box, sometimes after a label like "ID#", "#", "No.", or "Card".
+Zoom in and read every character, especially any letters before a dash (for example "FC-2", "RC-12", "BDC-45", "101").
+Return ONLY the number itself, without the label text. Return null if you cannot read it with certainty.`,
     },
     { type: "image_url", image_url: { url: frontImage, detail: "high" } },
   ];
@@ -772,16 +772,16 @@ Zoom in on every character, including any letters before the dash. Answer with t
     response_format: {
       type: "json_schema",
       json_schema: {
-        name: "card_number_tiebreak",
+        name: "card_number_read",
         strict: true,
         schema: {
           type: "object",
           additionalProperties: false,
           properties: {
-            answer: { type: "string", enum: [...candidates, "neither"] },
-            printedText: { type: ["string", "null"] },
+            cardNumberText: { type: ["string", "null"] },
+            location: { type: ["string", "null"] },
           },
-          required: ["answer", "printedText"],
+          required: ["cardNumberText", "location"],
         },
       },
     },
@@ -790,6 +790,31 @@ Zoom in on every character, including any letters before the dash. Answer with t
 
   const text = completion.choices[0]?.message?.content;
   return text ? JSON.parse(text) : null;
+}
+
+// Decide the final card number from the earlier reads and the strong read.
+function resolveCardNumber(earlier, strongText) {
+  const strip = (v) => normalizeCode(v).replace(LABEL_PREFIX, "");
+  const strong = strip(strongText);
+  const reads = [...new Set(earlier.map(strip).filter(Boolean))];
+
+  if (!strong) {
+    return { value: null, warning: "Card number removed: the stronger check could not read it." };
+  }
+  if (reads.includes(strong)) {
+    return { value: cleanPart(strongText).replace(/^#/, ""), warning: null };
+  }
+  // Earlier reads dropped a prefix (e.g. "C-2" vs "FC-2"): trust the fuller strong read.
+  if (reads.length && reads.every((r) => strong.endsWith(r) && strong.length > r.length)) {
+    return {
+      value: cleanPart(strongText).replace(/^#/, ""),
+      warning: `Card number corrected to ${cleanPart(strongText)} by the stronger check (earlier reads: ${earlier.filter(Boolean).join(", ")}).`,
+    };
+  }
+  return {
+    value: null,
+    warning: `Card number removed: the stronger check read "${cleanPart(strongText)}", which does not match earlier reads (${earlier.filter(Boolean).join(", ") || "none"}).`,
+  };
 }
 
 function getConfidence(verification) {
@@ -961,22 +986,25 @@ Strict rules:
     const firstCardNumber = cleanPart(scanResult.cardNumber).replace(/^#/, "");
     applyDetailCheck(scanResult, detailCheck, detailWarnings);
 
-    // Reads disagreed: run one tiebreak read instead of leaving the number blank.
+    // Always run the stronger card-number check.
     const secondCardNumber = cleanPart(detailCheck?.cardNumberText).replace(/^#/, "");
-    if (!scanResult.cardNumber && firstCardNumber && secondCardNumber) {
-      const candidates = [...new Set([firstCardNumber, secondCardNumber])];
-      try {
-        const tb = await tiebreakCardNumber(frontImage, backImage, candidates);
-        if (tb && tb.answer !== "neither") {
-          scanResult.cardNumber = tb.answer;
-          if (scanResult.evidence) scanResult.evidence.cardNumberText = tb.answer;
-          const i = detailWarnings.findIndex((w) => w.startsWith("Card number removed"));
-          if (i >= 0) detailWarnings.splice(i, 1);
-          detailWarnings.push(`Card number confirmed as ${tb.answer} by a tiebreak read.`);
-        }
-      } catch (e) {
-        console.error("card number tiebreak failed:", e);
-      }
+    let strongRead = null;
+    try {
+      strongRead = await strongCardNumberRead(frontImage, backImage);
+    } catch (e) {
+      console.error("strong card number read failed:", e);
+    }
+    if (strongRead) {
+      const resolved = resolveCardNumber([firstCardNumber, secondCardNumber], strongRead.cardNumberText);
+      scanResult.cardNumber = resolved.value;
+      if (scanResult.evidence) scanResult.evidence.cardNumberText = resolved.value;
+      const i = detailWarnings.findIndex((w) => w.startsWith("Card number removed: the two reads"));
+      if (i >= 0) detailWarnings.splice(i, 1);
+      if (resolved.warning) detailWarnings.push(resolved.warning);
+    } else {
+      scanResult.cardNumber = null;
+      if (scanResult.evidence) scanResult.evidence.cardNumberText = null;
+      detailWarnings.push("Card number removed: the stronger check could not run.");
     }
 
     const verification = verifyIdentity(scanResult);
