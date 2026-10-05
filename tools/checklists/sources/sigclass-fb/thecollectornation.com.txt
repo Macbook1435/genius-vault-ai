@@ -1,0 +1,121 @@
+SOURCE: https://thecollectornation.com/releases/2025-topps-signature-class-football
+## Sections
+Base Veteran Class — 1-100 — 100 cards — veterans; non-autograph
+Base Rookie Class — 101-250 — 150 cards — rookies; non-autograph
+Base Chrome Rookie Class — 101-250 — 150 cards — rookies; non-autograph
+Base Rookie Autographs — 101-250 — 127 cards — rookies; autographs
+Base Rookie Chrome Autographs — 101-250 — 106 cards — rookies; autographs
+Base Chrome Veteran Class — 1-100 — 99 cards — veterans; non-autograph
+Base Veteran Autographs — 1-100 — 73 cards — veterans; autographs
+Base Chrome Veteran Class Autographs — 1-100 — 66 cards — veterans; autographs
+Base Veteran Chrome Autographs — 1-100 — 66 cards — veterans; autographs
+Preeminent Ink — PI- initials — 49 cards — autographs; rookie status not specified
+Paramount Pairings — player-name format (#Bo, #Daniel, etc.) — 40 cards — rookie/autograph status not specified
+Rookie Class Crystal Clear Autographs — RCCL- initials — 31 cards — rookies; autographs
+Rookie Crystal Clear Autographs — RCCL- initials — 31 cards — rookies; autographs
+The Pick — TP-1 to TP-30 — 30 cards — rookie/autograph status not specified
+Supreme Signers — SS- initials — 26 cards — autographs; rookie status not specified
+Sunday Showcase — SS-1 to SS-25 — 25 cards — rookie/autograph status not specified
+After Image — AI-1 to AI-25 — 25 cards — rookie/autograph status not specified
+Class Action — CA-1 to CA-25 — 25 cards — rookie/autograph status not specified
+Roses — ROSES-1 to ROSES-25 — 25 cards — rookie/autograph status not specified
+Class Icons — CI-1 to CI-25 — 25 cards — rookie/autograph status not specified
+Star Cast — SC-1 to SC-25 — 25 cards — rookie/autograph status not specified
+Shattered — S-1 to S-25 — 25 cards — rookie/autograph status not specified
+Fluidity — FL-1 to FL-25 — 25 cards — rookie/autograph status not specified
+Veterans Class Crystal Clear Autographs — VCCCA- initials — 25 cards — veterans; autographs
+Zone Out — ZO-1 to ZO-25 — 25 cards — rookie/autograph status not specified
+Veterans Crystal Clear Autographs — VCCCA- initials — 25 cards — veterans; autographs
+Signature Class Autographs — SCL- initials — 24 cards — autographs; rookie status not specified
+Signature Class Dual Signatures — player-name format (#Bo, #Brock, etc.) and SCDS- initials — 20 cards — autographs; rookie status not specified
+First Class — FC-1 to FC-20 — 20 cards — rookie/autograph status not specified
+Leviathans — L-1 to L-20 — 20 cards — rookie/autograph status not specified
+Monarchs of the Game — MTG-1 to MTG-20 — 20 cards — rookie/autograph status not specified
+In Session — IS-1 to IS-20 — 20 cards — rookie/autograph status not specified
+Draft Dreams — DD-1 to DD-20 — 20 cards — rookie/autograph status not specified
+Odyssey — OD-1 to OD-20 — 20 cards — rookie/autograph status not specified
+Signature Class Triple Signatures — player-name format (#Bo, #Bryce, etc.) and SCTS- initials — 19 cards — autographs; rookie status not specified
+HOF Signs — HOF- initials — 19 cards — autographs; rookie status not specified
+Signature Classics — SC- initials — 17 cards — autographs; rookie status not specified
+Legends Crystal Clear Autographs — LTCA- initials — 16 cards — autographs; rookie status not specified
+Legends of Their Class Crystal Clear Autographs — LTCA- initials — 16 cards — autographs; rookie status not specified
+4 Autographs — #42 and #80 — 2 cards — autographs; rookie status not specified
+
+## Base Veteran Class (1-100)
+Silver — /275
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Gold — /35
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+Autographs — not stated
+Base Veteran Class — not stated
+Veteran Class — not stated
+Veteran Class Autographs — not stated
+
+## Base Rookie Class (101-250)
+Silver — /275
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Gold — /35
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+Autographs — not stated
+Rookie Class — not stated
+Rookie Class Autographs — not stated
+
+## Base Chrome Rookie Class (101-250)
+Silver — /275
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Gold — /35
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+Autographs — not stated
+Chrome Rookie Class — not stated
+Chrome Rookie Class Autographs — not stated
+
+## Base Rookie Autographs (101-250)
+Rookie Auto — not stated
+
+## Base Rookie Chrome Autographs (101-250)
+Rookie Chrome Auto — not stated
+
+## Base Chrome Veteran Class (1-100)
+Chrome Veteran Class — not stated
+
+## Base Veteran Autographs (1-100)
+Veteran Auto — not stated
+
+## Base Chrome Veteran Class Autographs (1-100)
+Chrome Veteran Class Autographs — not stated
+
+## Base Veteran Chrome Autographs (1-100)
+Veteran Chrome Auto — not stated

@@ -26,9 +26,14 @@ export function findProduct(card, products = PRODUCTS) {
     const brands = [p.brand, ...(p.brandAliases || [])].map(norm);
     const brandOk = brands.some((b) => brand === b || text.includes(` ${b} `));
     if (!brandOk) continue;
-    if (!p.match.include.every((w) => text.includes(` ${norm(w)} `) || text.includes(norm(w)))) continue;
-    if (p.match.exclude.some((w) => text.includes(norm(w)))) continue;
-    scored.push({ p, score: p.match.include.length + (sport === p.sport ? 2 : 0) + (brand === norm(p.brand) ? 1 : 0) });
+    const hasWord = (w) => text.includes(` ${norm(w)} `) || text.includes(norm(w));
+    if (!(p.match.include || []).every(hasWord)) continue;
+    // includeAny: at least one group of words must all be present (e.g. the set name OR a
+    // product-specific insert name printed on the card).
+    const anyGroup = (p.match.includeAny || []).find((g) => g.every(hasWord));
+    if (p.match.includeAny?.length && !anyGroup) continue;
+    if ((p.match.exclude || []).some(hasWord)) continue;
+    scored.push({ p, score: (p.match.include || []).length + (anyGroup ? anyGroup.length : 0) + (sport === p.sport ? 2 : 0) + (brand === norm(p.brand) ? 1 : 0) });
   }
   scored.sort((a, b) => b.score - a.score);
   if (!scored.length) return { product: null, status: "no_product" };
@@ -62,11 +67,12 @@ export function findSubset(product, card) {
   const byRookie = list.filter((s) => Boolean(s.rookie) === Boolean(card.rookie));
   if (byRookie.length) { list = byRookie; steps.push(card.rookie ? "rookie" : "not rookie"); }
 
-  if (list.length === 1) return { subset: list[0], status: "matched", numberFits, steps };
+  const tag = (s) => s.parallels.map((par) => (s.finish ? { ...par, finish: s.finish } : par));
+  if (list.length === 1) return { subset: { ...list[0], parallels: tag(list[0]) }, status: "matched", numberFits, steps };
   // Several subsets: combine their parallels (same name + print run counted once).
   const seen = new Map();
-  for (const s of list) for (const par of s.parallels) {
-    const k = `${par.key}|${par.numberedTo}`;
+  for (const s of list) for (const par of tag(s)) {
+    const k = `${par.key}|${par.numberedTo}|${par.finish || ""}`;
     if (!seen.has(k)) seen.set(k, par);
     else if (!par.verified) seen.set(k, { ...seen.get(k), verified: seen.get(k).verified });
   }

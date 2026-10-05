@@ -11,7 +11,8 @@ for (const p of PRODUCTS) {
   ids.add(p.id);
   for (const k of ["id", "label", "year", "sport", "brand", "product", "match", "subsets"]) if (p[k] === undefined || p[k] === null) err(`${where}: missing ${k}`);
   if (!Number.isInteger(p.year) || p.year < 1880 || p.year > 2100) err(`${where}: bad year`);
-  if (!Array.isArray(p.match?.include) || !p.match.include.length) err(`${where}: match.include must list the product words`);
+  const groups = [...(p.match?.include?.length ? [p.match.include] : []), ...(p.match?.includeAny || [])];
+  if (!groups.length || groups.some((g) => !Array.isArray(g) || !g.length)) err(`${where}: match.include / match.includeAny must list the product words`);
   if ((p.sources || []).length < 2) err(`${where}: needs at least 2 sources`);
   for (const u of p.sources || []) if (!/^https:\/\//.test(u)) err(`${where}: source is not an https URL: ${u}`);
   for (const s of p.subsets || []) {

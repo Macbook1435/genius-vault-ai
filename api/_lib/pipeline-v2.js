@@ -72,6 +72,9 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   if (present(card.parallel) && isCardTypeNotParallel(card.parallel)) card.parallel = null;
   if (catalogOk && verification?.parallelId?.source === "catalog") {
     par = { status: "confirmed", source: "catalog", parallel: { name: card.parallel, verified: true }, candidates: [] };
+  } else if (sub && !sub.subset.parallels.length) {
+    par = { status: "none_listed", parallel: null, candidates: [], steps: [] };
+    card.parallel = null;
   } else if (sub) {
     let numberedTo = card.numberedTo || null;
     if (!numberedTo) {
@@ -155,6 +158,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
     ambiguous: () => U(null, `Could be: ${par.candidates.map((c) => c.name + (c.numberedTo ? ` /${c.numberedTo}` : "")).join(", ")}.`),
     no_match: () => U(null, `Nothing in the ${sub?.subset.label || ""} checklist matches what the card shows.`),
     no_checklist: () => U(card.parallel, "No checklist for this product yet."),
+    none_listed: () => U(null, `The sources list no parallels for ${sub?.subset.label}; check the card for a serial or color.`),
   };
   f.parallel = (parBasis[par.status] || parBasis.no_checklist)();
 

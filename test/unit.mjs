@@ -107,4 +107,24 @@ t("products", () => {
   const ra = findSubset(p, { cardNumber: "RA-ABC", autograph: true, rookie: true }).subset;
   assert.equal(matchParallel(ra.parallels, { numberedTo: 250, color: "pink", finish: "unknown" }).candidates.map((c) => c.name).sort().join("|"), "Pink Lava Refractor|Pink Refractor");
 });
+t("logo-only and insert products", () => {
+  const sc = findProduct({ year: 2025, brand: "Topps", set: "First Class", sport: "football" });
+  assert.equal(sc.product?.id, "2025-topps-signature-class-football");
+  assert.equal(findProduct({ year: 2025, brand: "Topps", set: "Signature Class", sport: "football" }).product?.id, "2025-topps-signature-class-football");
+  assert.equal(findSubset(sc.product, { cardNumber: "FC-7", rookie: true, autograph: false }).subset.id, "first_class");
+  assert.equal(findSubset(sc.product, { cardNumber: "SC-AB", autograph: true }).subset.id, "sig_classics"); // letters → autograph set
+  assert.equal(findSubset(sc.product, { cardNumber: "SC-12", autograph: false }).subset.id, "star_cast");   // digits → insert
+  // Paper and chrome versions share numbers; the finish decides.
+  const base = findSubset(sc.product, { cardNumber: "120", rookie: true, autograph: false }).subset;
+  assert.equal(matchParallel(base.parallels, { numberedTo: 50, color: "orange", finish: "no_shine" }).status, "ambiguous"); // Orange vs Orange Lava (paper)
+  assert.equal(matchParallel(base.parallels, { numberedTo: 50, color: "orange", finish: "lava" }).parallel?.name, "Orange Lava Refractor");
+  assert.equal(matchParallel(base.parallels, { numberedTo: 35, color: "gold", finish: "no_shine" }).parallel?.name, "Gold");
+  assert.equal(matchParallel(base.parallels, { numberedTo: 35, color: "gold", finish: "plain_refractor" }).parallel?.name, "Gold Refractor");
+  const rs = findProduct({ year: 2025, brand: "Topps", set: "Resurgence", sport: "football" });
+  assert.equal(rs.product?.id, "2025-topps-resurgence-football");
+  const ra = findSubset(rs.product, { cardNumber: "150", rookie: true, autograph: true }).subset;
+  assert.equal(ra.id, "rookie_auto");
+  assert.deepEqual(matchParallel(ra.parallels, { numberedTo: 10, color: "pink", finish: "unknown" }).candidates.map((c) => c.name).sort(), ["Pink Power Surge", "Pink Static"]);
+  assert.equal(findSubset(rs.product, { cardNumber: "RRS-AB", rookie: true, autograph: true }).subset.id, "rookie_relic_sigs");
+});
 console.log(`unit: ${n} groups passed`);

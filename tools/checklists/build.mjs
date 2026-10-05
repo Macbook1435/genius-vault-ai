@@ -15,8 +15,27 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
 const outDir = path.join(root, "api/_data/checklists");
 
+// Header words made comparable across sources ("Veterans Class Autographs" ≈ "Veteran Class Auto").
+function headerWords(h) {
+  return " " + h.toLowerCase().split("(")[0]
+    .replace(/^\s*\d{4}\s+topps\s+[a-z ]+?\s+[–-]\s+/, "") // "2025 Topps Resurgence – Base Set"
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/).filter(Boolean)
+    .map((w) => ({ veterans: "veteran", rookies: "rookie", signatures: "signature", autographs: "auto", autograph: "auto", autos: "auto" }[w] || w))
+    .join(" ") + " ";
+}
+
+// Product-specific header rules (in the product JSON): [{ subset, all: [...], none: [...] }].
+// A header maps to every subset whose words are all present and none of whose "none" words are.
+function subsetsByRules(h, rules) {
+  const t = headerWords(h);
+  const has = (w) => t.includes(" " + w + " ");
+  return rules.filter((r) => r.all.every(has) && !(r.none || []).some(has)).map((r) => r.subset);
+}
+
 // Generic header → subset ids. Named inserts ("Prospects: Helix", "Image Variation") are skipped.
-function subsetsForHeader(h) {
+function subsetsForHeader(h, cfg) {
+  if (cfg?.headerRules) return subsetsByRules(h, cfg.headerRules);
   const t = h.toLowerCase();
   const title = t.split("(")[0];
   if (title.includes(":") || /variation|award|event|rps|image|insert/.test(title)) return [];
@@ -42,7 +61,7 @@ function parseRun(s) {
   return { skip: true };
 }
 
-function parseSource(file, extraFiller) {
+function parseSource(file, extraFiller, cfg) {
   const text = fs.readFileSync(file, "utf8");
   const url = (text.match(/^SOURCE:\s*(\S+)/m) || [])[1];
   const lines = text.split("\n");
@@ -50,7 +69,7 @@ function parseSource(file, extraFiller) {
   let current = [];
   for (const raw of lines) {
     const line = raw.trim();
-    if (line.startsWith("##")) { current = subsetsForHeader(line.replace(/^#+/, "")); continue; }
+    if (line.startsWith("##")) { current = subsetsForHeader(line.replace(/^#+/, ""), cfg); continue; }
     if (!current.length) continue;
     const m = line.replace(/^[-*]\s*/, "").replace(/^#\d+\s+/, "").match(/^(.+?)\s+[—–-]\s+(.+)$/);
     if (!m) continue;
@@ -86,14 +105,17 @@ function build(cfg) {
   const words = (v) => String(v || "").toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2);
   const extraFiller = [...new Set([...words(cfg.brand), ...words(cfg.product), ...(cfg.brandAliases || []).flatMap(words),
     ...cfg.subsets.flatMap((s) => words(s.label)), "prospect", "prospects", "parallel"])];
-  const sources = fs.readdirSync(dir).filter((f) => f.endsWith(".txt")).map((f) => parseSource(path.join(dir, f), extraFiller));
+  const sources = fs.readdirSync(dir).filter((f) => f.endsWith(".txt")).map((f) => parseSource(path.join(dir, f), extraFiller, cfg));
   const subsets = cfg.subsets.map((s) => {
     const merged = new Map();
     for (const src of sources) {
       for (const [key, e] of src.bySubset[s.id] || []) {
         if (!merged.has(key)) merged.set(key, { key, names: [], runs: [] });
         const m = merged.get(key);
-        m.names.push(cleanDisplay(e.name));
+        let shown = cleanDisplay(e.name);
+        // Chrome versions of a paper set: show "Orange Refractor", not "Orange".
+        if (s.nameSuffix && !new RegExp(s.nameSuffix.replace(/s$/, "") + "|fractor", "i").test(shown)) shown = `${shown} ${s.nameSuffix}`;
+        m.names.push(shown);
         m.runs.push({ run: e.run, source: src.host });
       }
     }

@@ -4,4 +4,6 @@ import P_2025_donruss_optic_football from "./2025-donruss-optic-football.js";
 import P_2025_panini_prizm_football from "./2025-panini-prizm-football.js";
 import P_2025_topps_chrome_baseball from "./2025-topps-chrome-baseball.js";
 import P_2025_topps_chrome_football from "./2025-topps-chrome-football.js";
-export const PRODUCTS = [P_2025_bowman_chrome_baseball, P_2025_donruss_optic_football, P_2025_panini_prizm_football, P_2025_topps_chrome_baseball, P_2025_topps_chrome_football];
+import P_2025_topps_resurgence_football from "./2025-topps-resurgence-football.js";
+import P_2025_topps_signature_class_football from "./2025-topps-signature-class-football.js";
+export const PRODUCTS = [P_2025_bowman_chrome_baseball, P_2025_donruss_optic_football, P_2025_panini_prizm_football, P_2025_topps_chrome_baseball, P_2025_topps_chrome_football, P_2025_topps_resurgence_football, P_2025_topps_signature_class_football];

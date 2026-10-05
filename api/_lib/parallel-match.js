@@ -67,6 +67,14 @@ export function matchParallel(candidates, ev) {
       steps.push(finish.replace(/_/g, " "));
     }
   }
+  // Products with paper and chrome versions of the same cards: the finish picks the version.
+  if (finish && list.some((p) => p.finish)) {
+    const want = finish === "no_shine" ? "paper" : ["unknown", "other"].includes(finish) ? null : "chrome";
+    if (want) {
+      const kept = list.filter((p) => !p.finish || p.finish === want);
+      if (kept.length) { list = kept; steps.push(`${want} version`); }
+    }
+  }
   const out = (status, parallel = null) => ({ status, parallel, candidates: list.slice(0, 8), steps });
   if (colorConflict) return out(list.length ? "ambiguous" : "no_match");
   if (!list.length) return out("no_match");

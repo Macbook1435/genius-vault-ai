@@ -1,0 +1,399 @@
+{
+ "id": "2025-topps-resurgence-football",
+ "sourcesDir": "resurgence-fb",
+ "label": "2025 Topps Resurgence Football",
+ "year": 2025,
+ "sport": "football",
+ "brand": "Topps",
+ "product": "Resurgence",
+ "match": {
+  "include": [
+   "resurgence"
+  ],
+  "exclude": []
+ },
+ "headerRules": [
+  {
+   "subset": "base_vet",
+   "all": [
+    "base"
+   ],
+   "none": [
+    "rookie",
+    "signature",
+    "auto"
+   ]
+  },
+  {
+   "subset": "base_rookie",
+   "all": [
+    "base",
+    "rookie"
+   ],
+   "none": [
+    "signature",
+    "auto"
+   ]
+  },
+  {
+   "subset": "base_auto",
+   "all": [
+    "base",
+    "signature"
+   ],
+   "none": [
+    "rookie"
+   ]
+  },
+  {
+   "subset": "rookie_auto",
+   "all": [
+    "rookie",
+    "signature"
+   ],
+   "none": [
+    "relic",
+    "amped",
+    "radial",
+    "neon",
+    "arc",
+    "molecular",
+    "thermal"
+   ]
+  },
+  {
+   "subset": "circuit_breakers",
+   "all": [
+    "circuit"
+   ]
+  },
+  {
+   "subset": "electro_lights",
+   "all": [
+    "electro"
+   ]
+  },
+  {
+   "subset": "perfect_fits",
+   "all": [
+    "perfect"
+   ]
+  },
+  {
+   "subset": "protonyx",
+   "all": [
+    "protonyx"
+   ]
+  },
+  {
+   "subset": "string_theory",
+   "all": [
+    "string"
+   ]
+  },
+  {
+   "subset": "voltaic",
+   "all": [
+    "voltaic"
+   ]
+  },
+  {
+   "subset": "wired",
+   "all": [
+    "wired"
+   ]
+  },
+  {
+   "subset": "conductors",
+   "all": [
+    "conductors"
+   ]
+  },
+  {
+   "subset": "amped_up",
+   "all": [
+    "amped"
+   ]
+  },
+  {
+   "subset": "neon_initiates",
+   "all": [
+    "neon"
+   ]
+  },
+  {
+   "subset": "radial",
+   "all": [
+    "radial"
+   ]
+  },
+  {
+   "subset": "rookie_relic_sigs",
+   "all": [
+    "rookie",
+    "relic",
+    "signature"
+   ],
+   "none": [
+    "amped",
+    "radial"
+   ]
+  },
+  {
+   "subset": "arc_flash",
+   "all": [
+    "arc"
+   ]
+  },
+  {
+   "subset": "molecular",
+   "all": [
+    "molecular"
+   ]
+  },
+  {
+   "subset": "thermal",
+   "all": [
+    "thermal"
+   ]
+  }
+ ],
+ "subsets": [
+  {
+   "id": "base_vet",
+   "label": "Base",
+   "rookie": false,
+   "auto": false,
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "base_rookie",
+   "label": "Base Rookies",
+   "rookie": true,
+   "auto": false,
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      202
+     ]
+    }
+   ]
+  },
+  {
+   "id": "base_auto",
+   "label": "Base Signatures",
+   "rookie": false,
+   "auto": true,
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rookie_auto",
+   "label": "Rookie Signatures",
+   "rookie": true,
+   "auto": true,
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      202
+     ]
+    }
+   ]
+  },
+  {
+   "id": "circuit_breakers",
+   "label": "Circuit Breakers",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^CB-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "electro_lights",
+   "label": "Electro Lights",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^EL-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "perfect_fits",
+   "label": "Perfect Fits",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^P-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "protonyx",
+   "label": "Protonyx",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^PT-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "string_theory",
+   "label": "String Theory",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^ST-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "voltaic",
+   "label": "Voltaic",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^VT-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "wired",
+   "label": "Wired",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^W-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "conductors",
+   "label": "Conductors",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^C-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "amped_up",
+   "label": "Amped Up Rookie Relic Autographs",
+   "rookie": true,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^AU-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "neon_initiates",
+   "label": "Neon Initiates",
+   "rookie": true,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^NI-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "radial",
+   "label": "Radial Rookie Relics",
+   "rookie": true,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^RRA-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "rookie_relic_sigs",
+   "label": "Resurgence Rookie Relic Signatures",
+   "rookie": true,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^RRS-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "arc_flash",
+   "label": "Arc Flash Autographs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^AFA-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "molecular",
+   "label": "Molecular Marks",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^MM-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "thermal",
+   "label": "Thermal Red Ink Autographs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^TRI-[A-Z]{2,5}$"
+    }
+   ]
+  }
+ ]
+}

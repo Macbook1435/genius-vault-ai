@@ -1,0 +1,799 @@
+{
+ "id": "2025-topps-signature-class-football",
+ "sourcesDir": "sigclass-fb",
+ "label": "2025 Topps Signature Class Football",
+ "year": 2025,
+ "sport": "football",
+ "brand": "Topps",
+ "product": "Signature Class",
+ "match": {
+  "include": [],
+  "includeAny": [
+   [
+    "signature",
+    "class"
+   ],
+   [
+    "first",
+    "class"
+   ]
+  ],
+  "exclude": [
+   "chrome black",
+   "resurgence"
+  ]
+ },
+ "headerRules": [
+  {
+   "subset": "vet_base",
+   "all": [
+    "veteran"
+   ],
+   "none": [
+    "chrome",
+    "auto",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "rookie_base",
+   "all": [
+    "rookie"
+   ],
+   "none": [
+    "chrome",
+    "auto",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "vet_chrome",
+   "all": [
+    "veteran",
+    "chrome"
+   ],
+   "none": [
+    "auto",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "rookie_chrome",
+   "all": [
+    "rookie",
+    "chrome"
+   ],
+   "none": [
+    "auto",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "vet_auto",
+   "all": [
+    "veteran",
+    "auto"
+   ],
+   "none": [
+    "chrome",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "rookie_auto",
+   "all": [
+    "rookie",
+    "auto"
+   ],
+   "none": [
+    "chrome",
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "vet_chrome_auto",
+   "all": [
+    "veteran",
+    "chrome",
+    "auto"
+   ],
+   "none": [
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "rookie_chrome_auto",
+   "all": [
+    "rookie",
+    "chrome",
+    "auto"
+   ],
+   "none": [
+    "crystal",
+    "legends",
+    "triple",
+    "dual",
+    "hof",
+    "preeminent",
+    "supreme",
+    "classics"
+   ]
+  },
+  {
+   "subset": "first_class",
+   "all": [
+    "first",
+    "class"
+   ]
+  },
+  {
+   "subset": "class_action",
+   "all": [
+    "class",
+    "action"
+   ]
+  },
+  {
+   "subset": "class_icons",
+   "all": [
+    "class",
+    "icons"
+   ]
+  },
+  {
+   "subset": "draft_dreams",
+   "all": [
+    "draft",
+    "dreams"
+   ]
+  },
+  {
+   "subset": "fluidity",
+   "all": [
+    "fluidity"
+   ]
+  },
+  {
+   "subset": "in_session",
+   "all": [
+    "session"
+   ]
+  },
+  {
+   "subset": "leviathans",
+   "all": [
+    "leviathans"
+   ]
+  },
+  {
+   "subset": "monarchs",
+   "all": [
+    "monarchs"
+   ]
+  },
+  {
+   "subset": "odyssey",
+   "all": [
+    "odyssey"
+   ]
+  },
+  {
+   "subset": "roses",
+   "all": [
+    "roses"
+   ]
+  },
+  {
+   "subset": "shattered",
+   "all": [
+    "shattered"
+   ]
+  },
+  {
+   "subset": "star_cast",
+   "all": [
+    "star",
+    "cast"
+   ]
+  },
+  {
+   "subset": "sunday_showcase",
+   "all": [
+    "sunday",
+    "showcase"
+   ]
+  },
+  {
+   "subset": "the_pick",
+   "all": [
+    "pick"
+   ]
+  },
+  {
+   "subset": "paramount_pairings",
+   "all": [
+    "paramount"
+   ]
+  },
+  {
+   "subset": "zone_out",
+   "all": [
+    "zone"
+   ]
+  },
+  {
+   "subset": "after_image",
+   "all": [
+    "after",
+    "image"
+   ]
+  },
+  {
+   "subset": "rc_crystal",
+   "all": [
+    "rookie",
+    "crystal"
+   ]
+  },
+  {
+   "subset": "sc_triple",
+   "all": [
+    "triple"
+   ]
+  },
+  {
+   "subset": "sig_classics",
+   "all": [
+    "classics"
+   ]
+  },
+  {
+   "subset": "supreme",
+   "all": [
+    "supreme"
+   ]
+  },
+  {
+   "subset": "sc_dual",
+   "all": [
+    "dual"
+   ]
+  },
+  {
+   "subset": "sc_autos",
+   "all": [
+    "signature",
+    "class",
+    "auto"
+   ],
+   "none": [
+    "dual",
+    "triple"
+   ]
+  },
+  {
+   "subset": "vc_crystal",
+   "all": [
+    "veteran",
+    "crystal"
+   ]
+  },
+  {
+   "subset": "legends_crystal",
+   "all": [
+    "legends"
+   ]
+  },
+  {
+   "subset": "hof",
+   "all": [
+    "hof"
+   ]
+  },
+  {
+   "subset": "preeminent",
+   "all": [
+    "preeminent"
+   ]
+  }
+ ],
+ "subsets": [
+  {
+   "id": "vet_base",
+   "label": "Veterans Class",
+   "rookie": false,
+   "auto": false,
+   "finish": "paper",
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rookie_base",
+   "label": "Rookie Class",
+   "rookie": true,
+   "auto": false,
+   "finish": "paper",
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      250
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vet_chrome",
+   "label": "Veterans Class Chrome",
+   "rookie": false,
+   "auto": false,
+   "finish": "chrome",
+   "nameSuffix": "Refractor",
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rookie_chrome",
+   "label": "Rookie Class Chrome",
+   "rookie": true,
+   "auto": false,
+   "finish": "chrome",
+   "nameSuffix": "Refractor",
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      250
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vet_auto",
+   "label": "Veterans Class Autographs",
+   "rookie": false,
+   "auto": true,
+   "finish": "paper",
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rookie_auto",
+   "label": "Rookie Class Autographs",
+   "rookie": true,
+   "auto": true,
+   "finish": "paper",
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      250
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vet_chrome_auto",
+   "label": "Veterans Class Chrome Autographs",
+   "rookie": false,
+   "auto": true,
+   "finish": "chrome",
+   "nameSuffix": "Refractor",
+   "numberFormats": [
+    {
+     "range": [
+      1,
+      100
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rookie_chrome_auto",
+   "label": "Rookie Class Chrome Autographs",
+   "rookie": true,
+   "auto": true,
+   "finish": "chrome",
+   "nameSuffix": "Refractor",
+   "numberFormats": [
+    {
+     "range": [
+      101,
+      250
+     ]
+    }
+   ]
+  },
+  {
+   "id": "first_class",
+   "label": "First Class",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^FC-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "class_action",
+   "label": "Class Action",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^CA-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "class_icons",
+   "label": "Class Icons",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^CI-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "draft_dreams",
+   "label": "Draft Dreams",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^DD-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "fluidity",
+   "label": "Fluidity",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^FL-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "in_session",
+   "label": "In Session",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^IS-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "leviathans",
+   "label": "Leviathans",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^L-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "monarchs",
+   "label": "Monarchs of the Game",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^MTG-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "odyssey",
+   "label": "Odyssey",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^OD-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "roses",
+   "label": "Roses",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^ROSES-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "shattered",
+   "label": "Shattered",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^S-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "star_cast",
+   "label": "Star Cast",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SC-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "sunday_showcase",
+   "label": "Sunday Showcase",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SS-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "the_pick",
+   "label": "The Pick",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^TP-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "paramount_pairings",
+   "label": "Paramount Pairings",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^PP-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "zone_out",
+   "label": "Zone Out",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^ZO-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "after_image",
+   "label": "After Image",
+   "rookie": false,
+   "auto": false,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^AI-\\d{1,2}$"
+    }
+   ]
+  },
+  {
+   "id": "rc_crystal",
+   "label": "Rookie Class Crystal Clear Autographs",
+   "rookie": true,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^RCCL-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "sc_triple",
+   "label": "Signature Class Triple Signatures",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SCTS-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "sig_classics",
+   "label": "Signature Classics",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SC-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "supreme",
+   "label": "Supreme Signers",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SS-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "sc_dual",
+   "label": "Signature Class Dual Signatures",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SCDS-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "sc_autos",
+   "label": "Signature Class Autographs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^SCL-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "vc_crystal",
+   "label": "Veterans Class Crystal Clear Autographs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^VCCCA-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "legends_crystal",
+   "label": "Legends of Their Class Crystal Clear Autographs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^LTCA-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "hof",
+   "label": "HOF Signs",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^HOF-[A-Z]{2,5}$"
+    }
+   ]
+  },
+  {
+   "id": "preeminent",
+   "label": "Preeminent Ink",
+   "rookie": false,
+   "auto": true,
+   "insert": true,
+   "numberFormats": [
+    {
+     "regex": "^PI-[A-Z]{2,5}$"
+    }
+   ]
+  }
+ ]
+}

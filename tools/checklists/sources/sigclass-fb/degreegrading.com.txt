@@ -1,0 +1,320 @@
+SOURCE: https://degreegrading.com/checklists/2025-topps-signature-class-football/
+## Sections
+Base Set — card numbers not listed — 0 cards (450 incl. subsets) — base aggregate
+Rookie Class — 101-250 — 150 cards — rookies
+Rookie Class Autograph Variation I AUTO — 101-250 — 127 cards — rookie autographs
+Veteran Class — 1-100 — 100 cards — veterans
+Veteran Class Autograph Variation AUTO — 1-100 — 73 cards — veteran autographs
+After Image — AI-1 to AI-25 — 25 cards — insert
+Chrome Base Set — card numbers not listed — 0 cards (421 incl. subsets) — Chrome base aggregate
+Chrome Rookie Class — 101-250 — 150 cards — rookies
+Rookie Class Chrome Autographs AUTO — 101-250 — 106 cards — rookie autographs
+Chrome Veteran Class — 1-100 — 99 cards — veterans
+Veterans Class Chrome Autographs AUTO — 1-100 — 66 cards — veteran autographs
+Class Action — CA-1 to CA-25 — 25 cards — insert
+Class Icons — CI-1 to CI-25 — 25 cards — insert
+Draft Dreams — DD-1 to DD-20 — 20 cards — insert
+First Class — FC-1 to FC-20 — 20 cards — insert
+Fluidity — FL-1 to FL-25 — 25 cards — insert
+HOF Signs AUTO — HOF-XX initials — 19 cards — autographs
+In Session — IS-1 to IS-20 — 20 cards — insert
+Legends Of Their Class Crystal Clear Autographs AUTO — LTCA-XX initials — 16 cards — autographs
+Leviathans — L-1 to L-20 — 20 cards — insert
+Monarchs Of The Game — MTG-1 to MTG-20 — 20 cards — insert
+Odyssey — OD-1 to OD-20 — 20 cards — insert
+Paramount Pairings — PP-1 to PP-20 — 20 cards — insert
+Preeminent Ink AUTO — PI-XX initials — 49 cards — autographs
+Rookie Class Crystal Clear Autographs AUTO — RCCL-XX initials — 31 cards — rookie autographs
+Roses — ROSES-1 to ROSES-25 — 25 cards — insert
+Shattered — S-1 to S-25 — 25 cards — insert
+Signature Class Autographs AUTO — SCL-XX initials — 24 cards — autographs
+Signature Class Dual Signatures AUTO — SCDS-XX initials — 10 cards — autographs
+Signature Classics AUTO — SC-XX initials — 17 cards — autographs
+Signature Class Triple Signatures AUTO — SCTS-XX initials — 6 cards — autographs
+Star Cast — SC-1 to SC-25 — 25 cards — insert
+Sunday Showcase — SS-1 to SS-25 — 25 cards — insert
+Supreme Signers AUTO — SS-XX initials — 26 cards — autographs
+The Pick — TP-1 to TP-30 — 30 cards — insert
+Veterans Class Crystal Clear Autographs AUTO — VCCCA-XX initials — 25 cards — autographs
+Zone Out — ZO-1 to ZO-25 — 25 cards — insert
+
+## Rookie Class (101-250)
+Silver — /275
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Gold — /35
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Rookie Class Autograph Variation I AUTO (101-250)
+Silver — /275
+Teal — /225
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Veteran Class (1-100)
+Green & Purple — unnumbered
+Red & Black — unnumbered
+Blue & Yellow — unnumbered
+Silver — /275
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Gold — /35
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Veteran Class Autograph Variation AUTO (1-100)
+Silver — /275
+Teal — /225
+Green — /150
+Purple — /100
+Orange — /50
+Orange Lava — /50
+Red — /25
+Red Lava — /25
+Black — /10
+Black Gold — /10
+Blue — /5
+FoilFractor — 1/1
+
+## After Image (AI-1 to AI-25)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Chrome Rookie Class (101-250)
+Base Refractor — unnumbered
+White Refractor — unnumbered
+Pandora Refractor — unnumbered
+Kaleidoscope Refractor — unnumbered
+Pandora Yellow Refractor — unnumbered
+Kaleidoscope Yellow Refractor — unnumbered
+Silver Refractor — /275
+Magenta Refractor — /250
+Teal Refractor — /225
+Lime Green Refractor — /175
+Green Refractor — /150
+Purple Refractor — /100
+Orange Refractor — /50
+Orange Lava Refractor — /50
+Gold Refractor — /35
+Red Refractor — /25
+Red Lava Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Rookie Class Chrome Autographs AUTO (101-250)
+Orange Refractor — /50
+Orange Lava Refractor — /50
+Red Refractor — /25
+Red Lava Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Chrome Veteran Class (1-100)
+Base Refractor — unnumbered
+White Refractor — unnumbered
+Pandora Refractor — unnumbered
+Kaleidoscope Refractor — unnumbered
+Pandora Yellow Refractor — unnumbered
+Kaleidoscope Yellow Refractor — unnumbered
+Silver Refractor — /275
+Magenta Refractor — /250
+Teal Refractor — /225
+Lime Green Refractor — /175
+Green Refractor — /150
+Purple Refractor — /100
+Orange Refractor — /50
+Orange Lava Refractor — /50
+Gold Refractor — /35
+Red Refractor — /25
+Red Lava Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Veterans Class Chrome Autographs AUTO (1-100)
+Orange Refractor — /50
+Orange Lava Refractor — /50
+Red Refractor — /25
+Red Lava Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Class Action (CA-1 to CA-25)
+Coral — /299
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Class Icons (CI-1 to CI-25)
+Coral — /299
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Fluidity (FL-1 to FL-25)
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+ClearFractor — 1/1
+
+## HOF Signs AUTO (HOF-XX initials)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## In Session (IS-1 to IS-20)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Legends Of Their Class Crystal Clear Autographs AUTO (LTCA-XX initials)
+Monarch — /5
+Milkweed — 1/1
+
+## Paramount Pairings (PP-1 to PP-20)
+Coral — /299
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Preeminent Ink AUTO (PI-XX initials)
+Purple Refractor — /100
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Rookie Class Crystal Clear Autographs AUTO (RCCL-XX initials)
+Monarch — /5
+Milkweed — 1/1
+
+## Signature Class Autographs AUTO (SCL-XX initials)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Signature Class Dual Signatures AUTO (SCDS-XX initials)
+Base — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Signature Classics AUTO (SC-XX initials)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Signature Class Triple Signatures AUTO (SCTS-XX initials)
+Base — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Star Cast (SC-1 to SC-25)
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+ClearFractor — 1/1
+
+## Sunday Showcase (SS-1 to SS-25)
+Coral — /299
+Magenta — /250
+Teal — /225
+Lime Green — /175
+Green — /150
+Purple — /100
+Orange — /50
+Red — /25
+Black — /10
+Blue — /5
+FoilFractor — 1/1
+
+## Supreme Signers AUTO (SS-XX initials)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## The Pick (TP-1 to TP-30)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
+
+## Veterans Class Crystal Clear Autographs AUTO (VCCCA-XX initials)
+Monarch — /5
+Milkweed — 1/1
+
+## Zone Out (ZO-1 to ZO-25)
+Orange Refractor — /50
+Red Refractor — /25
+Black Refractor — /10
+Blue Refractor — /5
+SuperFractor — 1/1
