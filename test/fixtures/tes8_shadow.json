@@ -1,0 +1,250 @@
+{
+ "name": "tes8",
+ "scanV1": {
+  "player": "ISAAC TESLAA",
+  "year": 2025,
+  "brand": "Topps",
+  "set": "Chrome",
+  "cardNumber": "RA-ITS",
+  "parallel": "Pink Refractor",
+  "rookie": true,
+  "team": "Detroit Lions",
+  "serialNumber": "157/250",
+  "numberedTo": 250,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": null,
+  "evidence": {
+   "playerNameText": "ISAAC TESLAA",
+   "cardNumberText": "RA-ITS",
+   "setOrBrandText": "Topps Chrome Football",
+   "yearText": "\u00a9 2025 The Topps Company",
+   "copyrightLineText": "\u00a9 2025 The Topps Company",
+   "serialNumberText": "157/250",
+   "parallelText": null
+  },
+  "matchScore": 0.95,
+  "productLogo": null,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "verified",
+  "warnings": [
+   "Serial 157/250 confirmed from the close-up photo by two separate reads.",
+   "Parallel \"Pink Refractor\" picked from the checklist candidates by a closer look (The card shows a smooth rainbow shine without any repeating wave patterns, indicating it is a Pink Refractor.)."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 4,
+  "identity": {
+   "playerOk": true,
+   "yearOk": true,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "151/250",
+   "cardNumberLocation": "front",
+   "productName": "Chrome",
+   "parallelName": "Rookie Autograph Variation",
+   "parallelLocation": "back",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "151/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "151/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TESLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2025"
+  },
+  "serialCloseup": {
+   "reads": [
+    null,
+    {
+     "stampedSerial": "157/250",
+     "isDate": false
+    }
+   ]
+  },
+  "parallelId": {
+   "source": "2025-topps-chrome-football",
+   "status": "confirmed_by_tiebreak",
+   "candidates": [
+    "Pink Refractor /250",
+    "Pink Wave Refractor /250"
+   ],
+   "evidence": {
+    "numberedTo": 250,
+    "color": "pink",
+    "finish": "unknown"
+   },
+   "candidateObjects": [
+    {
+     "name": "Pink Refractor",
+     "numberedTo": 250
+    },
+    {
+     "name": "Pink Wave Refractor",
+     "numberedTo": 250
+    }
+   ],
+   "printRunUncertain": false
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "ISAAC TESLAA",
+   "year": 2025,
+   "brand": "Topps",
+   "set": "Chrome Football",
+   "cardNumber": "RA-ITS",
+   "parallel": "null",
+   "rookie": true,
+   "team": "Detroit Lions",
+   "serialNumber": "151/250",
+   "numberedTo": 250,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "",
+   "evidence": {
+    "playerNameText": "ISAAC TESLAA",
+    "cardNumberText": "RA-ITS",
+    "setOrBrandText": "Topps Chrome Football",
+    "yearText": "\u00a9 2025 The Topps Company",
+    "copyrightLineText": "\u00a9 2025 The Topps Company",
+    "serialNumberText": "151/250",
+    "parallelText": null
+   },
+   "matchScore": 0.95,
+   "alternates": [
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "R-ITS",
+     "parallel": "null",
+     "reason": "Similar player with minor set variations",
+     "matchScore": 0.8
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS-Silver",
+     "parallel": "Silver Refractor",
+     "reason": "Different parallel from the same set",
+     "matchScore": 0.75
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS-Gold",
+     "parallel": "Gold Refractor",
+     "reason": "Different parallel from the same set",
+     "matchScore": 0.7
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS-Red",
+     "parallel": "Red Refractor",
+     "reason": "Different parallel from the same set",
+     "matchScore": 0.65
+    },
+    {
+     "player": null,
+     "year": 2025,
+     "brand": "null",
+     "set": "null",
+     "cardNumber": "null",
+     "parallel": "null",
+     "reason": "No player name visible",
+     "matchScore": 0.4
+    }
+   ],
+   "productLogo": "none"
+  },
+  "combined": {
+   "cardNumberText": "151/250",
+   "cardNumberLocation": "front",
+   "productName": "Chrome",
+   "parallelName": "Rookie Autograph Variation",
+   "parallelLocation": "back",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "151/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "151/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TESLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2025"
+  },
+  "strong": {
+   "cardNumberText": "RA-ITS",
+   "location": "back bottom right corner",
+   "jerseyNumberText": "18",
+   "copyrightYearText": "2025",
+   "playerNameText": "ISAAC TESLAA",
+   "slashTexts": [
+    {
+     "text": "15/250",
+     "location": "front bottom right corner",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "15/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "productLogo": "none"
+  }
+ },
+ "serialImage": true
+}

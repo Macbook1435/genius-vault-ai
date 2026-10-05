@@ -1,0 +1,221 @@
+{
+ "name": "dart7",
+ "scanV1": {
+  "player": "JAXSON DART",
+  "year": 2025,
+  "brand": "Topps",
+  "set": "FIRST CLASS",
+  "cardNumber": "FC-2",
+  "parallel": null,
+  "rookie": true,
+  "team": "NEW YORK GIANTS",
+  "serialNumber": null,
+  "numberedTo": null,
+  "autograph": false,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": null,
+  "evidence": {
+   "playerNameText": "JAXSON DART",
+   "cardNumberText": "FC-2",
+   "setOrBrandText": "FIRST CLASS",
+   "yearText": "\u00a9 2025 The Topps Company",
+   "copyrightLineText": "\u00a9 2025 The Topps Company",
+   "serialNumberText": "9/14",
+   "parallelText": null
+  },
+  "matchScore": 0.9,
+  "productLogo": null,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "verified",
+  "warnings": [
+   "Serial \"9/14\" conflicts with numbered-to /25; removed.",
+   "Numbered-to removed: it conflicted with the serial number.",
+   "Rookie card mark found (\"RC\"); marked as rookie."
+  ],
+  "rejected": [],
+  "cleared": [
+   "serialNumber",
+   "numberedTo"
+  ],
+  "strongIdentifiers": 4,
+  "identity": {
+   "playerOk": true,
+   "yearOk": true,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "FC-2",
+   "cardNumberLocation": "back",
+   "productName": "FIRST CLASS",
+   "parallelName": "Rookie Debut",
+   "parallelLocation": "bottom",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "9/14/25",
+     "location": "front",
+     "kind": "date"
+    }
+   ],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "JAXSON DART",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": null,
+   "parallelFinish": "plain_refractor",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2025"
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": null,
+    "color": null,
+    "finish": "plain_refractor"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "JAXSON DART",
+   "year": 2025,
+   "brand": "Topps",
+   "set": "FIRST CLASS",
+   "cardNumber": "F-C2",
+   "parallel": null,
+   "rookie": false,
+   "team": "NEW YORK GIANTS",
+   "serialNumber": "9/14",
+   "numberedTo": 25,
+   "autograph": false,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "",
+   "evidence": {
+    "playerNameText": "JAXSON DART",
+    "cardNumberText": "F-C2",
+    "setOrBrandText": "FIRST CLASS",
+    "yearText": "\u00a9 2025 The Topps Company",
+    "copyrightLineText": "\u00a9 2025 The Topps Company",
+    "serialNumberText": "9/14",
+    "parallelText": null
+   },
+   "matchScore": 0.9,
+   "alternates": [
+    {
+     "player": "JAXSON DART",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "FIRST CLASS",
+     "cardNumber": "F-C1",
+     "parallel": null,
+     "reason": "Similar set with different card number",
+     "matchScore": 0.8
+    },
+    {
+     "player": "JAXSON DART",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "FIRST CLASS",
+     "cardNumber": "F-C3",
+     "parallel": null,
+     "reason": "Similar set with different card number",
+     "matchScore": 0.8
+    },
+    {
+     "player": "JAXSON DART",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "FIRST CLASS",
+     "cardNumber": "F-C4",
+     "parallel": null,
+     "reason": "Similar set with different card number",
+     "matchScore": 0.8
+    },
+    {
+     "player": "JAXSON DART",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "FIRST CLASS",
+     "cardNumber": "F-C5",
+     "parallel": null,
+     "reason": "Similar set with different card number",
+     "matchScore": 0.8
+    }
+   ],
+   "productLogo": "none"
+  },
+  "combined": {
+   "cardNumberText": "FC-2",
+   "cardNumberLocation": "back",
+   "productName": "FIRST CLASS",
+   "parallelName": "Rookie Debut",
+   "parallelLocation": "bottom",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "9/14/25",
+     "location": "front",
+     "kind": "date"
+    }
+   ],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "JAXSON DART",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": null,
+   "parallelFinish": "plain_refractor",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2025"
+  },
+  "strong": {
+   "cardNumberText": "FC-2",
+   "location": "back bottom left corner",
+   "jerseyNumberText": "30",
+   "copyrightYearText": "2025",
+   "playerNameText": "JAXSON DART",
+   "slashTexts": [
+    {
+     "text": "9/14/25",
+     "location": "front bottom right",
+     "kind": "date"
+    }
+   ],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "productLogo": "none"
+  }
+ },
+ "serialImage": false
+}

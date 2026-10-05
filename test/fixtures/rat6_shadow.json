@@ -1,0 +1,235 @@
+{
+ "name": "rat6",
+ "scanV1": {
+  "player": "TATE RATLEDGE",
+  "year": 2025,
+  "brand": "Topps",
+  "set": null,
+  "cardNumber": "131",
+  "parallel": null,
+  "rookie": true,
+  "team": "DETROIT LIONS",
+  "serialNumber": "06/10",
+  "numberedTo": 10,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": null,
+  "evidence": {
+   "playerNameText": "TATE RATLEDGE",
+   "cardNumberText": "131",
+   "setOrBrandText": "Topps",
+   "yearText": "\u00a9 2025 The Topps Company",
+   "copyrightLineText": "\u00a9 2025 The Topps Company",
+   "serialNumberText": "06/10",
+   "parallelText": null
+  },
+  "matchScore": 0.95,
+  "productLogo": "2025-topps-resurgence-football",
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "verified",
+  "warnings": [
+   "Serial 06/10 confirmed from the close-up photo by two separate reads."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 4,
+  "identity": {
+   "playerOk": true,
+   "yearOk": true,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "R",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2025"
+   ],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2023"
+  },
+  "serialCloseup": {
+   "reads": [
+    null,
+    {
+     "stampedSerial": "06/10",
+     "isDate": false
+    }
+   ]
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": 10,
+    "color": "pink",
+    "finish": "unknown"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "TATE RATLEDGE",
+   "year": 2025,
+   "brand": "Topps",
+   "set": "none",
+   "cardNumber": "131",
+   "parallel": "none",
+   "rookie": true,
+   "team": "DETROIT LIONS",
+   "serialNumber": "10",
+   "numberedTo": 10,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "",
+   "evidence": {
+    "playerNameText": "TATE RATLEDGE",
+    "cardNumberText": "131",
+    "setOrBrandText": "Topps",
+    "yearText": "\u00a9 2025 The Topps Company",
+    "copyrightLineText": "\u00a9 2025 The Topps Company",
+    "serialNumberText": "10",
+    "parallelText": null
+   },
+   "matchScore": 0.95,
+   "alternates": [
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "none",
+     "cardNumber": "132",
+     "parallel": "none",
+     "reason": "Similar set, different card number",
+     "matchScore": 0.85
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "none",
+     "cardNumber": "130",
+     "parallel": "none",
+     "reason": "Similar set, different card number",
+     "matchScore": 0.85
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "none",
+     "cardNumber": "131",
+     "parallel": "Red Parallel",
+     "reason": "Parallel variant",
+     "matchScore": 0.85
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "none",
+     "cardNumber": "140",
+     "parallel": "none",
+     "reason": "Similar set, different card number",
+     "matchScore": 0.85
+    }
+   ],
+   "productLogo": "2025-topps-resurgence-football"
+  },
+  "combined": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "R",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2025"
+   ],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2023"
+  },
+  "strong": {
+   "cardNumberText": "131",
+   "location": "top left corner, back",
+   "jerseyNumberText": "69",
+   "copyrightYearText": "2023",
+   "playerNameText": "TATE RATLEDGE",
+   "slashTexts": [
+    {
+     "text": "07/10",
+     "location": "front top left corner",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "07/10",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "printed in black, top left corner",
+   "productLogo": "2025-topps-resurgence-football"
+  },
+  "copyright": {
+   "reads": [
+    {
+     "by": "close-up A",
+     "year": "2026",
+     "line": "\u00a9 & 2026 THE TOPPS COMPANY, INC. ALL RIGHTS RESERVED",
+     "slice": 5
+    },
+    {
+     "by": "close-up B",
+     "year": "2026",
+     "line": "\u00a9 2026 THE TOPPS COMPANY, INC. ALL RIGHTS RESERVED",
+     "slice": 5
+    }
+   ],
+   "status": "ok",
+   "method": "slices"
+  }
+ },
+ "serialImage": true
+}

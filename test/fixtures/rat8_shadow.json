@@ -1,0 +1,250 @@
+{
+ "name": "rat8",
+ "scanV1": {
+  "player": "TATE RATLEDGE",
+  "year": null,
+  "brand": "Topps",
+  "set": null,
+  "cardNumber": "131",
+  "parallel": null,
+  "rookie": true,
+  "team": "DETROIT LIONS",
+  "serialNumber": "06/10",
+  "numberedTo": 10,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": "Player is a rookie, card features an autograph.",
+  "evidence": {
+   "playerNameText": "TATE RATLEDGE",
+   "cardNumberText": "131",
+   "setOrBrandText": "Topps",
+   "yearText": null,
+   "copyrightLineText": null,
+   "serialNumberText": "06/10",
+   "parallelText": null
+  },
+  "matchScore": 0.95,
+  "productLogo": null,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "likely",
+  "warnings": [
+   "Year/copyright line was not readable.",
+   "Year removed: the reads disagree on the copyright year (2026 vs 2025).",
+   "Serial 06/10 confirmed from the close-up photo by two separate reads."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 3,
+  "identity": {
+   "playerOk": true,
+   "yearOk": false,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "R",
+   "parallelName": "none",
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "69",
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2025"
+   ],
+   "parallelColor": "null",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2023"
+  },
+  "serialCloseup": {
+   "reads": [
+    {
+     "stampedSerial": "06/10",
+     "isDate": false
+    },
+    {
+     "stampedSerial": "06/10",
+     "isDate": false
+    }
+   ]
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": 10,
+    "color": "null",
+    "finish": "unknown"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "TATE RATLEDGE",
+   "year": 2026,
+   "brand": "Topps",
+   "set": "none",
+   "cardNumber": "131",
+   "parallel": "null",
+   "rookie": true,
+   "team": "DETROIT LIONS",
+   "serialNumber": "null",
+   "numberedTo": null,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "Player is a rookie, card features an autograph.",
+   "evidence": {
+    "playerNameText": "TATE RATLEDGE",
+    "cardNumberText": "131",
+    "setOrBrandText": "Topps",
+    "yearText": "\u00a9 2026 The Topps Company",
+    "copyrightLineText": "\u00a9 2026 The Topps Company",
+    "serialNumberText": "null",
+    "parallelText": "null"
+   },
+   "matchScore": 0.95,
+   "alternates": [
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Reflectors",
+     "cardNumber": "132",
+     "parallel": "Pink",
+     "reason": "Similar design, different card number and parallel.",
+     "matchScore": 0.85
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2026,
+     "brand": "Topps",
+     "set": "Spectra",
+     "cardNumber": "133",
+     "parallel": "Hyper Gold",
+     "reason": "Same year and player, different set and parallel.",
+     "matchScore": 0.8
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Essentials",
+     "cardNumber": "130",
+     "parallel": "Silver",
+     "reason": "Similar player and design, different set and parallel.",
+     "matchScore": 0.78
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2026,
+     "brand": "Topps",
+     "set": "Prism",
+     "cardNumber": "134",
+     "parallel": "Red Wave",
+     "reason": "Same year, player; different product and design.",
+     "matchScore": 0.75
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2026,
+     "brand": "Topps",
+     "set": "Chrome",
+     "cardNumber": "135",
+     "parallel": "Green Refractor",
+     "reason": "Same year and player, different set and parallel.",
+     "matchScore": 0.7
+    }
+   ],
+   "productLogo": "none"
+  },
+  "combined": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "R",
+   "parallelName": "none",
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "69",
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2025"
+   ],
+   "parallelColor": "null",
+   "parallelFinish": "unknown",
+   "productLogo": "none",
+   "sport": "football",
+   "copyrightYearSeen": "2023"
+  },
+  "strong": {
+   "cardNumberText": "131",
+   "location": "back, top left corner",
+   "jerseyNumberText": "99",
+   "copyrightYearText": "2025",
+   "playerNameText": "TATE RATLEDGE",
+   "slashTexts": [
+    {
+     "text": "10/10",
+     "location": "front, top left corner",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "10/10",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "foil, top left corner",
+   "productLogo": "2025-topps-resurgence-football"
+  },
+  "copyright": {
+   "reads": [
+    {
+     "by": "close-up A",
+     "year": "2026",
+     "line": "\u00a9 2026 THE TOPPS COMPANY, INC. ALL RIGHTS RESERVED",
+     "slice": 5
+    },
+    {
+     "by": "close-up B",
+     "year": "2026",
+     "line": "\u00a9 2026 THE TOPPS COMPANY, INC. ALL RIGHTS RESERVED",
+     "slice": 5
+    }
+   ],
+   "status": "ok",
+   "method": "slices"
+  }
+ },
+ "serialImage": true
+}
