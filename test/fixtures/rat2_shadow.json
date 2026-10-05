@@ -1,0 +1,223 @@
+{
+ "name": "rat2_shadow",
+ "scanV1": {
+  "player": "TATE RATLEDGE",
+  "year": 2023,
+  "brand": "Topps",
+  "set": "Rookie",
+  "cardNumber": "131",
+  "parallel": null,
+  "rookie": true,
+  "team": "DETROIT LIONS",
+  "serialNumber": "06/10",
+  "numberedTo": 10,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": "This card features a notable autograph and is from the 2023 Topps Rookie set.",
+  "evidence": {
+   "playerNameText": "TATE RATLEDGE",
+   "cardNumberText": "131",
+   "setOrBrandText": "Topps",
+   "yearText": "\u00a9 2023 The Topps Company, Inc.",
+   "copyrightLineText": "\u00a9 2023 The Topps Company, Inc.",
+   "serialNumberText": "06/10",
+   "parallelText": null
+  },
+  "matchScore": 1,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "verified",
+  "warnings": [
+   "Serial 06/10 confirmed from the close-up photo by two separate reads."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 4,
+  "identity": {
+   "playerOk": true,
+   "yearOk": true,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "Rookie",
+   "parallelName": "None",
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2023"
+   ],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "sport": "football"
+  },
+  "serialCloseup": {
+   "reads": [
+    {
+     "stampedSerial": "06/10",
+     "isDate": false
+    },
+    {
+     "stampedSerial": "06/10",
+     "isDate": false
+    }
+   ]
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": 10,
+    "color": "pink",
+    "finish": "unknown"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "TATE RATLEDGE",
+   "year": 2023,
+   "brand": "Topps",
+   "set": "Rookie",
+   "cardNumber": "131",
+   "parallel": "null",
+   "rookie": true,
+   "team": "DETROIT LIONS",
+   "serialNumber": "null",
+   "numberedTo": null,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": "null",
+   "grade": "null",
+   "notes": "This card features a notable autograph and is from the 2023 Topps Rookie set.",
+   "evidence": {
+    "playerNameText": "TATE RATLEDGE",
+    "cardNumberText": "131",
+    "setOrBrandText": "Topps",
+    "yearText": "\u00a9 2023 The Topps Company, Inc.",
+    "copyrightLineText": "\u00a9 2023 The Topps Company, Inc.",
+    "serialNumberText": "null",
+    "parallelText": "null"
+   },
+   "matchScore": 1,
+   "alternates": [
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2023,
+     "brand": "Topps",
+     "set": "Rookie",
+     "cardNumber": "130",
+     "parallel": "null",
+     "reason": "Similar design, different card number",
+     "matchScore": 0.8
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2023,
+     "brand": "Topps",
+     "set": "Rookie",
+     "cardNumber": "132",
+     "parallel": "null",
+     "reason": "Similar design, different card number",
+     "matchScore": 0.8
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2023,
+     "brand": "Topps",
+     "set": "Rookie",
+     "cardNumber": "RC1",
+     "parallel": "null",
+     "reason": "Similar design and player, but different specific card designation",
+     "matchScore": 0.75
+    },
+    {
+     "player": "TATE RATLEDGE",
+     "year": 2023,
+     "brand": "Topps",
+     "set": "Rookie",
+     "cardNumber": "RC2",
+     "parallel": "null",
+     "reason": "Similar design and player, but different specific card designation",
+     "matchScore": 0.75
+    }
+   ]
+  },
+  "combined": {
+   "cardNumberText": "131",
+   "cardNumberLocation": "back",
+   "productName": "Rookie",
+   "parallelName": "None",
+   "parallelLocation": null,
+   "rookieMarkText": "RC",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": null,
+   "brandNameText": "Topps",
+   "playerNameText": "TATE RATLEDGE",
+   "sponsorNames": [],
+   "eventYears": [
+    "2023"
+   ],
+   "parallelColor": "pink",
+   "parallelFinish": "unknown",
+   "sport": "football"
+  },
+  "strong": {
+   "cardNumberText": "131",
+   "location": "back, top left corner",
+   "jerseyNumberText": "69",
+   "copyrightYearText": "2023",
+   "playerNameText": "TATE RATLEDGE",
+   "slashTexts": [
+    {
+     "text": "1/10",
+     "location": "front, top left",
+     "kind": "stamped_serial"
+    },
+    {
+     "text": "04-26-01",
+     "location": "back, middle",
+     "kind": "date"
+    },
+    {
+     "text": "[2]2025",
+     "location": "back, middle",
+     "kind": "date"
+    }
+   ],
+   "stampedSerial": "1/10",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "top left, gold foil"
+  }
+ },
+ "serialImage": true
+}
