@@ -483,7 +483,9 @@ function verifyIdentity(card) {
       clear("serialNumber", "Serial number removed: it was not read from the card.");
       clear("numberedTo", "Numbered-to removed: no serial number was read from the card.");
     } else if (card.numberedTo && card.numberedTo !== serial.den) {
-      rejected.push(`Numbered to /${card.numberedTo} does not match serial ${card.serialNumber}.`);
+      // Conflicting serial info: drop it rather than reject the whole card.
+      clear("serialNumber", `Serial "${card.serialNumber}" conflicts with numbered-to /${card.numberedTo}; removed.`);
+      clear("numberedTo", "Numbered-to removed: it conflicted with the serial number.");
     } else {
       card.numberedTo = serial.den;
     }
