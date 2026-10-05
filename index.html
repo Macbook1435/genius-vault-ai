@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -303,10 +302,10 @@ const comps = data.comps || {};
     `Card Number: ${card.cardNumber || "Not identified"}`,
     `Parallel / Insert: ${card.parallel || "Not identified"}`,
     `Numbered: ${card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
-    `Listing Title: ${data.soldComps?.query || "Sports card"}`,
+    `Listing Title: ${data.soldComps?.query || "Needs review — confirm card details first"}`,
     `Estimated Value Range: ${comps.count ? `$${comps.min}–$${comps.max} (${comps.count} sold listings; verify matches)` : "No sold prices auto-loaded"}`,
     `Sold comps status: ${comps.error || "No error reported"}`,
-`Sold comps status: ${comps.error || "No error reported"}`,
+    `Verification: ${data.verification?.status || "needs_review"}${data.verification?.warnings?.length ? " — " + data.verification.warnings.join(" ") : ""}`,
   `Confidence: ${data.confidence || "Not available"}`,
     `Notes: ${card.notes || "None"}`
   ].join("\n");
@@ -397,51 +396,4 @@ function generateTikTok() {
   document.getElementById("tiktokBox").innerHTML =
 `🔥 Fresh scan from Genius Vault AI 🔥
 
-This is a ${year} ${brand} ${player} ${parallel} ${numbered} sports card, and this one has serious collector appeal. Cards like this are exactly why the hobby is fun — rookie heat, parallel shine, limited numbering, and a player collectors are watching closely.
-
-Estimated value range: ${value}
-
-Would you grade this, sell it now, or hold it in the vault and wait for the market to move? Drop your opinion below because I want to know what the card community thinks.
-
-First comment:
-Would you list this card or keep it in the vault?
-
-${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
-}
-  
-
-function generateEbay() {
-  const scan = getScanText();
-
-  const title = getLine("Listing Title", scan);
-  const player = getLine("Player", scan);
-  const year = getLine("Year", scan);
-  const brand = getLine("Brand / Set", scan);
-  const parallel = getLine("Parallel / Insert", scan);
-  const condition = getLine("Condition Estimate", scan);
-  const numbered = getLine("Numbered", scan);
-  const value = getLine("Estimated Value Range", scan);
-
-  document.getElementById("ebayBox").innerHTML = `Title:
-
-${title || `${year} ${brand} ${player} ${parallel} ${numbered} Sports Card`}
-
-Description:
-You are viewing the actual card shown in the photos.
-
-Player: ${player}
-Year: ${year}
-Brand/Set: ${brand}
-Parallel/Insert: ${parallel}
-Numbered: ${numbered}
-Condition: ${condition}
-Estimated Value Range: ${value}
-
-Great card for collectors, investors, and fans.
-
-Ships protected with care.`;
-}
-</script>
-
-</body>
-</html>
+This is a ${year} ${brand} ${player} ${parallel} ${numbered} sports card, and this one has serious collector appeal. Cards like this are exactly why the hobby is fun — rookie heat, parallel shine, limited numbering, and a player 
