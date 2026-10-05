@@ -1,38 +1,12 @@
 // Pipeline v2 only: read the copyright year from a zoomed-in crop of the card back.
-// Step 1: a quick AI call finds where the copyright line is (a box, as fractions of the image).
-// Step 2: that area is cut out and enlarged here (no AI), so the tiny digits become large.
-// Step 3: two independent AI reads copy the year from the enlarged crop.
+// The back photo is cut into overlapping horizontal slices that are enlarged here (no AI), so
+// the tiny digits become large. Two independent AI reads (fast + strong model) then find the
+// "©" line in the slices and copy its year. A read counts only if its line contains "©".
 // Any failure returns { reads: [] } and the pipeline carries on without it.
 
-const LOCATE_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    found: { type: "boolean" },
-    x0: { type: "number" }, y0: { type: "number" }, x1: { type: "number" }, y1: { type: "number" },
-    vertical: { type: "boolean" },
-  },
-  required: ["found", "x0", "y0", "x1", "y1", "vertical"],
-};
 
-const READ_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    lineText: { type: ["string", "null"] },
-    copyrightYearText: { type: ["string", "null"] },
-  },
-  required: ["lineText", "copyrightYearText"],
-};
 
-const LOCATE_PROMPT = `This is the BACK of a trading card (it may be in a plastic holder, on a table).
-Find the copyright line: tiny print that starts with "©" (often followed by the year and the maker, e.g. "© 20xx THE ... COMPANY"), usually near the bottom edge of the card.
-Give its box as fractions of the WHOLE image (0 = left/top, 1 = right/bottom): x0, y0 (top-left) and x1, y1 (bottom-right). Make the box a little larger than the text.
-vertical = true if the line runs up/down the side instead of across.
-If you cannot find it, found = false and all numbers 0.`;
 
-const READ_PROMPT = `This is an enlarged crop of the copyright line from the back of a trading card.
-Copy the line as printed into lineText, then copy ONLY the 4-digit year that follows "©" into copyrightYearText, digit by digit (3, 5, 6 and 8 can look alike: look at each digit's shape). Do not use any other number. Null if the year is not readable.`;
 
 const clamp = (v) => Math.max(0, Math.min(1, Number(v) || 0));
 
@@ -56,30 +30,44 @@ export async function cropAndEnlarge(dataUrl, box, { padX = 0.04, padY = 0.03, t
   return img.getBase64("image/jpeg", { quality: 92 });
 }
 
+const STRIPS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    slice: { type: ["integer", "null"] },
+    lineText: { type: ["string", "null"] },
+    copyrightYearText: { type: ["string", "null"] },
+  },
+  required: ["slice", "lineText", "copyrightYearText"],
+};
+
+const STRIPS_PROMPT = (n) => `These ${n} images are enlarged, overlapping horizontal slices of ONE photo of the back of a trading card, in order from top (slice 1) to bottom (slice ${n}).
+Find the copyright line: tiny print starting with "©", followed by a year and the card maker's name.
+- slice: the number of the slice where you can read it best.
+- lineText: the line exactly as printed in that slice.
+- copyrightYearText: ONLY the 4-digit year right after "©", digit by digit (3, 5, 6 and 8 can look alike: look at each digit's shape).
+Copy only what is printed in these images. If there is no copyright line or you cannot read the year, use null for all three.`;
+
+// Horizontal slices covering the whole photo (25% tall, overlapping), each enlarged.
+const SLICES = [[0, 0.25], [0.19, 0.44], [0.38, 0.63], [0.56, 0.81], [0.75, 1]];
+
 /**
  * @param backImage data URL of the card back
- * @param askVision the scanner's AI helper ({ model, prompt, name, schema, frontImage, maxTokens })
+ * @param askVision the scanner's AI helper ({ model, prompt, name, schema, frontImage, images, maxTokens })
  */
 export async function readCopyrightCloseup(backImage, askVision, models) {
   if (!backImage) return { reads: [], status: "no_back" };
-  const out = { reads: [], status: "ok", box: null, usedFallback: false };
+  const out = { reads: [], status: "ok", method: "slices" };
   try {
-    let box = await askVision({ model: models.fast, name: "copyright_locate", schema: LOCATE_SCHEMA, maxTokens: 120, frontImage: backImage, prompt: LOCATE_PROMPT }).catch(() => null);
-    const sane = box && box.found && Math.abs(box.x1 - box.x0) > 0.02 && Math.abs(box.y1 - box.y0) > 0.005 && Math.abs(box.y1 - box.y0) < 0.4;
-    if (!sane) {
-      // Fallback: the bottom third of the photo, where copyright lines usually are.
-      box = { x0: 0.05, y0: 0.66, x1: 0.95, y1: 0.98, vertical: false };
-      out.usedFallback = true;
-    }
-    out.box = { x0: box.x0, y0: box.y0, x1: box.x1, y1: box.y1, vertical: box.vertical };
-    const crop = await cropAndEnlarge(backImage, box, out.usedFallback ? { padX: 0, padY: 0, targetWidth: 2000 } : undefined);
-    const [a, b] = await Promise.all([
-      askVision({ model: models.fast, name: "copyright_read", schema: READ_SCHEMA, maxTokens: 120, frontImage: crop, prompt: READ_PROMPT }).catch(() => null),
-      askVision({ model: models.strong, name: "copyright_read", schema: READ_SCHEMA, maxTokens: 120, frontImage: crop, prompt: READ_PROMPT }).catch(() => null),
-    ]);
+    const slices = [];
+    for (const [y0, y1] of SLICES) slices.push(await cropAndEnlarge(backImage, { x0: 0, x1: 1, y0, y1 }, { padX: 0, padY: 0, targetWidth: 2048 }));
+    const ask = (model) => askVision({ model, name: "copyright_read", schema: STRIPS_SCHEMA, maxTokens: 160, frontImage: slices[0], extraImages: slices.slice(1), prompt: STRIPS_PROMPT(slices.length) }).catch(() => null);
+    const [a, b] = await Promise.all([ask(models.fast), ask(models.strong)]);
+    // A read only counts if its line really is a copyright line ("©" + the year it gave).
+    const ok = (r) => r && r.copyrightYearText && r.lineText && /©|\(c\)/i.test(r.lineText) && r.lineText.includes(String(r.copyrightYearText).trim());
     out.reads = [
-      { by: "close-up A", year: a?.copyrightYearText ?? null, line: a?.lineText ?? null },
-      { by: "close-up B", year: b?.copyrightYearText ?? null, line: b?.lineText ?? null },
+      { by: "close-up A", year: ok(a) ? a.copyrightYearText : null, line: a?.lineText ?? null, slice: a?.slice ?? null },
+      { by: "close-up B", year: ok(b) ? b.copyrightYearText : null, line: b?.lineText ?? null, slice: b?.slice ?? null },
     ];
   } catch (e) {
     out.status = "error";

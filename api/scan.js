@@ -747,7 +747,7 @@ function resolveCardNumber(earlier, strongText) {
 }
 
 // ---- Shared OpenAI vision call with one retry on rate limits ----
-async function askVision({ model, prompt, name, schema, frontImage, backImage, maxTokens }) {
+async function askVision({ model, prompt, name, schema, frontImage, backImage, maxTokens, extraImages }) {
   const content = [
     { type: "text", text: prompt },
     { type: "image_url", image_url: { url: frontImage, detail: "high" } },
@@ -755,6 +755,7 @@ async function askVision({ model, prompt, name, schema, frontImage, backImage, m
   if (backImage) {
     content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
   }
+  for (const url of extraImages || []) content.push({ type: "image_url", image_url: { url, detail: "high" } });
 
   const call = () =>
     openai.chat.completions.create({
