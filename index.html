@@ -338,7 +338,8 @@ const comps = data.comps || {};
     `Brand / Set: ${[card.brand, card.set].filter(Boolean).join(" ") || "Not identified"}`,
     `Card Number: ${card.cardNumber || "Not identified"}`,
     `Parallel / Insert: ${card.parallel || "Not identified"}`,
-    `Numbered: ${card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
+    `Numbered: ${card.serialNumber ? card.serialNumber : card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
+    `Autograph: ${card.autograph ? "Yes" : "No"}`,
     `Rookie: ${card.rookie ? "Yes" : "No"}`,
     `Listing Title: ${data.soldComps?.query || "Needs review — confirm card details first"}`,
     `Estimated Value Range: ${comps.count ? `$${comps.min}–$${comps.max} (${comps.count} sold listings; verify matches)` : "No sold prices auto-loaded"}`,
@@ -468,10 +469,11 @@ Rescan the front and back straight-on in bright light, then try again.`;
   const parallel = clean(getLine("Parallel / Insert", scan));
   const numbered = clean(getLine("Numbered", scan));
   const rookie = getLine("Rookie", scan).toLowerCase() === "yes";
+  const auto = getLine("Autograph", scan).toLowerCase() === "yes";
   const condition = clean(getLine("Condition Estimate", scan)) || "Please review photos carefully";
   const value = getLine("Estimated Value Range", scan);
 
-  let title = [year, brand, player, cardNumber ? `#${cardNumber.replace(/^#/, "")}` : "", parallel, numbered, rookie ? "RC" : ""]
+  let title = [year, brand, player, cardNumber ? `#${cardNumber.replace(/^#/, "")}` : "", parallel, numbered, rookie ? "RC" : "", auto ? "Auto" : ""]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   if (title.length > 80) title = title.slice(0, 80).trim();
 
@@ -493,6 +495,7 @@ Card Number: ${cardNumber || "Not identified"}
 Parallel/Insert: ${parallel || "Not identified"}
 Serial Number: ${numbered || "Not identified"}
 Rookie Card: ${rookie ? "Yes" : "No"}
+Autograph: ${auto ? "Yes" : "No"}
 Condition: ${condition}
 
 Please review all photos carefully for the exact card condition and details.
