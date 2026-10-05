@@ -427,31 +427,43 @@ ${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector
 function generateEbay() {
   const scan = getScanText();
 
-  const title = getLine("Listing Title", scan);
-  const player = getLine("Player", scan);
-  const year = getLine("Year", scan);
-  const brand = getLine("Brand / Set", scan);
-  const parallel = getLine("Parallel / Insert", scan);
-  const condition = getLine("Condition Estimate", scan);
-  const numbered = getLine("Numbered", scan);
+  const clean = v => (v && !/not identified|needs review/i.test(v)) ? v : "";
+
+  const player = clean(getLine("Player", scan)) || "Sports Card";
+  const year = clean(getLine("Year", scan));
+  const brand = clean(getLine("Brand / Set", scan));
+  const cardNumber = clean(getLine("Card Number", scan));
+  const parallel = clean(getLine("Parallel / Insert", scan));
+  const numbered = clean(getLine("Numbered", scan));
+  const condition = clean(getLine("Condition Estimate", scan)) || "Please review photos carefully";
   const value = getLine("Estimated Value Range", scan);
+
+  let title = [year, brand, player, cardNumber ? `#${cardNumber.replace(/^#/, "")}` : "", parallel, numbered]
+    .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  if (title.length > 80) title = title.slice(0, 80).trim();
+
+  const priceLine = value && !/no sold prices/i.test(value)
+    ? `Estimated Value Range: ${value}`
+    : "Recent sold prices were not automatically available. Please check comparable sold listings before setting your price.";
 
   document.getElementById("ebayBox").innerHTML = `Title:
 
-${title || `${year} ${brand} ${player} ${parallel} ${numbered} Sports Card`}
+${title}
 
 Description:
 You are viewing the actual card shown in the photos.
 
 Player: ${player}
-Year: ${year}
-Brand/Set: ${brand}
-Parallel/Insert: ${parallel}
-Numbered: ${numbered}
+Year: ${year || "Not identified"}
+Brand/Set: ${brand || "Not identified"}
+Card Number: ${cardNumber || "Not identified"}
+Parallel/Insert: ${parallel || "Not identified"}
+Serial Number: ${numbered || "Not identified"}
 Condition: ${condition}
-Estimated Value Range: ${value}
 
-Great card for collectors, investors, and fans.
+Please review all photos carefully for the exact card condition and details.
+
+${priceLine}
 
 Ships protected with care.`;
 }
