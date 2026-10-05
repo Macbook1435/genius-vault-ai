@@ -1,0 +1,215 @@
+{
+ "name": "laet_shadow",
+ "scanV1": {
+  "player": "CHRISTIAN LAETTNER",
+  "year": 1989,
+  "brand": null,
+  "set": "Duke",
+  "cardNumber": null,
+  "parallel": null,
+  "rookie": false,
+  "team": "Duke Blue Devils",
+  "serialNumber": null,
+  "numberedTo": null,
+  "autograph": false,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": null,
+  "evidence": {
+   "playerNameText": "CHRISTIAN LAETTNER",
+   "cardNumberText": null,
+   "setOrBrandText": "Duke Blue Devils",
+   "yearText": "\u00a9 1989 Sports Marketing, Inc.",
+   "copyrightLineText": "\u00a9 1989 Sports Marketing, Inc.",
+   "serialNumberText": null,
+   "parallelText": null
+  },
+  "matchScore": 0.9,
+  "rookieMarkText": null
+ },
+ "verification": {
+  "status": "likely",
+  "warnings": [
+   "Card number was not readable.",
+   "Card number removed: the stronger check could not read it.",
+   "Brand \"Sports Marketing, Inc.\" removed: it is not a trading-card manufacturer."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 3,
+  "identity": {
+   "playerOk": true,
+   "yearOk": true,
+   "numberOk": false,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "225",
+   "cardNumberLocation": "back, bottom left corner",
+   "productName": "Duke",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": null,
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "32",
+   "brandNameText": "Sports Marketing, Inc.",
+   "playerNameText": "CHRISTIAN LAETTNER",
+   "sponsorNames": [
+    "Glaxo",
+    "Adolescent CareUnit"
+   ],
+   "eventYears": [
+    "1988",
+    "1989"
+   ],
+   "parallelColor": null,
+   "parallelFinish": "plain_refractor",
+   "sport": "basketball"
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": null,
+    "color": null,
+    "finish": "plain_refractor"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "CHRISTIAN LAETTNER",
+   "year": 1989,
+   "brand": "Sports Marketing, Inc.",
+   "set": "Duke Blue Devils",
+   "cardNumber": "#32",
+   "parallel": null,
+   "rookie": false,
+   "team": "Duke Blue Devils",
+   "serialNumber": null,
+   "numberedTo": null,
+   "autograph": false,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "",
+   "evidence": {
+    "playerNameText": "CHRISTIAN LAETTNER",
+    "cardNumberText": "#32",
+    "setOrBrandText": "Duke Blue Devils",
+    "yearText": "\u00a9 1989 Sports Marketing, Inc.",
+    "copyrightLineText": "\u00a9 1989 Sports Marketing, Inc.",
+    "serialNumberText": null,
+    "parallelText": null
+   },
+   "matchScore": 0.9,
+   "alternates": [
+    {
+     "player": "CHRISTIAN LAETTNER",
+     "year": 1988,
+     "brand": "Sports Marketing, Inc.",
+     "set": "Duke Blue Devils",
+     "cardNumber": "#225",
+     "parallel": null,
+     "reason": "Different card number within the same set for the same player",
+     "matchScore": 0.7
+    },
+    {
+     "player": "CHRISTIAN LAETTNER",
+     "year": 1990,
+     "brand": "Sports Marketing, Inc.",
+     "set": "Duke Blue Devils",
+     "cardNumber": "#20",
+     "parallel": null,
+     "reason": "Different year, same player and set",
+     "matchScore": 0.6
+    },
+    {
+     "player": "CHRISTIAN LAETTNER",
+     "year": 1992,
+     "brand": "Topps",
+     "set": "Duke Blue Devils",
+     "cardNumber": "#12",
+     "parallel": null,
+     "reason": "Different brand and year, same player",
+     "matchScore": 0.5
+    },
+    {
+     "player": "CHRISTIAN LAETTNER",
+     "year": 1991,
+     "brand": "Classic",
+     "set": "College Basketball",
+     "cardNumber": "#15",
+     "parallel": null,
+     "reason": "Different brand and set, but similar player focus",
+     "matchScore": 0.5
+    },
+    {
+     "player": "CHRISTIAN LAETTNER",
+     "year": 1995,
+     "brand": "Upper Deck",
+     "set": "Collector's Choice",
+     "cardNumber": "#64",
+     "parallel": null,
+     "reason": "Later card featuring the same player",
+     "matchScore": 0.4
+    }
+   ]
+  },
+  "combined": {
+   "cardNumberText": "225",
+   "cardNumberLocation": "back, bottom left corner",
+   "productName": "Duke",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": null,
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "32",
+   "brandNameText": "Sports Marketing, Inc.",
+   "playerNameText": "CHRISTIAN LAETTNER",
+   "sponsorNames": [
+    "Glaxo",
+    "Adolescent CareUnit"
+   ],
+   "eventYears": [
+    "1988",
+    "1989"
+   ],
+   "parallelColor": null,
+   "parallelFinish": "plain_refractor",
+   "sport": "basketball"
+  },
+  "strong": {
+   "cardNumberText": null,
+   "location": null,
+   "jerseyNumberText": "32",
+   "copyrightYearText": "1989",
+   "playerNameText": "CHRISTIAN LAETTNER",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null
+  }
+ },
+ "serialImage": false
+}

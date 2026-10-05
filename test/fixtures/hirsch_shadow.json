@@ -1,0 +1,194 @@
+{
+ "name": "hirsch_shadow",
+ "scanV1": {
+  "player": "ELROY HIRSCH",
+  "year": null,
+  "brand": "Topps",
+  "set": null,
+  "cardNumber": null,
+  "parallel": null,
+  "rookie": false,
+  "team": null,
+  "serialNumber": null,
+  "numberedTo": null,
+  "autograph": false,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": null,
+  "evidence": {
+   "playerNameText": "ELROY HIRSCH",
+   "cardNumberText": null,
+   "setOrBrandText": "Topps",
+   "yearText": null,
+   "copyrightLineText": null,
+   "serialNumberText": null,
+   "parallelText": null
+  },
+  "matchScore": 0.8,
+  "rookieMarkText": null
+ },
+ "verification": {
+  "status": "needs_review",
+  "warnings": [
+   "Year/copyright line was not readable.",
+   "Card number was not readable.",
+   "Card number removed: the stronger check could not read it.",
+   "Set \"Topps\" removed: it is not a real set name."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 2,
+  "identity": {
+   "playerOk": true,
+   "yearOk": false,
+   "numberOk": false,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": null,
+   "cardNumberLocation": null,
+   "productName": "Topps",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": null,
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "40",
+   "brandNameText": "Topps",
+   "playerNameText": "ELROY HIRSCH",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": null,
+   "parallelFinish": "unknown",
+   "sport": "football"
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": null,
+    "color": null,
+    "finish": "unknown"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "ELROY HIRSCH",
+   "year": null,
+   "brand": "Topps",
+   "set": "null",
+   "cardNumber": "40",
+   "parallel": null,
+   "rookie": false,
+   "team": "null",
+   "serialNumber": null,
+   "numberedTo": null,
+   "autograph": false,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "",
+   "evidence": {
+    "playerNameText": "ELROY HIRSCH",
+    "cardNumberText": "40",
+    "setOrBrandText": "Topps",
+    "yearText": null,
+    "copyrightLineText": null,
+    "serialNumberText": null,
+    "parallelText": null
+   },
+   "matchScore": 0.8,
+   "alternates": [
+    {
+     "player": "Elroy Hirsch",
+     "year": 1952,
+     "brand": "Topps",
+     "set": "null",
+     "cardNumber": "41",
+     "parallel": "null",
+     "reason": "Similar design and year",
+     "matchScore": 0.6
+    },
+    {
+     "player": "Elroy Hirsch",
+     "year": 1951,
+     "brand": "Bowman",
+     "set": "null",
+     "cardNumber": "15",
+     "parallel": "null",
+     "reason": "Earlier year with different brand",
+     "matchScore": 0.5
+    },
+    {
+     "player": "Elroy Hirsch",
+     "year": 1955,
+     "brand": "Topps",
+     "set": "null",
+     "cardNumber": "45",
+     "parallel": "null",
+     "reason": "Different card number in the same brand",
+     "matchScore": 0.5
+    },
+    {
+     "player": "Elroy Hirsch",
+     "year": 1951,
+     "brand": "Topps",
+     "set": "null",
+     "cardNumber": "30",
+     "parallel": "null",
+     "reason": "Similar brand, different card features",
+     "matchScore": 0.4
+    }
+   ]
+  },
+  "combined": {
+   "cardNumberText": null,
+   "cardNumberLocation": null,
+   "productName": "Topps",
+   "parallelName": null,
+   "parallelLocation": null,
+   "rookieMarkText": null,
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null,
+   "jerseyNumberText": "40",
+   "brandNameText": "Topps",
+   "playerNameText": "ELROY HIRSCH",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": null,
+   "parallelFinish": "unknown",
+   "sport": "football"
+  },
+  "strong": {
+   "cardNumberText": null,
+   "location": null,
+   "jerseyNumberText": "40",
+   "copyrightYearText": null,
+   "playerNameText": "ELROY HIRSCH",
+   "slashTexts": [],
+   "stampedSerial": null,
+   "stampedSerialSide": null,
+   "stampedSerialAppearance": null
+  }
+ },
+ "serialImage": false
+}

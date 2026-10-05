@@ -1,0 +1,240 @@
+{
+ "name": "tes_shadow",
+ "scanV1": {
+  "player": "ISAAC TESLAA",
+  "year": null,
+  "brand": "Topps",
+  "set": "Chrome",
+  "cardNumber": "RA-ITS",
+  "parallel": null,
+  "rookie": true,
+  "team": "Detroit Lions",
+  "serialNumber": null,
+  "numberedTo": null,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": "Autographed rookie variation card.",
+  "evidence": {
+   "playerNameText": "ISAAC TE SLAA",
+   "cardNumberText": "RA-ITS",
+   "setOrBrandText": "2025 Topps Chrome Football",
+   "yearText": null,
+   "copyrightLineText": null,
+   "serialNumberText": null,
+   "parallelText": "Autograph Variation"
+  },
+  "matchScore": 0.95,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "rejected",
+  "warnings": [
+   "Identified player does not match the name printed on the card.",
+   "Year/copyright line was not readable.",
+   "Year removed: the reads disagree on the copyright year (2025 vs 2023).",
+   "Serial number removed: the checks read \"15/250\" and \"151/250\", not \"151/250\".",
+   "Parallel \"Autograph Variation\" removed: that describes the card type, not a parallel."
+  ],
+  "rejected": [
+   "Identified player does not match the name printed on the card."
+  ],
+  "cleared": [],
+  "strongIdentifiers": 3,
+  "identity": {
+   "playerOk": true,
+   "yearOk": false,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "15",
+   "cardNumberLocation": "front",
+   "productName": "Chrome",
+   "parallelName": "Autograph Variation",
+   "parallelLocation": "front",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "15/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "15/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TESLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "plain_refractor",
+   "sport": "football"
+  },
+  "serialCheck": [
+   {
+    "stampedSerial": "15/250",
+    "side": "front",
+    "slashTexts": [
+     {
+      "text": "15/250",
+      "location": "front",
+      "kind": "stamped_serial"
+     }
+    ]
+   },
+   {
+    "stampedSerial": "151/250",
+    "side": "front",
+    "slashTexts": [
+     {
+      "text": "151/250",
+      "location": "front, bottom right corner",
+      "kind": "stamped_serial"
+     }
+    ]
+   }
+  ],
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": 250,
+    "color": "pink",
+    "finish": "plain_refractor",
+    "printRunFrom": "both checks agree on the print run"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "ISAAC TE SLAA",
+   "year": 2025,
+   "brand": "Topps",
+   "set": "Chrome Football",
+   "cardNumber": "RA-ITS",
+   "parallel": "AUTOGRAPH VARIATION",
+   "rookie": true,
+   "team": "Detroit Lions",
+   "serialNumber": "151/250",
+   "numberedTo": 250,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "Autographed rookie variation card.",
+   "evidence": {
+    "playerNameText": "ISAAC TE SLAA",
+    "cardNumberText": "RA-ITS",
+    "setOrBrandText": "2025 Topps Chrome Football",
+    "yearText": "\u00a9 2025 The Topps Company",
+    "copyrightLineText": "\u00a9 2025 The Topps Company",
+    "serialNumberText": "151/250",
+    "parallelText": "AUTOGRAPH VARIATION"
+   },
+   "matchScore": 0.95,
+   "alternates": [
+    {
+     "player": "ISAAC TE SLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "ITS-RA",
+     "parallel": "BASE",
+     "reason": "Base version variant of the same set.",
+     "matchScore": 0.8
+    },
+    {
+     "player": "ISAAC TE SLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS",
+     "parallel": "X-Fractor",
+     "reason": "Similar card but with different parallel.",
+     "matchScore": 0.75
+    },
+    {
+     "player": "ISAAC TE SLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS",
+     "parallel": "Refractor",
+     "reason": "This reflects another parallel option within the same year.",
+     "matchScore": 0.7
+    },
+    {
+     "player": "ISAAC TE SLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "ITS-RA",
+     "parallel": "Prizm",
+     "reason": "Another insert variation from the same series.",
+     "matchScore": 0.6
+    }
+   ]
+  },
+  "combined": {
+   "cardNumberText": "15",
+   "cardNumberLocation": "front",
+   "productName": "Chrome",
+   "parallelName": "Autograph Variation",
+   "parallelLocation": "front",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "15/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "15/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TESLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "plain_refractor",
+   "sport": "football"
+  },
+  "strong": {
+   "cardNumberText": "RA-ITS",
+   "location": "back, bottom right",
+   "jerseyNumberText": "18",
+   "copyrightYearText": "2023",
+   "playerNameText": "ISAAC TESLAA",
+   "slashTexts": [
+    {
+     "text": "151/250",
+     "location": "front, bottom right corner",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "151/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner"
+  }
+ },
+ "serialImage": false
+}

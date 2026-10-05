@@ -1,0 +1,235 @@
+{
+ "name": "tes_serial_shadow",
+ "scanV1": {
+  "player": "ISAAC TESLAA",
+  "year": null,
+  "brand": "Topps",
+  "set": "Chrome",
+  "cardNumber": "RA-ITS",
+  "parallel": null,
+  "rookie": true,
+  "team": "DETROIT LIONS",
+  "serialNumber": "157/250",
+  "numberedTo": 250,
+  "autograph": true,
+  "memorabilia": false,
+  "gradingCompany": null,
+  "grade": null,
+  "notes": "This is an autographed rookie card from the 2025 Topps Chrome Football set.",
+  "evidence": {
+   "playerNameText": "ISAAC TESLAA",
+   "cardNumberText": "RA-ITS",
+   "setOrBrandText": "Chrome Football",
+   "yearText": null,
+   "copyrightLineText": null,
+   "serialNumberText": "157/250",
+   "parallelText": "Autograph Variation"
+  },
+  "matchScore": 0.95,
+  "rookieMarkText": "RC"
+ },
+ "verification": {
+  "status": "likely",
+  "warnings": [
+   "Year/copyright line was not readable.",
+   "Card number RA-ITS chosen; other reads saw look-alike characters (RA-IT5).",
+   "Year removed: the reads disagree on the copyright year (2025 vs 2023).",
+   "Serial 157/250 confirmed from the close-up photo by two separate reads.",
+   "Parallel \"Autograph Variation\" removed: that describes the card type, not a parallel."
+  ],
+  "rejected": [],
+  "cleared": [],
+  "strongIdentifiers": 3,
+  "identity": {
+   "playerOk": true,
+   "yearOk": false,
+   "numberOk": true,
+   "setOk": true
+  },
+  "outside": {
+   "catalog": {
+    "configured": false,
+    "status": "not_configured",
+    "match": null
+   },
+   "ebay": {
+    "configured": false,
+    "status": "not_configured",
+    "listings": []
+   }
+  },
+  "detailCheck": {
+   "cardNumberText": "RA-IT5",
+   "cardNumberLocation": "back",
+   "productName": "Chrome",
+   "parallelName": "Autograph Variation",
+   "parallelLocation": "back",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "151/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "151/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TE'SLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "prizm",
+   "sport": "football"
+  },
+  "serialCloseup": {
+   "reads": [
+    {
+     "stampedSerial": "157/250",
+     "isDate": false
+    },
+    {
+     "stampedSerial": "157/250",
+     "isDate": false
+    }
+   ]
+  },
+  "parallelId": {
+   "source": null,
+   "status": "no_checklist",
+   "candidates": [],
+   "evidence": {
+    "numberedTo": 250,
+    "color": "pink",
+    "finish": "prizm"
+   }
+  }
+ },
+ "raw": {
+  "main": {
+   "player": "ISAAC TESLAA",
+   "year": 2025,
+   "brand": "Topps",
+   "set": "Chrome Football",
+   "cardNumber": "RA-ITS",
+   "parallel": "Autograph Variation",
+   "rookie": true,
+   "team": "DETROIT LIONS",
+   "serialNumber": "15/250",
+   "numberedTo": 250,
+   "autograph": true,
+   "memorabilia": false,
+   "gradingCompany": null,
+   "grade": null,
+   "notes": "This is an autographed rookie card from the 2025 Topps Chrome Football set.",
+   "evidence": {
+    "playerNameText": "ISAAC TESLAA",
+    "cardNumberText": "RA-ITS",
+    "setOrBrandText": "Chrome Football",
+    "yearText": "\u00a9 2025 The Topps Company",
+    "copyrightLineText": "\u00a9 2025 The Topps Company",
+    "serialNumberText": "15/250",
+    "parallelText": "Autograph Variation"
+   },
+   "matchScore": 0.95,
+   "alternates": [
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "ITS",
+     "parallel": "Base",
+     "reason": "Similar card from the same set without autograph feature.",
+     "matchScore": 0.6
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Rookies",
+     "cardNumber": "RA-ITS",
+     "parallel": "Regular",
+     "reason": "Rookies version on similar card style.",
+     "matchScore": 0.5
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "RA-ITS",
+     "parallel": "Refractor",
+     "reason": "Similar card but in refractor finish.",
+     "matchScore": 0.7
+    },
+    {
+     "player": "ISAAC TESLAA",
+     "year": 2025,
+     "brand": "Topps",
+     "set": "Chrome Football",
+     "cardNumber": "ITS",
+     "parallel": "Prism",
+     "reason": "Prism variation from the same brand.",
+     "matchScore": 0.65
+    },
+    {
+     "player": null,
+     "year": null,
+     "brand": null,
+     "set": null,
+     "cardNumber": null,
+     "parallel": null,
+     "reason": "Unknown player due to illegibility.",
+     "matchScore": 0.2
+    }
+   ]
+  },
+  "combined": {
+   "cardNumberText": "RA-IT5",
+   "cardNumberLocation": "back",
+   "productName": "Chrome",
+   "parallelName": "Autograph Variation",
+   "parallelLocation": "back",
+   "rookieMarkText": "RC",
+   "slashTexts": [
+    {
+     "text": "151/250",
+     "location": "front",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "151/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner",
+   "jerseyNumberText": "18",
+   "brandNameText": "Topps",
+   "playerNameText": "ISAAC TE'SLAA",
+   "sponsorNames": [],
+   "eventYears": [],
+   "parallelColor": "pink",
+   "parallelFinish": "prizm",
+   "sport": "football"
+  },
+  "strong": {
+   "cardNumberText": "RA-ITS",
+   "location": "back, bottom right corner",
+   "jerseyNumberText": "18",
+   "copyrightYearText": "2023",
+   "playerNameText": "ISAAC TESLAA",
+   "slashTexts": [
+    {
+     "text": "15/250",
+     "location": "front, bottom right",
+     "kind": "stamped_serial"
+    }
+   ],
+   "stampedSerial": "15/250",
+   "stampedSerialSide": "front",
+   "stampedSerialAppearance": "gold foil, bottom right corner"
+  }
+ },
+ "serialImage": true
+}
