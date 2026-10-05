@@ -816,9 +816,10 @@ const STRONG_SCHEMA = {
     cardNumberText: { type: ["string", "null"] },
     location: { type: ["string", "null"] },
     jerseyNumberText: { type: ["string", "null"] },
+    copyrightYearText: { type: ["string", "null"] },
     ...SERIAL_SCHEMA.properties,
   },
-  required: ["cardNumberText", "location", "jerseyNumberText", ...SERIAL_SCHEMA.required],
+  required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", ...SERIAL_SCHEMA.required],
 };
 
 function runStrongCheck(frontImage, backImage) {
@@ -833,6 +834,9 @@ function runStrongCheck(frontImage, backImage) {
 
 ${CARD_NUMBER_PROMPT}
 Put it in cardNumberText and its location in location.
+
+COPYRIGHT YEAR:
+Find the copyright line (starts with "©", usually tiny text at the bottom of the back). Zoom in and copy ONLY its 4-digit year into copyrightYearText (for example "2025"). Read each digit carefully; do not use birth dates, draft years, or stats. Null if not readable.
 
 ${SERIAL_PROMPT}`,
   });
@@ -1084,6 +1088,37 @@ Strict rules:
     }
 
     applyPrintedTextRules(scanResult, combinedCheck, strongCheck, detailWarnings);
+
+    // Year: the stronger model reads the copyright year independently.
+    const strongYear = Number((cleanPart(strongCheck?.copyrightYearText).match(/\b(19|20)\d\d\b/) || [])[0]);
+    if (strongYear && scanResult.year && strongYear !== scanResult.year) {
+      detailWarnings.push(
+        `Year removed: the reads disagree on the copyright year (${scanResult.year} vs ${strongYear}).`,
+      );
+      scanResult.year = null;
+      if (scanResult.evidence) {
+        scanResult.evidence.yearText = null;
+        scanResult.evidence.copyrightLineText = null;
+      }
+    } else if (strongYear && !scanResult.year) {
+      scanResult.year = strongYear;
+    }
+
+    // Serial missed by the main scan: adopt it only if both independent checks agree.
+    if (!cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
+      const a = cleanPart(combinedCheck?.stampedSerial);
+      const b = cleanPart(strongCheck?.stampedSerial);
+      if (a && b && parseSerial(a) && parseSerial(b)) {
+        scanResult.serialNumber = a;
+        scanResult.numberedTo = parseSerial(a).den;
+        if (scanResult.evidence) scanResult.evidence.serialNumberText = a;
+        // applySerialCheck below confirms agreement, side, and the date rule.
+      } else if (a || b) {
+        detailWarnings.push(
+          `Possible serial not added: the checks read "${a || "none"}" and "${b || "none"}".`,
+        );
+      }
+    }
 
     const verification = verifyIdentity(scanResult);
     verification.warnings.push(...detailWarnings);
