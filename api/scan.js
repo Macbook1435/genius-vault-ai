@@ -606,6 +606,113 @@ function applySerialCheck(card, check, warnings) {
   }
 }
 
+// Second, independent read for card number, product/set name, and parallel.
+// First-scan values are kept only when this pass agrees with them.
+const DETAIL_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    cardNumberText: { type: ["string", "null"] },
+    cardNumberLocation: { type: ["string", "null"] },
+    productName: { type: ["string", "null"] },
+    parallelName: { type: ["string", "null"] },
+    parallelLocation: { type: ["string", "null"] },
+  },
+  required: ["cardNumberText", "cardNumberLocation", "productName", "parallelName", "parallelLocation"],
+};
+
+async function confirmDetails(frontImage, backImage) {
+  const content = [
+    {
+      type: "text",
+      text: `Read three things from this sports card exactly as printed. Do not guess.
+
+1. cardNumberText: the card number, usually on the back in a corner, often after a label like "#", "No.", "Card", or "ID#". Return ONLY the number itself without the label (for example "FC-2", "145", "RC-12"). Keep letter prefixes. Do not add letters from nearby labels. Null if not readable.
+2. productName: the product/set name from the main logo (for example "First Class", "Prizm", "Chrome"). Not the parallel.
+3. parallelName: the parallel or insert name printed separately from the main logo, often in a thin strip along an edge or in small text (for example "Signature Class Airlines", "Silver Prizm", "Gold Refractor"). Must be different from productName. Null if none is printed.
+Give the location of the card number and parallel text.`,
+    },
+    { type: "image_url", image_url: { url: frontImage, detail: "high" } },
+  ];
+  if (backImage) {
+    content.push({ type: "image_url", image_url: { url: backImage, detail: "high" } });
+  }
+
+  const completion = await openai.chat.completions.create({
+    model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+    messages: [{ role: "user", content }],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "detail_check", strict: true, schema: DETAIL_SCHEMA },
+    },
+    max_tokens: 400,
+  });
+
+  const text = completion.choices[0]?.message?.content;
+  return text ? JSON.parse(text) : null;
+}
+
+const LABEL_PREFIX = /^(ID|NO|CARD|NUM|NUMBER)(?=[A-Z0-9])/;
+const normWords = (v) => cleanPart(v).toLowerCase().replace(/[^a-z0-9]/g, "");
+const sameText = (a, b) => {
+  const x = normWords(a);
+  const y = normWords(b);
+  return Boolean(x && y && (x === y || x.includes(y) || y.includes(x)));
+};
+
+function applyDetailCheck(card, check, warnings) {
+  if (!check) {
+    warnings.push("Detail check could not run; card number and parallel are unconfirmed.");
+    card.cardNumber = null;
+    card.parallel = null;
+    return;
+  }
+
+  // --- Card number: both reads must agree after removing label text like "ID#" ---
+  const strip = (v) => normalizeCode(v).replace(LABEL_PREFIX, "");
+  const first = strip(card.cardNumber);
+  const second = strip(check.cardNumberText);
+  if (first && second && first === second) {
+    card.cardNumber = cleanPart(check.cardNumberText).replace(/^#/, "");
+  } else if (first || second) {
+    warnings.push(
+      `Card number removed: the two reads disagree ("${card.cardNumber || "none"}" vs "${check.cardNumberText || "none"}").`,
+    );
+    card.cardNumber = null;
+  }
+  if (card.evidence) card.evidence.cardNumberText = card.cardNumber;
+
+  // --- Set and parallel: fix swaps, drop parallels that are really the set name ---
+  const product = cleanPart(check.productName);
+  const parallel = cleanPart(check.parallelName);
+  const firstFields = [card.set, card.parallel, card.brand];
+
+  if (product && firstFields.some((f) => sameText(f, product))) {
+    if (sameText(card.parallel, product) && !sameText(card.set, product)) {
+      warnings.push(`Set and parallel were swapped; corrected set to "${product}".`);
+    }
+    card.set = product;
+  }
+
+  if (parallel && !sameText(parallel, product) && firstFields.some((f) => sameText(f, parallel))) {
+    card.parallel = parallel;
+  } else if (cleanPart(card.parallel)) {
+    warnings.push(`Parallel "${card.parallel}" removed: the second read did not confirm it.`);
+    card.parallel = null;
+  }
+
+  // Remove a parallel name that leaked into the brand, e.g. "Topps Signature Class Airlines".
+  if (card.parallel && cleanPart(card.brand).toLowerCase().includes(card.parallel.toLowerCase())) {
+    card.brand = cleanPart(card.brand.replace(new RegExp(card.parallel, "i"), "")) || card.brand;
+  }
+  // Never let the parallel just repeat the set or brand.
+  if (card.parallel && (sameText(card.parallel, card.set) || sameText(card.parallel, card.brand))) {
+    warnings.push(`Parallel "${card.parallel}" removed: it repeats the set or brand.`);
+    card.parallel = null;
+  }
+  if (card.evidence) card.evidence.parallelText = card.parallel;
+}
+
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
@@ -765,7 +872,18 @@ Strict rules:
 
     delete scanResult.alternates;
 
+    const detailWarnings = [];
+    let detailCheck = null;
+    try {
+      detailCheck = await confirmDetails(frontImage, backImage);
+    } catch (e) {
+      console.error("detail check failed:", e);
+    }
+    applyDetailCheck(scanResult, detailCheck, detailWarnings);
+
     const verification = verifyIdentity(scanResult);
+    verification.warnings.push(...detailWarnings);
+    verification.detailCheck = detailCheck;
 
     if (cleanPart(scanResult.serialNumber) || scanResult.numberedTo) {
       let serialCheck = null;
