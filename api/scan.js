@@ -29,6 +29,17 @@ const CARD_SCHEMA = {
     gradingCompany: { type: ["string", "null"] },
     grade: { type: ["string", "null"] },
     notes: { type: "string" },
+    evidence: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        playerNameText: { type: ["string", "null"] },
+        cardNumberText: { type: ["string", "null"] },
+        setOrBrandText: { type: ["string", "null"] },
+        yearText: { type: ["string", "null"] },
+      },
+      required: ["playerNameText", "cardNumberText", "setOrBrandText", "yearText"],
+    },
     matchScore: { type: "number", minimum: 0, maximum: 1 },
     alternates: {
       type: "array",
@@ -76,6 +87,7 @@ const CARD_SCHEMA = {
     "gradingCompany",
     "grade",
     "notes",
+    "evidence",
     "matchScore",
     "alternates",
   ],
@@ -295,12 +307,26 @@ async function fetchSoldComps(query) {
       source: "ebay_sold",
       sourceUrl,
       searchUrl,
+      status: "not_searched",
       error: "Not enough card information to build a sold-comps query.",
     };
   }
 
   try {
     const response = await fetchWithTimeout(sourceUrl);
+
+    if (response.status === 401 || response.status === 403 || response.status === 429) {
+      return {
+        ...calculateCompStats([]),
+        currency: "USD",
+        items: [],
+        source: "ebay_sold",
+        sourceUrl,
+        searchUrl,
+        status: "comps_access_blocked",
+        error: "Price estimate unavailable: the sold-listings site blocked the automatic search. Use the manual search link.",
+      };
+    }
 
     if (!response.ok) {
       throw new Error(`Sold search returned ${response.status}`);
@@ -316,6 +342,7 @@ async function fetchSoldComps(query) {
       source: "ebay_sold",
       sourceUrl,
       searchUrl,
+      status: items.length ? "comps_found" : "no_comps_found",
       error: items.length
         ? null
         : "No sold listings could be auto-parsed.",
@@ -328,13 +355,54 @@ async function fetchSoldComps(query) {
       source: "ebay_sold",
       sourceUrl,
       searchUrl,
-      error: error?.message || "Sold prices could not be loaded.",
+      status: "comps_search_failed",
+      error: "Price estimate unavailable: the sold-listings search failed. Try again shortly.",
     };
   }
 }
 
-function getConfidence(matchScore) {
-  return Number(matchScore) >= 0.85 ? "high" : "medium";
+function hasText(value) {
+  return cleanPart(value).length >= 2;
+}
+
+// Confidence is computed from printed text the model says it read,
+// never from the model's own matchScore.
+function verifyIdentity(card) {
+  const ev = card.evidence || {};
+  const warnings = [];
+
+  const playerOk = hasText(ev.playerNameText) && hasText(card.player);
+  const numberOk = cleanPart(ev.cardNumberText).length >= 1;
+  const setOk = hasText(ev.setOrBrandText);
+  const yearOk = hasText(ev.yearText);
+
+  if (!playerOk) warnings.push("Player name is not printed clearly enough to verify.");
+  if (!numberOk) warnings.push("Card number was not readable.");
+  if (!setOk) warnings.push("Set or brand name was not readable.");
+  if (!yearOk) warnings.push("Year/copyright line was not readable.");
+
+  // If the player name read off the card doesn't match the identified player, block it.
+  if (playerOk) {
+    const last = cleanPart(card.player).split(/\s+/).pop().toLowerCase();
+    if (!cleanPart(ev.playerNameText).toLowerCase().includes(last)) {
+      warnings.push("Identified player does not match the name printed on the card.");
+    }
+  }
+
+  const strong = [playerOk, numberOk, setOk, yearOk].filter(Boolean).length;
+  const mismatch = warnings.some((w) => w.includes("does not match"));
+
+  let status = "needs_review";
+  if (!mismatch && playerOk && strong >= 3) status = "verified";
+  else if (!mismatch && playerOk && strong >= 2) status = "likely";
+
+  return { status, warnings, strongIdentifiers: strong };
+}
+
+function getConfidence(verification) {
+  if (verification.status === "verified") return "high";
+  if (verification.status === "likely") return "medium";
+  return "needs review";
 }
 
 function formatMoney(value) {
@@ -424,7 +492,7 @@ export default async function handler(req, res) {
         type: "text",
         text: `Identify this sports card from the supplied front and optional back images.
 
-Use visible evidence first. The back image should confirm the year, set, card number, serial numbering, and parallel. matchScore must be from 0 to 1 and represent confidence in the complete identification. Provide 2 to 5 plausible alternate identifications, especially nearby parallels or sets that look similar. Do not claim a serial number, autograph, memorabilia feature, grade, or rookie designation unless it is visible or strongly supported. An alternate may repeat the player but must differ by set, card number, year, or parallel.`,
+Use visible evidence first. In "evidence", copy the EXACT text you can read printed on the card for the player name, card number, set/brand, and year/copyright line. If you cannot read it, use null. Never fill a field from team logos, uniforms, or what seems likely. If the player name is not legible, set player to null and matchScore below 0.5. The back image should confirm the year, set, card number, serial numbering, and parallel. matchScore must be from 0 to 1 and represent confidence in the complete identification. Provide 2 to 5 plausible alternate identifications, especially nearby parallels or sets that look similar. Do not claim a serial number, autograph, memorabilia feature, grade, or rookie designation unless it is visible or strongly supported. An alternate may repeat the player but must differ by set, card number, year, or parallel.`,
       },
       {
         type: "image_url",
@@ -482,17 +550,28 @@ Use visible evidence first. The back image should confirm the year, set, card nu
 
     delete scanResult.alternates;
 
-    const confidence = getConfidence(
-      scanResult.matchScore,
-    );
+    const verification = verifyIdentity(scanResult);
+    const confidence = getConfidence(verification);
+    const identityTrusted = verification.status !== "needs_review";
 
-    const query = buildSoldCompQuery(scanResult);
-    const comps = await fetchSoldComps(query);
+    // Unverified identities never reach pricing or listing titles.
+    const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
+    const comps = identityTrusted
+      ? await fetchSoldComps(query)
+      : {
+          ...calculateCompStats([]),
+          currency: "USD",
+          items: [],
+          source: "ebay_sold",
+          sourceUrl: null,
+          searchUrl: null,
+          status: "not_searched",
+          error: "Price estimate unavailable until the card identity is confirmed.",
+        };
 
-    const readoutSummary = buildReadoutSummary(
-      scanResult,
-      comps,
-    );
+    const readoutSummary = identityTrusted
+      ? buildReadoutSummary(scanResult, comps)
+      : "Identification needs review. I could not reliably verify the player, set, or card number. Rescan the front and back in bright light with the nameplate and card number fully visible.";
 
     const legacySummary = comps.count
       ? `Min ${formatMoney(comps.min)} | Median ${formatMoney(
@@ -506,6 +585,7 @@ Use visible evidence first. The back image should confirm the year, set, card nu
       results: "Scan completed successfully.",
       scan: scanResult,
       confidence,
+      verification,
       comps: {
         min: comps.min,
         max: comps.max,
@@ -516,6 +596,7 @@ Use visible evidence first. The back image should confirm the year, set, card nu
         source: comps.source,
         url: comps.sourceUrl,
         searchUrl: comps.searchUrl,
+        status: comps.status,
         error: comps.error,
       },
       readoutSummary,
