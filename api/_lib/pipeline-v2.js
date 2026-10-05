@@ -99,7 +99,7 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
     card.parallel = par.status === "confirmed" ? par.parallel.name : par.status === "base" ? null : null;
   }
 
-  const fields = buildFieldsV2({ card, verification, catalogOk, catalog, prod, sub, number, player, par, serialImage });
+  const fields = buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub, number, player, par, serialImage });
   return {
     scan: card,
     product: product ? { id: product.id, label: product.label, status: prod.status, sources: product.sources.length } : { status: prod.status, candidates: prod.candidates || [] },
@@ -113,7 +113,7 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   };
 }
 
-function buildFieldsV2({ card, verification, catalogOk, catalog, prod, sub, number, player, par, serialImage }) {
+function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub, number, player, par, serialImage }) {
   const f = {};
   const product = prod.product;
   const idn = verification?.identity || {};
@@ -159,7 +159,7 @@ function buildFieldsV2({ card, verification, catalogOk, catalog, prod, sub, numb
   f.parallel = (parBasis[par.status] || parBasis.no_checklist)();
 
   // Serial (same rules as the current pipeline)
-  const v1 = buildFieldVerification(card, { ...verification, parallelId: { status: par.status === "ambiguous" ? "ambiguous" : par.status, candidateObjects: par.candidates } }, { serialImage, identity: idn, checklist: null });
+  const v1 = buildFieldVerification(card, { ...verification, parallelId: { status: par.status === "ambiguous" ? "ambiguous" : par.status, candidateObjects: par.candidates } }, { serialImage, identity: idn, checklist: null, strongCheck: raw?.strong });
   f.serial = v1.fields.serial;
 
   const order = ["player", "year", "set", "cardNumber", "parallel", "serial"];

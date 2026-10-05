@@ -35,3 +35,11 @@ assert.equal(r3.product.status, "no_product");
 assert.equal(r3.pipeline.fields.set.status, "unconfirmed");
 assert.equal(r3.pipeline.fields.parallel.status, "unconfirmed");
 console.log("pipeline-v2: all checks passed");
+// A serial seen by both checks (not confirmed) must never become "no serial".
+{
+  const v = { ...verification, detailCheck: { stampedSerial: "1?/250" } };
+  const rr = { ...raw, strong: { ...raw.strong, stampedSerial: "1?/250" } };
+  const r4 = await runPipelineV2({ scan: { ...scan, numberedTo: null }, raw: rr, verification: v, serialImage: false, tiebreak: null });
+  assert.equal(r4.pipeline.fields.serial.status, "unconfirmed");
+  console.log("pipeline-v2: serial-hint check passed");
+}
