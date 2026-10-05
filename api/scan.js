@@ -1497,9 +1497,17 @@ Strict rules:
         safe("serial close-up read 1", readSerialCloseup(serialImage, process.env.OPENAI_VISION_MODEL || "gpt-4o-mini")),
         safe("serial close-up read 2", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o")),
       ]);
-      const p1 = c1 && !c1.isDate ? parseSerial(c1.stampedSerial) : null;
+      let p1 = c1 && !c1.isDate ? parseSerial(c1.stampedSerial) : null;
       const p2 = c2 && !c2.isDate ? parseSerial(c2.stampedSerial) : null;
-      const shown = `"${c1?.stampedSerial ?? "none"}" / "${c2?.stampedSerial ?? "none"}"`;
+      let shown = `"${c1?.stampedSerial ?? "none"}" / "${c2?.stampedSerial ?? "none"}"`;
+      // The smaller model missed the serial (no conflicting value): take one more independent
+      // read with the stronger model; the two stronger reads must still agree exactly.
+      if (!p1 && p2 && !cleanPart(c1?.stampedSerial)) {
+        const c3 = await safe("serial close-up read 3", readSerialCloseup(serialImage, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o"));
+        const p3 = c3 && !c3.isDate ? parseSerial(c3.stampedSerial) : null;
+        shown += ` / "${c3?.stampedSerial ?? "none"}"`;
+        if (p3) p1 = p3;
+      }
       if (p1 && p2 && p1.num === p2.num && p1.den === p2.den) {
         closeupSerial = { text: cleanPart(c2.stampedSerial), ...p1 };
         detailWarnings.push(`Serial ${closeupSerial.text} confirmed from the close-up photo by two separate reads.`);
