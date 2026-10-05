@@ -1,6 +1,8 @@
 import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
+import { cardsightConfigured, cardsightIdentify, resolveParallel } from "./cardsight.js";
+import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -942,6 +944,87 @@ If the text is a date (for example "9/14/25") set isDate to true. If there is no
   });
 }
 
+// ---- Outside matches: CardSight catalog + eBay Browse active listings ----
+// Outside data only fills in or corrects year/set/parallel when it clearly matches
+// the details we already verified from the card (player + card number).
+function applyCatalogMatch(card, cs, warnings) {
+  const out = { configured: cardsightConfigured(), status: "not_checked", match: null };
+  if (!out.configured) { out.status = "not_configured"; return out; }
+  if (!cs || cs.error) { out.status = "error"; out.error = cs?.error || "no response"; return out; }
+  const c = cs.detection?.card;
+  if (!c?.name) { out.status = "no_match"; return out; }
+  out.match = { name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null };
+
+  const last = cleanPart(card.player).split(/\s+/).pop()?.toLowerCase();
+  const playerOk = last && c.name.toLowerCase().includes(last);
+  const numberOk = card.cardNumber && normalizeCode(c.number) === normalizeCode(card.cardNumber);
+  if (!playerOk || !numberOk) {
+    out.status = "rejected";
+    out.reason = !playerOk ? "catalog player does not match the card" : "catalog card number does not match the card";
+    warnings.push(`Catalog match "${c.name} #${c.number || "?"}" ignored: ${out.reason}.`);
+    return out;
+  }
+
+  out.status = "accepted";
+  const year = Number(c.year) || null;
+  if (year && year !== card.year) {
+    warnings.push(card.year ? `Year changed from ${card.year} to ${year} (catalog match).` : `Year ${year} filled from catalog match.`);
+    card.year = year;
+  }
+  const set = [c.releaseName, c.setName && !/^base( set)?$/i.test(c.setName) ? c.setName : null].filter(Boolean).join(" ");
+  if (set && !sameText(set, card.set)) {
+    warnings.push(`Set set to "${set}" from catalog match${card.set ? ` (scan said "${card.set}")` : ""}.`);
+    card.set = set;
+  }
+  if (knownBrand(c.manufacturer)) card.brand = knownBrand(c.manufacturer);
+
+  // Parallel: a single High-confidence suggestion, or the only one numbered to our serial.
+  const pr = resolveParallel(c);
+  let parallel = pr.parallel;
+  if (!parallel && card.numberedTo) {
+    const fits = (c.parallelSuggestions || []).filter((p) => Number(p.numberedTo) === Number(card.numberedTo));
+    if (fits.length === 1) parallel = fits[0];
+  }
+  if (parallel?.name) {
+    warnings.push(`Parallel "${parallel.name}" from catalog match.`);
+    card.parallel = parallel.name;
+  } else if (pr.candidates?.length) {
+    out.parallelCandidates = pr.candidates;
+  }
+  return out;
+}
+
+async function ebayOutsideMatches(card) {
+  const out = { configured: ebayConfigured(), status: "not_checked", listings: [] };
+  if (!out.configured) { out.status = "not_configured"; return out; }
+  if (!cleanPart(card.player)) { out.status = "skipped"; return out; }
+  const q = [card.player, card.cardNumber ? `#${card.cardNumber}` : "", card.numberedTo ? `/${card.numberedTo}` : "", card.autograph ? "auto" : ""]
+    .filter(Boolean).join(" ");
+  try {
+    const items = await ebaySearch(q);
+    const last = cleanPart(card.player).split(/\s+/).pop().toLowerCase();
+    const num = card.cardNumber ? normalizeCode(card.cardNumber) : null;
+    const matches = items.filter((i) => {
+      const t = i.title.toLowerCase();
+      const tn = i.title.toUpperCase().replace(/[^A-Z0-9#/ ]/g, " ");
+      return t.includes(last) && (!num || new RegExp(`(#|NO\\.?\\s*)${num}\\b`).test(tn)) &&
+        (!card.numberedTo || t.includes(`/${card.numberedTo}`));
+    });
+    out.query = q;
+    out.status = matches.length ? "matches_found" : "no_matches";
+    out.listings = matches.slice(0, 8);
+    const years = matches.map((m) => Number((m.title.match(/\b(20\d\d)\b/) || [])[1])).filter(Boolean);
+    const counts = years.reduce((a, y) => ((a[y] = (a[y] || 0) + 1), a), {});
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (top) out.yearVotes = counts;
+    out.topYear = top && top[1] >= 3 && top[1] / years.length >= 0.75 ? Number(top[0]) : null;
+  } catch (e) {
+    out.status = "error";
+    out.error = e.message;
+  }
+  return out;
+}
+
 function getConfidence(verification) {
   if (verification.status === "verified") return "high";
   if (verification.status === "likely") return "medium";
@@ -1086,6 +1169,10 @@ Strict rules:
       prompt: content[0].text,
     });
 
+    const catalogPromise = cardsightConfigured()
+      ? cardsightIdentify(fs.readFileSync(frontFile.filepath), frontFile.mimetype).catch((e) => ({ error: e.message }))
+      : Promise.resolve(null);
+
     const [scanResult, combinedCheck, strongCheck] = await Promise.all([
       mainScan,
       safe("combined check", runCombinedCheck(frontImage, backImage)),
@@ -1206,7 +1293,20 @@ Strict rules:
       if (scanResult.evidence) scanResult.evidence.serialNumberText = scanResult.serialNumber;
     }
 
+    // Outside matches (only used when they agree with the verified player + card number).
+    const catalog = applyCatalogMatch(scanResult, await catalogPromise, detailWarnings);
+    const ebayMatches = await ebayOutsideMatches(scanResult);
+    if (ebayMatches.topYear && !scanResult.year) {
+      scanResult.year = ebayMatches.topYear;
+      detailWarnings.push(`Year ${ebayMatches.topYear} filled from matching eBay listings.`);
+    }
+    if (catalog.status === "accepted" && scanResult.evidence && scanResult.year) {
+      scanResult.evidence.yearText = String(scanResult.year);
+      scanResult.evidence.copyrightLineText = `© ${scanResult.year}`;
+    }
+
     const verification = verifyIdentity(scanResult);
+    verification.outside = { catalog, ebay: ebayMatches };
     verification.warnings.push(...detailWarnings);
     verification.detailCheck = combinedCheck;
 
