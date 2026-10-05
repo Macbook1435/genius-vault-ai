@@ -700,6 +700,21 @@ function resolveCardNumber(earlier, strongText) {
   if (reads.includes(strong)) {
     return { value: cleanPart(strongText).replace(/^#/, ""), warning: null };
   }
+  // Reads differ only by look-alike characters (5/S, 0/O, 1/I/L, 8/B, 2/Z):
+  // take the majority spelling across all three reads.
+  const lookAlike = (v) => v.replace(/5/g, "S").replace(/0/g, "O").replace(/[1L]/g, "I").replace(/8/g, "B").replace(/2/g, "Z");
+  const all = [...earlier.map(strip).filter(Boolean), strong];
+  if (all.length >= 3 && all.every((v) => lookAlike(v) === lookAlike(strong))) {
+    const counts = all.reduce((a, v) => ((a[v] = (a[v] || 0) + 1), a), {});
+    const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (ranked[0][1] >= 2 && (!ranked[1] || ranked[1][1] < ranked[0][1])) {
+      const winner = earlier.find((e) => strip(e) === ranked[0][0]) || cleanPart(strongText);
+      return {
+        value: cleanPart(winner).replace(/^#/, ""),
+        warning: `Card number ${cleanPart(winner)} chosen by majority; one read saw look-alike characters ("${cleanPart(strongText)}").`,
+      };
+    }
+  }
   // Earlier reads dropped a prefix (e.g. "C-2" vs "FC-2"): trust the fuller strong read.
   if (reads.length && reads.every((r) => strong.endsWith(r) && strong.length > r.length)) {
     return {
@@ -899,7 +914,7 @@ function applyPrintedTextRules(card, combined, strong, warnings) {
   }
 
   // Junk set names: a single letter/logo, or the brand repeated.
-  if (cleanPart(card.set) && (normWords(card.set).length < 2 || sameText(card.set, card.brand) || knownBrand(card.set) === knownBrand(card.brand) && knownBrand(card.set))) {
+  if (cleanPart(card.set) && (normWords(card.set).length < 2 || normWords(card.set) === normWords(card.brand))) {
     warnings.push(`Set "${card.set}" removed: it is not a real set name.`);
     card.set = null;
   }
