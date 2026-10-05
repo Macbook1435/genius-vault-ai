@@ -536,8 +536,10 @@ const SERIAL_SCHEMA = {
       },
     },
     stampedSerial: { type: ["string", "null"] },
+    stampedSerialSide: { type: ["string", "null"], enum: ["front", "back", null] },
+    stampedSerialAppearance: { type: ["string", "null"] },
   },
-  required: ["slashTexts", "stampedSerial"],
+  required: ["slashTexts", "stampedSerial", "stampedSerialSide", "stampedSerialAppearance"],
 };
 
 async function confirmSerial(frontImage, backImage) {
@@ -550,7 +552,8 @@ List every piece of text with a slash exactly as printed, where it is, and its k
 - "date": any date such as "9/14/25" or "09/14/2025", including dates under labels like "Rookie Debut".
 - "other": anything else.
 Set stampedSerial to the exact stamped serial text, or null if there is none.
-Never build a serial from parts of a date or from other numbers such as gate or seat numbers. If unsure, use null.`,
+Never build a serial from parts of a date or from other numbers such as gate, seat, row, flight, or jersey numbers. Most cards have NO serial number; null is the expected answer unless you can clearly see one.
+If you report a stamped serial, set stampedSerialSide to "front" or "back" and describe how it looks in stampedSerialAppearance (for example "gold foil, bottom right corner"). Otherwise set both to null.`,
     },
     { type: "image_url", image_url: { url: frontImage, detail: "high" } },
   ];
@@ -572,30 +575,41 @@ Never build a serial from parts of a date or from other numbers such as gate or 
   return text ? JSON.parse(text) : null;
 }
 
-function applySerialCheck(card, check, warnings) {
+// Keeps a serial only if:
+//  - two separate serial reads both report a stamped serial,
+//  - both reads match each other AND the first scan exactly,
+//  - both reads put it on the same side of the card,
+//  - its numbers do not come from a printed date (e.g. "09/25" from "9/14/25").
+// Anything else is removed. A missing serial is safer than an invented one.
+function applySerialCheck(card, checks, warnings) {
   if (!cleanPart(card.serialNumber) && !card.numberedTo) return;
 
   const claimed = parseSerial(card.serialNumber);
-  const confirmed = check ? parseSerial(check.stampedSerial) : null;
-  const dates = (check?.slashTexts || [])
+  const valid = (checks || []).filter(Boolean);
+  const reads = valid.map((c) => parseSerial(c.stampedSerial));
+  const sides = valid.map((c) => cleanPart(c.stampedSerialSide).toLowerCase());
+  const dates = valid
+    .flatMap((c) => c.slashTexts || [])
     .filter((t) => t.kind === "date" || looksLikeDate(t.text))
     .map((t) => t.text);
 
-  // Do the serial's numbers come from a printed date? e.g. "09/25" from "9/14/25".
   const fromDate =
     claimed &&
     dates.some((d) => {
       const parts = d.split(/[\/.-]/).map(Number);
-      return parts.includes(claimed.num) && parts.includes(claimed.den);
+      return parts.includes(claimed.num) || parts.includes(claimed.den);
     });
 
+  const same = (r) => r && claimed && r.num === claimed.num && r.den === claimed.den;
+  const shown = valid.map((c) => `"${c.stampedSerial ?? "none"}"`).join(" and ");
+
   let reason = null;
-  if (!check) reason = "Serial number removed: the serial check could not run.";
-  else if (!confirmed) reason = "Serial number removed: a second check found no stamped serial on the card.";
-  else if (!claimed || confirmed.num !== claimed.num || confirmed.den !== claimed.den)
-    reason = `Serial number removed: the second check read "${check.stampedSerial}", not "${card.serialNumber}".`;
-  else if (fromDate)
-    reason = `Serial number removed: "${card.serialNumber}" matches the printed date ${dates.join(", ")}.`;
+  if (valid.length < 2) reason = "Serial number removed: the serial checks could not run.";
+  else if (!claimed) reason = `Serial number removed: "${card.serialNumber}" is not a valid serial.`;
+  else if (reads.some((r) => !r)) reason = `Serial number removed: not every check found a stamped serial (checks read ${shown}).`;
+  else if (!reads.every(same)) reason = `Serial number removed: the checks read ${shown}, not "${card.serialNumber}".`;
+  else if (!sides[0] || sides.some((x) => x !== sides[0])) reason = "Serial number removed: the checks did not agree on where the serial is printed.";
+  else if (fromDate) reason = `Serial number removed: "${card.serialNumber}" uses numbers from the printed date ${[...new Set(dates)].join(", ")}. If the card really has a stamped serial, enter it manually.`;
 
   if (reason) {
     card.serialNumber = null;
@@ -604,6 +618,7 @@ function applySerialCheck(card, check, warnings) {
     warnings.push(reason);
   } else {
     card.numberedTo = claimed.den;
+    warnings.push(`Serial ${card.serialNumber} confirmed by two separate checks (${sides[0]}).`);
   }
 }
 
@@ -969,14 +984,14 @@ Strict rules:
     verification.detailCheck = detailCheck;
 
     if (cleanPart(scanResult.serialNumber) || scanResult.numberedTo) {
-      let serialCheck = null;
-      try {
-        serialCheck = await confirmSerial(frontImage, backImage);
-      } catch (e) {
-        console.error("serial check failed:", e);
-      }
-      applySerialCheck(scanResult, serialCheck, verification.warnings);
-      verification.serialCheck = serialCheck;
+      const safeRead = () =>
+        confirmSerial(frontImage, backImage).catch((e) => {
+          console.error("serial check failed:", e);
+          return null;
+        });
+      const serialChecks = await Promise.all([safeRead(), safeRead()]);
+      applySerialCheck(scanResult, serialChecks, verification.warnings);
+      verification.serialCheck = serialChecks;
     }
     const confidence = getConfidence(verification);
     const identityTrusted =
