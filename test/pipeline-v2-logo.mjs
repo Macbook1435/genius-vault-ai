@@ -77,3 +77,14 @@ assert.equal(r.product.status, "no_product");
 r = await run(withCrop("2026", null));
 assert.equal(r.year.closeup, null);
 console.log("pipeline-v2 logo/year: all checks passed");
+// Parallel tiebreak: confirms only when two independent closer looks agree.
+{
+  const tbScan = { ...base, numberedTo: 10 };
+  const raw = { ...reads({ eventYears: [] }, {}, {}), copyright: { status: "ok", reads: [{ by: "close-up A", year: "2026" }, { by: "close-up B", year: "2026" }] } };
+  let x = await runPipelineV2({ scan: tbScan, raw, verification: ver, serialImage: true, tiebreak: async (c) => ({ answer: c[0].name, reason: "t", agreed: false, second: c[1].name }) });
+  assert.equal(x.parallel.status, "probable");
+  assert.equal(x.pipeline.fields.parallel.status, "unconfirmed");
+  x = await runPipelineV2({ scan: tbScan, raw, verification: ver, serialImage: true, tiebreak: async (c) => ({ answer: c[0].name, reason: "t", agreed: true }) });
+  assert.equal(x.parallel.status, "confirmed");
+  console.log("pipeline-v2 tiebreak: all checks passed");
+}

@@ -1257,10 +1257,10 @@ function resolvePlayerName(card, combined, strong, warnings) {
 }
 
 // When the checklist leaves 2+ candidates, ask the stronger model to pick one, from the list only.
-async function parallelTiebreak(frontImage, candidates) {
+async function parallelTiebreak(frontImage, candidates, model = process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o") {
   const options = candidates.map((c) => c.name);
   const r = await askVision({
-    model: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+    model,
     name: "parallel_tiebreak",
     maxTokens: 150,
     frontImage,
@@ -1648,7 +1648,15 @@ Strict rules:
           raw: rawReads,
           verification,
           serialImage: Boolean(serialImage),
-          tiebreak: (candidates) => parallelTiebreak(frontImage, candidates),
+          // v2: two independent closer looks (strong + fast model); both must agree to confirm.
+          tiebreak: async (candidates) => {
+            const [a, b] = await Promise.all([
+              parallelTiebreak(frontImage, candidates).catch(() => null),
+              parallelTiebreak(frontImage, candidates, process.env.OPENAI_VISION_MODEL || "gpt-4o-mini").catch(() => null),
+            ]);
+            if (!a) return null;
+            return { ...a, agreed: Boolean(b && b.answer === a.answer), second: b?.answer || null };
+          },
         });
         if (v2Mode === "primary" && v2?.scan) {
           for (const k of ["player", "cardNumber", "parallel"]) scanResult[k] = v2.scan[k];

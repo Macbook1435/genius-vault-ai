@@ -152,7 +152,9 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
       if (tb) {
         const pick = par.candidates.find((c) => c.name === tb.answer);
         if (pick) {
-          par = { ...par, parallel: pick, status: printRunFromChecks || !productYearConfirmed ? "probable" : pick.verified ? "confirmed" : "single_source", tiebreak: tb.reason };
+          // One closer look alone is a guess; it confirms only when a second, independent look agrees.
+          const single = tb.agreed === false;
+          par = { ...par, parallel: pick, tiebreakAgreed: !single, tiebreakSecond: tb.second ?? null, status: printRunFromChecks || !productYearConfirmed || single ? "probable" : pick.verified ? "confirmed" : "single_source", tiebreak: tb.reason };
         }
       }
     }
@@ -216,7 +218,9 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   const parBasis = {
     confirmed: () => C(par.parallel.name, par.source === "catalog" ? "Matches the catalog (CardSight)." : `Only ${sub.subset.label} parallel that fits ${par.steps.join(" + ")}${par.tiebreak ? " (closer look)" : ""}; listed by ${par.parallel.sources?.length || 2}+ sources.`),
     base: () => C("Base", "No serial, parallel color, or special finish: base card."),
-    probable: () => U(null, `Probably ${par.parallel.name}, but the serial/print run was not confirmed.`),
+    probable: () => U(null, par.tiebreakAgreed === false
+      ? `Probably ${par.parallel.name}; the two closer looks disagreed (other: ${par.tiebreakSecond || "unsure"}). Could be: ${par.candidates.map((c) => c.name).join(", ")}.`
+      : `Probably ${par.parallel.name}, but the serial/print run was not confirmed.`),
     single_source: () => U(null, `Probably ${par.parallel.name}, but only one source lists it with that print run.`),
     ambiguous: () => U(null, `Could be: ${par.candidates.map((c) => c.name + (c.numberedTo ? ` /${c.numberedTo}` : "")).join(", ")}.`),
     no_match: () => U(null, `Nothing in the ${sub?.subset.label || ""} checklist matches what the card shows.`),
