@@ -3,6 +3,7 @@ import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel } from "./cardsight.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
+import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -772,6 +773,8 @@ const COMBINED_SCHEMA = {
     brandNameText: { type: ["string", "null"] },
     sponsorNames: { type: "array", items: { type: "string" } },
     eventYears: { type: "array", items: { type: "string" } },
+    parallelColor: { type: ["string", "null"] },
+    parallelFinish: { type: "string", enum: ["plain_refractor", "wave", "lava", "geometric", "football_leather", "prizm", "xfractor", "pulsar", "raywave", "shimmer", "mojo", "cracked_ice", "no_shine", "other", "unknown"] },
   },
   required: [
     ...DETAIL_SCHEMA.required,
@@ -780,6 +783,8 @@ const COMBINED_SCHEMA = {
     "brandNameText",
     "sponsorNames",
     "eventYears",
+    "parallelColor",
+    "parallelFinish",
   ],
 };
 
@@ -803,6 +808,10 @@ SET AND PARALLEL:
 BRAND AND SPONSORS:
 - brandNameText: the card MANUFACTURER name exactly as printed anywhere on the card or in the copyright line (for example "Topps", "Panini", "Bowman", "Upper Deck", "Fleer", "Donruss", "Leaf"). Null if no manufacturer name is printed. Never guess from the card's design or era.
 - sponsorNames: names of sponsors, advertisers, or organizations shown on the card that are NOT the card manufacturer or set name (for example "Glaxo", "Adolescent CareUnit", a police department, a bank, a restaurant). Empty list if none.
+
+PARALLEL APPEARANCE (describe what you SEE, do not name the parallel):
+- parallelColor: the main color of the card's colored border/background tint that marks the parallel, as one simple word (pink, blue, gold, green, purple, orange, red, black, aqua, teal, yellow, white, silver). Null if the card is the plain base color.
+- parallelFinish: the surface pattern. "plain_refractor" = smooth rainbow shine with no pattern; "wave" = wavy lines; "lava" = bubbly lava-lamp blobs; "geometric" = repeating shapes; "football_leather" = pebbled leather texture; "prizm" = cracked-glass/prizm lines; "xfractor" = grid of small squares; "pulsar" = dots; "raywave" = rays; "shimmer"; "mojo"; "cracked_ice"; "no_shine" = paper/matte; "other"; or "unknown".
 
 EVENT YEARS:
 - eventYears: every 4-digit year printed in the bio, draft line, stats, or write-up describing things that already happened (for example "DRAFTED: DETROIT (2) 2025" gives "2025"). Exclude birth dates and the copyright line. Empty list if none.
@@ -985,9 +994,11 @@ function applyCatalogMatch(card, cs, warnings) {
     const fits = (c.parallelSuggestions || []).filter((p) => Number(p.numberedTo) === Number(card.numberedTo));
     if (fits.length === 1) parallel = fits[0];
   }
+  out.rawParallels = c.parallelSuggestions || [];
   if (parallel?.name) {
     warnings.push(`Parallel "${parallel.name}" from catalog match.`);
     card.parallel = parallel.name;
+    out.parallelConfirmed = true;
   } else if (pr.candidates?.length) {
     out.parallelCandidates = pr.candidates;
   }
@@ -1021,6 +1032,112 @@ async function ebayOutsideMatches(card) {
   } catch (e) {
     out.status = "error";
     out.error = e.message;
+  }
+  return out;
+}
+
+// ---- Generic parallel identification ----
+// "Autograph Variation", "Rookie", "Base" etc. describe the card type, not a parallel.
+const NOT_PARALLEL_WORDS = new Set(["autograph", "autographs", "auto", "autos", "variation", "variations", "rookie", "rookies", "rc", "base", "card", "cards", "version", "signed", "signature", "signatures", "insert", "parallel"]);
+function isCardTypeNotParallel(name) {
+  const words = cleanPart(name).toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
+  return words.length > 0 && words.every((w) => NOT_PARALLEL_WORDS.has(w));
+}
+
+const FINISH_WORDS = {
+  plain_refractor: [], wave: ["wave"], lava: ["lava"], geometric: ["geometric"],
+  football_leather: ["leather"], prizm: ["prizm"], xfractor: ["x-fractor", "xfractor"],
+  pulsar: ["pulsar"], raywave: ["raywave"], prism: ["prism"], shimmer: ["shimmer"], mojo: ["mojo"], cracked_ice: ["cracked ice"],
+};
+const ALL_FINISH_WORDS = [...Object.values(FINISH_WORDS).flat(), "neon pulse", "molten", "frozenfractor", "superfractor", "tie-dye"];
+const COLOR_WORDS = ["pink", "blue", "gold", "green", "purple", "orange", "red", "black", "aqua", "teal", "yellow", "white", "silver", "bronze", "magenta", "sky"];
+
+function findChecklist(card) {
+  const text = `${cleanPart(card.brand)} ${cleanPart(card.set)}`.toLowerCase();
+  return PARALLEL_CHECKLISTS.find((c) =>
+    (!c.year || c.year === card.year) &&
+    c.include.every((w) => text.includes(w)) &&
+    !c.exclude.some((w) => text.includes(w)),
+  ) || null;
+}
+
+// Narrow a candidate list by print run, then color, then finish. Only one survivor counts.
+function resolveParallelFromCandidates(candidates, { numberedTo, color, finish }) {
+  // Unnumbered, no parallel color, no special finish: a base card, not a parallel.
+  if (!numberedTo && !cleanPart(color) && (!finish || ["no_shine", "unknown", "other"].includes(finish))) {
+    return { parallel: null, candidates: [], steps: [], base: true };
+  }
+  let list = candidates.slice();
+  const steps = [];
+  if (numberedTo) {
+    list = list.filter((p) => Number(p.numberedTo) === Number(numberedTo));
+    steps.push(`/${numberedTo}`);
+  } else {
+    // Unnumbered card: only unnumbered parallels are possible.
+    list = list.filter((p) => !p.numberedTo);
+  }
+  // Color and finish must AGREE with a candidate; a conflict means no confirmation.
+  const words = (p) => p.name.toLowerCase().split(/[\s,-]+/);
+  const col = cleanPart(color).toLowerCase();
+  if (col) {
+    list = list.filter((p) => words(p).includes(col));
+    steps.push(col);
+  } else {
+    list = list.filter((p) => !COLOR_WORDS.some((c) => words(p).includes(c)));
+    steps.push("no color");
+  }
+  if (finish && finish !== "unknown" && finish !== "other") {
+    const fw = FINISH_WORDS[finish];
+    list = fw?.length
+      ? list.filter((p) => fw.some((w) => p.name.toLowerCase().includes(w)))
+      : list.filter((p) => !ALL_FINISH_WORDS.some((w) => p.name.toLowerCase().includes(w))); // plain refractor
+    steps.push(finish.replace(/_/g, " "));
+  }
+  return { parallel: list.length === 1 ? list[0] : null, candidates: list.slice(0, 6), steps };
+}
+
+function applyParallelIdentification(card, combined, catalogCandidates, warnings) {
+  const out = { source: null, status: "not_checked", candidates: [] };
+  const scanned = cleanPart(card.parallel);
+  if (scanned && isCardTypeNotParallel(scanned)) {
+    warnings.push(`Parallel "${scanned}" removed: that describes the card type, not a parallel.`);
+    card.parallel = null;
+  }
+
+  const evidence = { numberedTo: card.numberedTo, color: combined?.parallelColor, finish: combined?.parallelFinish };
+  const checklist = findChecklist(card);
+  const candidates = catalogCandidates?.length ? catalogCandidates : checklist?.parallels || null;
+  out.source = catalogCandidates?.length ? "catalog" : checklist ? checklist.id : null;
+  out.evidence = evidence;
+
+  if (!candidates) {
+    out.status = "no_checklist";
+    if (card.parallel) warnings.push(`Parallel "${card.parallel}" is unconfirmed: no checklist for this product yet.`);
+    return out;
+  }
+
+  const r = resolveParallelFromCandidates(candidates, evidence);
+  out.candidates = r.candidates.map((p) => `${p.name}${p.numberedTo ? ` /${p.numberedTo}` : ""}`);
+  if (r.base) {
+    out.status = "base";
+    if (card.parallel) warnings.push(`Parallel "${card.parallel}" removed: the card looks like a base card (no serial, color, or special finish).`);
+    card.parallel = null;
+    return out;
+  }
+  if (r.parallel) {
+    out.status = "confirmed";
+    if (!sameText(r.parallel.name, card.parallel)) {
+      warnings.push(`Parallel set to "${r.parallel.name}" from the checklist (matched ${r.steps.join(" + ")})${card.parallel ? `; scan said "${card.parallel}"` : ""}.`);
+    }
+    card.parallel = r.parallel.name;
+  } else {
+    out.status = r.candidates.length ? "ambiguous" : "no_match";
+    warnings.push(
+      r.candidates.length
+        ? `Parallel unclear: could be ${out.candidates.join(", ")}. Confirm on the card.`
+        : `No parallel in the checklist matches${card.numberedTo ? ` /${card.numberedTo}` : ""}${evidence.color ? ` ${evidence.color}` : ""}; parallel left blank.`,
+    );
+    card.parallel = null;
   }
   return out;
 }
@@ -1295,6 +1412,12 @@ Strict rules:
 
     // Outside matches (only used when they agree with the verified player + card number).
     const catalog = applyCatalogMatch(scanResult, await catalogPromise, detailWarnings);
+    const catalogParallels = catalog.status === "accepted" && !catalog.parallelConfirmed
+      ? (catalog.rawParallels || []).map((p) => ({ name: p.name, numberedTo: p.numberedTo || null }))
+      : null;
+    const parallelId = catalog.parallelConfirmed
+      ? { source: "catalog", status: "confirmed" }
+      : applyParallelIdentification(scanResult, combinedCheck, catalogParallels, detailWarnings);
     const ebayMatches = await ebayOutsideMatches(scanResult);
     if (ebayMatches.topYear && !scanResult.year) {
       scanResult.year = ebayMatches.topYear;
@@ -1307,6 +1430,7 @@ Strict rules:
 
     const verification = verifyIdentity(scanResult);
     verification.outside = { catalog, ebay: ebayMatches };
+    verification.parallelId = parallelId;
     verification.warnings.push(...detailWarnings);
     verification.detailCheck = combinedCheck;
 
