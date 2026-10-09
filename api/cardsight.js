@@ -82,7 +82,9 @@ export function pickCatalogCard(cards, { player, number, year, set, brand } = {}
     }
   }
   if (fits.length === 1) return { status: "matched", card: fits[0], count: 1 };
-  return { status: fits.length ? "ambiguous" : "no_match", card: null, count: fits.length };
+  const candidates = fits.slice(0, 10).map((c) => ({ id: c.id, name: c.name, number: c.number, release: c.releaseName || null, set: c.setName || null,
+    year: c.releaseYear || null, attributes: c.attributes || [], description: c.description || null }));
+  return { status: fits.length ? "ambiguous" : "no_match", card: null, count: fits.length, candidates };
 }
 
 export async function cardsightFindByDetails(details) {
