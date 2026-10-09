@@ -1717,7 +1717,7 @@ Strict rules:
       if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
         const found = await cardsightFindByDetails({ player: scanResult.player, number: scanResult.cardNumber,
           year: scanResult.year, set: scanResult.set, brand: scanResult.brand }).catch((e) => ({ status: "error", error: e.message }));
-        catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null,
+        catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null, candidates: found.candidates || [],
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;
       }
