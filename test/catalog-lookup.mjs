@@ -35,3 +35,18 @@ t("missing number means no lookup", () => {
   assert.equal(pickCatalogCard([base], { player: "Sam Example", number: null }).status, "not_enough_details");
 });
 console.log(`catalog-lookup: ${n} tests passed`);
+t("non-auto card skips autograph sets", () => {
+  const cards = [{ ...base, id: "au1", setName: "Autographs", attributes: ["AUTO"] }, { ...base, id: "au2", setName: "Rookie Autographs" }, base];
+  const r = pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: false, memorabilia: false });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "a1");
+});
+t("auto card keeps only autograph sets", () => {
+  const cards = [{ ...base, id: "au1", setName: "Autographs", attributes: ["AUTO"] }, base];
+  const r = pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: true });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "au1");
+});
+t("autograph unknown keeps all (stays ambiguous)", () => {
+  const cards = [{ ...base, id: "au1", setName: "Autographs", attributes: ["AUTO"] }, base];
+  assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019 }).status, "ambiguous");
+});
+console.log(`catalog-lookup: extra autograph tests passed`);

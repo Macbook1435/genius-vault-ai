@@ -1332,7 +1332,11 @@ function buildReadoutSummary(card, comps) {
     comps.count === 1 ? "listing" : "listings"
   }, prices range from ${formatMoney(comps.min)} to ${formatMoney(
     comps.max,
-  )}, with a median of ${formatMoney(comps.median)}.`;
+  )}, with a median of ${formatMoney(comps.median)}.${
+    card.grade && comps.source === "cardsight_completed_auctions"
+      ? " These are raw (ungraded) sales; graded prices can differ."
+      : ""
+  }`;
 }
 
 export default async function handler(req, res) {
@@ -1716,7 +1720,9 @@ Strict rules:
       // Photo match was a different card: look the verified card up by player + number + year instead.
       if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
         const found = await cardsightFindByDetails({ player: scanResult.player, number: scanResult.cardNumber,
-          year: scanResult.year, set: scanResult.set, brand: scanResult.brand }).catch((e) => ({ status: "error", error: e.message }));
+          year: scanResult.year, set: scanResult.set, brand: scanResult.brand,
+          autograph: typeof scanResult.autograph === "boolean" ? scanResult.autograph : undefined,
+          memorabilia: typeof scanResult.memorabilia === "boolean" ? scanResult.memorabilia : undefined }).catch((e) => ({ status: "error", error: e.message }));
         catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null, candidates: found.candidates || [],
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;

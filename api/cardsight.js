@@ -63,7 +63,10 @@ const words = (v) => String(v ?? "").toLowerCase().split(/[^a-z0-9]+/).filter((w
 
 // Pick the one catalog card that fits the verified player + card number + year (+ set words when given).
 // Returns { status: "matched", card } only when exactly one base card fits; otherwise no match (no guessing).
-export function pickCatalogCard(cards, { player, number, year, set, brand } = {}) {
+const isAutoCard = (c) => (c.attributes || []).includes("AUTO") || /autograph|\bauto\b|signature/i.test(`${c.setName || ""}`);
+const isRelicCard = (c) => /relic|memorabilia|patch|jersey|swatch/i.test(`${c.setName || ""}`);
+
+export function pickCatalogCard(cards, { player, number, year, set, brand, autograph, memorabilia } = {}) {
   const last = words(player).pop();
   const num = code(number);
   if (!last || !num) return { status: "not_enough_details", card: null, count: 0 };
@@ -72,6 +75,10 @@ export function pickCatalogCard(cards, { player, number, year, set, brand } = {}
     && words(c.name).includes(last)
     && (!year || !c.releaseYear || String(c.releaseYear).startsWith(String(year)))
     && !c.variationOf && !c.isParallelOnly);
+  // Autograph / relic must agree with what the scan saw (only when the scan said yes or no).
+  if (autograph === true) fits = fits.filter(isAutoCard);
+  if (autograph === false) fits = fits.filter((c) => !isAutoCard(c));
+  if (memorabilia === false) fits = fits.filter((c) => !isRelicCard(c));
   if (fits.length > 1) {
     // Narrow with the set words we read (e.g. "Update"), ignoring the brand name and generic words.
     const skip = new Set([...words(brand), "base", "set", "series", "card", "cards"]);
