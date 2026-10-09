@@ -1,7 +1,7 @@
 import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
-import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps } from "./cardsight.js";
+import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
@@ -1712,8 +1712,18 @@ Strict rules:
     }
     try {
       let catalogSold = null;
-      if (identityTrusted && catalog.status === "accepted" && catalog.match?.id) {
-        catalogSold = await cardsightSoldComps(catalog.match.id).catch((e) => ({ error: e.message, count: 0 }));
+      let pricingCardId = catalog.status === "accepted" ? catalog.match?.id : null;
+      // Photo match was a different card: look the verified card up by player + number + year instead.
+      if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
+        const found = await cardsightFindByDetails({ player: scanResult.player, number: scanResult.cardNumber,
+          year: scanResult.year, set: scanResult.set, brand: scanResult.brand }).catch((e) => ({ status: "error", error: e.message }));
+        catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null,
+          match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
+        if (found.status === "matched") pricingCardId = found.card.id;
+      }
+      if (identityTrusted && pricingCardId) {
+        catalogSold = await cardsightSoldComps(pricingCardId).catch((e) => ({ error: e.message, count: 0 }));
+        catalog.soldLookup = { cardId: pricingCardId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
       }
       market = buildMarket(comps, ebayMatches, catalogSold);
       // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.

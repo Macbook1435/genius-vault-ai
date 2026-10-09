@@ -1,0 +1,37 @@
+// Offline tests for the CardSight lookup-by-details fallback. Run: node test/catalog-lookup.mjs
+// Uses made-up names, numbers and ids only.
+import assert from "assert/strict";
+import { pickCatalogCard } from "../api/cardsight.js";
+
+const base = { id: "a1", name: "Sam Example", number: "XU7", releaseName: "Brandco Refresh", setName: "Base Set", releaseYear: "2019" };
+let n = 0; const t = (name, fn) => { fn(); n++; };
+
+t("one exact fit matches", () => {
+  const r = pickCatalogCard([base, { ...base, id: "b2", number: "XU8" }], { player: "SAM EXAMPLE", number: "#XU7", year: 2019 });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "a1");
+});
+t("wrong number or player never matches", () => {
+  assert.equal(pickCatalogCard([base], { player: "Sam Example", number: "XU9", year: 2019 }).status, "no_match");
+  assert.equal(pickCatalogCard([base], { player: "Pat Other", number: "XU7", year: 2019 }).status, "no_match");
+});
+t("wrong year never matches", () => {
+  assert.equal(pickCatalogCard([base], { player: "Sam Example", number: "XU7", year: 2020 }).status, "no_match");
+});
+t("variations and parallel-only cards are skipped", () => {
+  const r = pickCatalogCard([base, { ...base, id: "v1", variationOf: "a1" }, { ...base, id: "p1", isParallelOnly: true }], { player: "Sam Example", number: "XU7", year: 2019 });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "a1");
+});
+t("two fits narrowed by set words", () => {
+  const other = { ...base, id: "c3", releaseName: "Brandco Shine" };
+  const r = pickCatalogCard([base, other], { player: "Sam Example", number: "XU7", year: 2019, set: "Refresh", brand: "Brandco" });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "a1");
+});
+t("two fits with no way to choose stays unmatched", () => {
+  const other = { ...base, id: "c3", releaseName: "Brandco Shine" };
+  const r = pickCatalogCard([base, other], { player: "Sam Example", number: "XU7", year: 2019 });
+  assert.equal(r.status, "ambiguous"); assert.equal(r.card, null);
+});
+t("missing number means no lookup", () => {
+  assert.equal(pickCatalogCard([base], { player: "Sam Example", number: null }).status, "not_enough_details");
+});
+console.log(`catalog-lookup: ${n} tests passed`);

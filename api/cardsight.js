@@ -57,6 +57,43 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
   };
 }
 
+// ---- Lookup by verified details (fallback when the photo match is a different card) ----
+const code = (v) => String(v ?? "").toUpperCase().replace(/^#/, "").replace(/[^A-Z0-9]/g, "");
+const words = (v) => String(v ?? "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 1);
+
+// Pick the one catalog card that fits the verified player + card number + year (+ set words when given).
+// Returns { status: "matched", card } only when exactly one base card fits; otherwise no match (no guessing).
+export function pickCatalogCard(cards, { player, number, year, set, brand } = {}) {
+  const last = words(player).pop();
+  const num = code(number);
+  if (!last || !num) return { status: "not_enough_details", card: null, count: 0 };
+  let fits = (Array.isArray(cards) ? cards : []).filter((c) => c && c.id
+    && code(c.number) === num
+    && words(c.name).includes(last)
+    && (!year || !c.releaseYear || String(c.releaseYear).startsWith(String(year)))
+    && !c.variationOf && !c.isParallelOnly);
+  if (fits.length > 1) {
+    // Narrow with the set words we read (e.g. "Update"), ignoring the brand name and generic words.
+    const skip = new Set([...words(brand), "base", "set", "series", "card", "cards"]);
+    const want = words(set).filter((w) => !skip.has(w) && !/^\d+$/.test(w));
+    if (want.length) {
+      const narrowed = fits.filter((c) => { const have = new Set(words(`${c.releaseName || ""} ${c.setName || ""}`)); return want.every((w) => have.has(w)); });
+      if (narrowed.length) fits = narrowed;
+    }
+  }
+  if (fits.length === 1) return { status: "matched", card: fits[0], count: 1 };
+  return { status: fits.length ? "ambiguous" : "no_match", card: null, count: fits.length };
+}
+
+export async function cardsightFindByDetails(details) {
+  const last = words(details?.player).pop();
+  if (!last || !code(details?.number)) return { status: "not_enough_details", card: null, count: 0 };
+  const qs = new URLSearchParams({ name: last, number: String(details.number).replace(/^#/, ""), take: "50" });
+  if (details.year) qs.set("year", String(details.year));
+  const body = await call(`/v1/catalog/cards?${qs}`);
+  return pickCatalogCard(body?.cards, details);
+}
+
 export function confidenceRank(c) { return RANK[c] || 0; }
 
 export default function handler(req, res) { return res.status(404).end(); }
