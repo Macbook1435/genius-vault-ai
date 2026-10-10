@@ -99,6 +99,34 @@ try{
   const box=await page.locator('#collectionSearch').boundingBox();
   assert.ok(box&&box.width>=180,'Search too narrow on '+width+'px');
  }
+ // Touch-capable iPhone-sized browser context (emulation, not physical Safari).
+ const phoneContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:3,acceptDownloads:true});
+ try {
+  const phone=await phoneContext.newPage();
+  const phoneErrors=[];phone.on('pageerror',e=>phoneErrors.push(e.message));
+  await phone.goto(origin,{waitUntil:'domcontentloaded'});
+  await phone.evaluate((records)=>localStorage.setItem('gv-collection-v3',JSON.stringify(records)),[
+   entry('mobile-one','Gunnar Helm','371/375'),entry('mobile-two','Bijan Robinson','12/99',false)
+  ]);
+  await phone.reload({waitUntil:'domcontentloaded'});
+  await phone.locator('[data-view="collection"]').tap();
+  assert.equal(await phone.locator('.saved-card').count(),2);
+  await phone.locator('#collectionSearch').fill('bijan');
+  assert.equal(await phone.locator('.saved-card').count(),1);
+  await phone.locator('#collectionSearch').fill('');
+  await phone.locator('#collectionFilter').selectOption('numbered');
+  assert.equal(await phone.locator('.saved-card').count(),2);
+  await phone.locator('[data-edit="mobile-one"]').tap();
+  assert.equal(await phone.locator('#collectionEditDialog').evaluate(el=>el.open),true);
+  await phone.locator('#collectionEditSerial').fill('370/375');
+  await phone.locator('#collectionEditForm button[type="submit"]').tap();
+  assert.equal(await phone.locator('#collectionEditDialog').evaluate(el=>el.open),false);
+  assert.equal(await phone.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3'))[0].data.scan.serialNumber),'370/375');
+  const mobileWidth=await phone.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));
+  assert.ok(mobileWidth.scroll<=mobileWidth.client+1,'Mobile touch interface overflows horizontally: '+JSON.stringify(mobileWidth));
+  assert.deepEqual(phoneErrors,[]);
+  console.log('PASS simulated iPhone touch: navigation, search, filters, edit dialog and save.');
+ }finally{await phoneContext.close();}
  assert.deepEqual(errors,[]);
  console.log('PASS Chromium collection UI: search, sorting/filter state, duplicates, edit/invalidate comps, JSON/CSV exports, remove, duplicate save.');
 }finally{
