@@ -29,8 +29,9 @@ export default async function handler(req,res){
   const periodStart=item?.current_period_start||subscription.current_period_start;
   const periodEnd=item?.current_period_end||subscription.current_period_end;
   const status=correctPrice&&['active','trialing','past_due','canceled'].includes(subscription.status)?subscription.status:'inactive';
-  const limit=correctPrice&&['active','trialing'].includes(status)?Number(process.env.GV_MONTHLY_SCAN_LIMIT||0):0;
-  await supabaseRequest('/rest/v1/gv_entitlements?on_conflict=user_id',{method:'POST',admin:true,prefer:'resolution=merge-duplicates',body:{user_id:userId,stripe_subscription_id:subscription.id,status,period_start:periodStart?new Date(periodStart*1000).toISOString():null,period_end:periodEnd?new Date(periodEnd*1000).toISOString():null,scan_limit:Math.max(0,limit),updated_at:new Date().toISOString()}});
+  const unlimited=correctPrice&&['active','trialing'].includes(status)&&process.env.GV_UNLIMITED_SCANS==='1';
+  const limit=unlimited?0:(correctPrice&&['active','trialing'].includes(status)?Number(process.env.GV_MONTHLY_SCAN_LIMIT||0):0);
+  await supabaseRequest('/rest/v1/gv_entitlements?on_conflict=user_id',{method:'POST',admin:true,prefer:'resolution=merge-duplicates',body:{user_id:userId,stripe_subscription_id:subscription.id,status,period_start:periodStart?new Date(periodStart*1000).toISOString():null,period_end:periodEnd?new Date(periodEnd*1000).toISOString():null,scan_limit:Math.max(0,limit),unlimited_scans:unlimited,updated_at:new Date().toISOString()}});
   return res.status(200).json({received:true});
  }catch(err){console.error('Subscription webhook failed',err);return res.status(500).end();}
 }
