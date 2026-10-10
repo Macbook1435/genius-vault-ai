@@ -357,6 +357,7 @@ function auditSoldTitle(item, card) {
   const words = " " + normalize(title) + " ";
   const contains = (v) => !normalize(v) || words.includes(" " + normalize(v) + " ");
   const reasons = [];
+  const matchedFields = [];
   const player = cleanPart(card.player);
   const number = cleanPart(card.cardNumber).replace(/^#/, "").replace(/[^a-z0-9]/gi, "");
   const year = Number(card.year);
@@ -377,7 +378,20 @@ function auditSoldTitle(item, card) {
   if (card.memorabilia === false && /\b(patch|relic|jersey|memorabilia)\b/i.test(title)) reasons.push("Memorabilia version differs.");
   if (card.grade && (!contains(card.gradingCompany) || !contains(String(card.grade)))) reasons.push("Grade/slab differs.");
   if (!card.grade && /\b(psa|bgs|sgc|cgc)\s*(?:\d+(?:\.\d+)?|gem|mint|authentic)\b/i.test(title)) reasons.push("Graded card; raw price cannot be compared.");
-  return { matched: reasons.length === 0, reasons, note: reasons.length ? reasons.join(" ") : "Title includes required card details; confirm sale independently." };
+  // Explain individual checks without claiming title text proves the physical card.
+  const checks = [
+    ["Player", player && contains(player)],
+    ["Year", year && new RegExp("\\b" + year + "\\b").test(title)],
+    ["Manufacturer", brand && contains(brand)],
+    ["Set", set && contains(set)],
+    ["Card number", number && new RegExp("(?:^|[^a-z0-9])#?" + number + "(?![a-z0-9])", "i").test(title)],
+    ["Print run", run && new RegExp("/\\s*" + run + "\\b").test(title)],
+    ["Parallel", parallel && !/^(unknown|unconfirmed|base|none)$/i.test(parallel) && contains(parallel)],
+    ["Autograph", card.autograph === true && /\\b(auto|autograph|signed|signature)\\b/i.test(title)],
+  ];
+  for (const [label, passed] of checks) if (passed) matchedFields.push(label);
+  return { matched: reasons.length === 0, reasons, matchedFields,
+    note: reasons.length ? reasons.join(" ") : "Seller title matches the checked identifiers; physical details and final sale price are not independently verified." };
 }
 
 async function fetchSoldComps(query, card = null) {
