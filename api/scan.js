@@ -2,7 +2,7 @@ import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
-  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions } from "./cardsight.js";
+  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions, suggestOptionIds } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
@@ -1761,15 +1761,21 @@ Strict rules:
         catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
         const list = await cardsightCardParallels(pricingCardId).catch((e) => ({ error: e.message }));
         // Shiny base vs. Holo/Refractor cannot be told apart reliably from photos: the user picks.
-        const lookalikes = plan.mode === "base" && Array.isArray(list) ? baseLookalikes(list) : [];
+        const shinyLookalikes = Array.isArray(list) ? baseLookalikes(list) : [];
+        const lookalikes = plan.mode === "base" ? shinyLookalikes : [];
         if (lookalikes.length) {
           plan.mode = "blocked";
           catalog.parallelComps.mode = "blocked";
           catalog.parallelComps.reason = `Base and ${lookalikes.join(" / ")} look almost the same in photos. Pick the parallel below to load sold prices.`;
         }
         if (Array.isArray(list)) {
-          parallelPicker = { cardId: pricingCardId, options: parallelOptions(list, pricingCardId), selectedId: null, needsPick: false,
-            suggestions: [...new Set([...(lookalikes.length ? ["Base", ...lookalikes] : []), ...(catalog.rawParallels || []).map((p) => p.name)])] };
+          const options = parallelOptions(list, pricingCardId);
+          const unnumberedCard = !scanResult.numberedTo && effective?.fields?.serial?.status === "confirmed";
+          // "Most likely" = the scanner's shortlist, then Base + Holo/Refractor on shiny cards, then CardSight's photo guesses.
+          const shortlist = [plan.name, ...(v2?.parallel?.candidates || []), ...(verification.parallelId?.candidates || []).map((c) => String(c).replace(/\s*\/\d+$/, "")),
+            ...(shinyLookalikes.length ? ["Base", ...shinyLookalikes] : []), ...(catalog.rawParallels || []).map((p) => p.name)].filter(Boolean);
+          parallelPicker = { cardId: pricingCardId, options, selectedId: null, needsPick: false,
+            suggestedIds: suggestOptionIds(options, shortlist, { unnumbered: unnumberedCard }) };
         }
         if (plan.mode === "parallel") {
           const pick = Array.isArray(list)

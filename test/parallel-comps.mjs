@@ -69,3 +69,12 @@ t("confirmed unnumbered card never matches a numbered parallel", () => {
   assert.equal(pickParallel(l, { name: "Blue", unnumbered: true }).status, "not_in_catalog");
 });
 console.log("parallel-comps: unnumbered check passed");
+import { suggestOptionIds } from "../api/cardsight.js";
+t("shortlist maps to catalog names; vague words and numbered-on-unnumbered skipped", () => {
+  const opts = [{ id: "null", name: "Base" }, { id: "h", name: "Holo" }, { id: "tg", name: "Rookie Teal Sparkle" }, { id: "th", name: "Rookie Teal Hyper" },
+    { id: "ts", name: "Rookie Teal Scope" }, { id: "t249", name: "Teal", numberedTo: 249 }, { id: "tm", name: "Teal Mojo", numberedTo: 55 }];
+  assert.deepEqual(suggestOptionIds(opts, ["Teal Sparkle", "Teal Hyper", "Base", "Holo"], { unnumbered: true }), ["tg", "th", "null", "h"]);
+  assert.deepEqual(suggestOptionIds(opts, ["Teal"], { unnumbered: true }), ["tg", "th", "ts"]);
+  assert.deepEqual(suggestOptionIds(opts, ["Teal"], { unnumbered: false }), ["t249"]);
+});
+console.log("parallel-comps: shortlist checks passed");

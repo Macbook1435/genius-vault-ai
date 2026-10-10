@@ -400,9 +400,9 @@ function parallelPickerHtml(data) {
   const pk = data.parallelPicker;
   if (!pk || !pk.options?.length) return "";
   const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
-  const sugg = new Set(pk.suggestions || []);
-  const top = pk.options.filter((o) => sugg.has(o.name));
-  const rest = pk.options.filter((o) => !sugg.has(o.name));
+  const sugg = new Set(pk.suggestedIds || []);
+  const top = (pk.suggestedIds || []).map((id) => pk.options.find((o) => o.id === id)).filter(Boolean);
+  const rest = pk.options.filter((o) => !sugg.has(o.id));
   const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
   const sales = (data.comps?.items || []).slice(0, 5).map((i) =>
     `<div style="font-size:14px;margin:4px 0;">$${Number(i.price).toFixed(2)} · ${escHtml((i.date || "").slice(0, 10))} · <a href="${escHtml(i.url)}" target="_blank" style="color:#00ff88;">${escHtml((i.title || "sale").slice(0, 60))}</a></div>`).join("");

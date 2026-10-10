@@ -161,6 +161,23 @@ export function parallelOptions(parallels, cardId) {
   return [{ id: "null", name: "Base", numberedTo: null }, ...list];
 }
 
+// Map short names from the scan ("Blue Glitter") to the catalog's names ("Rated Rookie Blue Glitter").
+// A catalog name fits when it contains every word of the short name; numbered ones are skipped on unnumbered cards.
+export function suggestOptionIds(options, names, { unnumbered = false } = {}) {
+  const ids = [];
+  for (const n of names || []) {
+    const want = wordSet(n);
+    if (!want.size) continue;
+    if (/^base$/i.test(String(n).trim())) { ids.push("null"); continue; }
+    const fits = (options || []).filter((o) => o.id !== "null" && !(unnumbered && o.numberedTo)
+      && [...want].every((w) => wordSet(o.name).has(w)));
+    // Prefer an exact-name fit; otherwise take all fits only when there are few (a vague word like "Blue" fits too many).
+    const exact = fits.filter((o) => sameSet(wordSet(o.name), want));
+    for (const o of exact.length ? exact : fits.length <= 3 ? fits : []) ids.push(o.id);
+  }
+  return [...new Set(ids)];
+}
+
 export async function cardsightCardParallels(cardId) {
   const body = await call(`/v1/catalog/cards/${encodeURIComponent(cardId)}`);
   return Array.isArray(body?.parallels) ? body.parallels : [];
