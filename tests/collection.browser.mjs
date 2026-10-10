@@ -26,6 +26,26 @@ function entry(id,player,serial,autograph=true){
 }
 try{
  await page.goto(origin,{waitUntil:'domcontentloaded'});
+ // Scanner failures are tested with mocked responses, never calling the paid AI endpoint.
+ let apiRequests=0;
+ await page.route('**/api/scan',async route=>{
+  apiRequests++;
+  await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Provider temporarily unavailable'})});
+ });
+ await page.locator('#imageUpload').setInputFiles({name:'bad.txt',mimeType:'text/plain',buffer:Buffer.from('not an image')});
+ await page.locator('#scanButton').click();
+ assert.equal(apiRequests,0,'Invalid upload should not reach API');
+ assert.equal(await page.locator('#scanButton').isDisabled(),false);
+ await page.locator('#imageUpload').setInputFiles({name:'photo.jpg',mimeType:'image/jpeg',buffer:Buffer.from([255,216,255,217])});
+ // Mock only local compression to avoid needing a photograph fixture.
+ await page.evaluate(()=>{window.compressImage=async()=>new Blob(['jpeg-fixture'],{type:'image/jpeg'});});
+ await page.locator('#scanButton').click();
+ assert.equal(apiRequests,1);
+ assert.match(await page.locator('#emptyResult').innerText(),/temporarily unavailable/i);
+ assert.equal(await page.locator('#scanButton').isDisabled(),false);
+ assert.equal(await page.locator('#imageUpload').isDisabled(),false);
+ await page.unroute('**/api/scan');
+ await page.locator('#imageUpload').setInputFiles([]);
  await page.locator('[data-view="collection"]').click();
  assert.match(await page.locator('#collectionSummary').innerText(),/0 of 0/);
  await page.evaluate((records)=>localStorage.setItem('gv-collection-v3',JSON.stringify(records)),[
