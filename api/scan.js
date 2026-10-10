@@ -387,7 +387,7 @@ function auditSoldTitle(item, card) {
     ["Card number", number && new RegExp("(?:^|[^a-z0-9])#?" + number + "(?![a-z0-9])", "i").test(title)],
     ["Print run", run && new RegExp("/\\s*" + run + "\\b").test(title)],
     ["Parallel", parallel && !/^(unknown|unconfirmed|base|none)$/i.test(parallel) && contains(parallel)],
-    ["Autograph", card.autograph === true && /\\b(auto|autograph|signed|signature)\\b/i.test(title)],
+    ["Autograph", card.autograph === true && /\b(auto|autograph|signed|signature)\b/i.test(title)],
   ];
   for (const [label, passed] of checks) if (passed) matchedFields.push(label);
   return { matched: reasons.length === 0, reasons, matchedFields,
