@@ -1,3 +1,4 @@
+import { authenticatedUser, reserveScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
 import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
@@ -1405,6 +1406,14 @@ export default async function handler(req, res) {
       return res.status(500).json({
         results: "Missing OpenAI API key in Vercel.",
       });
+    }
+
+    if (subscriptionsEnabled()) {
+      const user = await authenticatedUser(req);
+      if (!user) return res.status(401).json({error:"Sign in to scan cards."});
+      const requestId = crypto.randomUUID();
+      const allowed = await reserveScan(user.id, requestId);
+      if (!allowed) return res.status(402).json({error:"No scans available on your current plan."});
     }
 
     const { files, fields: formFields } = await parseForm(req);
