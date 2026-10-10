@@ -1812,7 +1812,7 @@ Strict rules:
         const info = await cardsightCardInfo(pricingCardId).catch((e) => ({ error: e.message }));
         const list = info?.error ? info : info.parallels;
         // A confirmed serial print run (e.g. 13/250) rules out base: use the one parallel with that print run.
-        const serialOk = scanResult.numberedTo && (effective?.fields?.serial?.status === "confirmed" || effective?.fields?.serial?.printRunConfirmed === true);
+        const serialOk = scanResult.numberedTo && (effective?.fields?.serial?.status === "confirmed" || effective?.fields?.serial?.printRunConfirmed === true || Boolean(serialPhotoRetry?.serial && serialValue(scanResult.serialNumber)?.den === serialPhotoRetry.serial.den) || Boolean(closeupSerial && serialValue(scanResult.serialNumber)?.den === closeupSerial.den));
         if (serialOk && plan.mode !== "parallel" && Array.isArray(list)) {
           const runFits = list.filter((p) => p && Number(p.numberedTo) === Number(scanResult.numberedTo)
             && (!p.isPartial || !Array.isArray(p.cards) || p.cards.includes(pricingCardId)));
@@ -1889,6 +1889,19 @@ Strict rules:
             cardIsAuto: info && !info.error ? info.isAuto : null }).catch((e) => ({ error: e.message, count: 0 }));
           if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
+        }
+      }
+      // When independent magnified-photo reads agree, preserve that evidence in the
+      // displayed verification status (a stale earlier pipeline may say unconfirmed).
+      if ((serialPhotoRetry?.serial || closeupSerial) && serialValue(scanResult.serialNumber)) {
+        const verifiedStamp = serialPhotoRetry?.serial || closeupSerial;
+        const parsedStamp = serialValue(scanResult.serialNumber);
+        if (parsedStamp.num === verifiedStamp.num && parsedStamp.den === verifiedStamp.den) {
+          for (const fields of [pipeline?.fields, v2?.pipeline?.fields]) {
+            if (fields?.serial) fields.serial = { ...fields.serial, value: scanResult.serialNumber,
+              status: "confirmed", printRunConfirmed: true,
+              basis: "Two independent reads of enlarged card photo." };
+          }
         }
       }
       // A unique catalog card and matched parallel provide stronger identity evidence
