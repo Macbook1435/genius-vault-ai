@@ -109,12 +109,13 @@ const wordSet = (v) => new Set(words(v).filter((w) => w !== "parallel"));
 const sameSet = (a, b) => a.size === b.size && [...a].every((w) => b.has(w));
 
 // Exactly one CardSight parallel must fit (same words, same print run when known); otherwise no match.
-export function pickParallel(parallels, { name, numberedTo, cardId } = {}) {
+export function pickParallel(parallels, { name, numberedTo, cardId, unnumbered = false } = {}) {
   const want = wordSet(name);
   if (!want.size) return { status: "no_name", parallel: null };
   const list = (Array.isArray(parallels) ? parallels : []).filter((p) => p && p.id && p.name
     && (!p.isPartial || !Array.isArray(p.cards) || !cardId || p.cards.includes(cardId))
-    && (!numberedTo || !p.numberedTo || Number(p.numberedTo) === Number(numberedTo)));
+    && (!numberedTo || !p.numberedTo || Number(p.numberedTo) === Number(numberedTo))
+    && !(unnumbered && p.numberedTo));
   let fits = list.filter((p) => sameSet(wordSet(p.name), want));
   if (!fits.length) {
     // Allow only a dropped finish word (e.g. "Blue Refractor" vs "Blue"), never a different color or name.

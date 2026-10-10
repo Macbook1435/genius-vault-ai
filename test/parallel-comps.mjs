@@ -63,3 +63,9 @@ t("picker options: Base first, partial parallels from other cards removed", () =
   assert.deepEqual(o.map((x) => x.id), ["null", "p2", "p1"]);
 });
 console.log("parallel-comps: picker checks passed");
+t("confirmed unnumbered card never matches a numbered parallel", () => {
+  const l = [{ id: "n", name: "Blue", numberedTo: 249 }];
+  assert.equal(pickParallel(l, { name: "Blue" }).status, "matched");
+  assert.equal(pickParallel(l, { name: "Blue", unnumbered: true }).status, "not_in_catalog");
+});
+console.log("parallel-comps: unnumbered check passed");

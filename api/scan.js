@@ -1043,10 +1043,11 @@ function applyCatalogMatch(card, cs, warnings) {
   }
   if (knownBrand(c.manufacturer)) card.brand = knownBrand(c.manufacturer);
 
-  // Parallel: a single High-confidence suggestion, or the only one numbered to our serial.
+  // Parallel: CardSight's photo guesses are suggestions only (they have been wrong, e.g. a blue jersey read as "Blue").
+  // A guess can only be used when it is the only one numbered to the card's serial print run.
   const pr = resolveParallel(c);
-  let parallel = pr.parallel;
-  if (!parallel && card.numberedTo) {
+  let parallel = null;
+  if (card.numberedTo) {
     const fits = (c.parallelSuggestions || []).filter((p) => Number(p.numberedTo) === Number(card.numberedTo));
     if (fits.length === 1) parallel = fits[0];
   }
@@ -1772,7 +1773,8 @@ Strict rules:
         }
         if (plan.mode === "parallel") {
           const pick = Array.isArray(list)
-            ? pickParallel(list, { name: plan.name, numberedTo: scanResult.numberedTo, cardId: pricingCardId })
+            ? pickParallel(list, { name: plan.name, numberedTo: scanResult.numberedTo, cardId: pricingCardId,
+                unnumbered: !scanResult.numberedTo && effective?.fields?.serial?.status === "confirmed" })
             : { status: "error", error: list?.error };
           Object.assign(catalog.parallelComps, { status: pick.status, catalogParallel: pick.parallel ? { id: pick.parallel.id, name: pick.parallel.name, numberedTo: pick.parallel.numberedTo || null } : null,
             candidates: pick.candidates || [], error: pick.error || null });
