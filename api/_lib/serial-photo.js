@@ -27,6 +27,15 @@ export async function readSerialFromPhotos(front,back,askVision,models,crop=crop
     labels.push(`${images.length}: ${side}, ${Math.round(y0*100)}–${Math.round(y1*100)}% from the top`);
    }
   }
+  // Foil serials are frequently tiny in the upper corners (e.g. 371/375).
+  // Include focused corner enlargements rather than only full-width strips.
+  for(const [side,photo] of [['front',front],['back',back]]) {
+   if(!photo) continue;
+   for(const [x0,x1] of [[0,0.46],[0.54,1]]) {
+    images.push(await crop(photo,{x0,x1,y0:0,y1:0.48},{padX:0,padY:0,targetWidth:2048}));
+    labels.push(`${images.length}: ${side}, ${x0===0?'upper left':'upper right'} corner, magnified`);
+   }
+  }
   if(!images.length) return {status:'no_photo',reads:[],serial:null};
   const prompt=`These images are enlarged overlapping sections of the supplied trading card photos. Image labels: ${labels.join('; ')}.
 Find a physical printed or foil-stamped serial such as 033/250, including faint stamps near the edges, corners, or autograph. Copy all digits and preserve leading zeros. Never infer numbering from the color, parallel, checklist, jersey, card number, or another listing. Dates, copyright lines, and seat/row numbers are not serials. Return its side and location/appearance. If digits are unreadable, return null; do not guess.`;
