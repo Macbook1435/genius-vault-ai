@@ -14,6 +14,9 @@ create table if not exists public.gv_entitlements (
   scan_limit integer not null default 0 check (scan_limit >= 0),
   updated_at timestamptz not null default now()
 );
+-- Existing projects can add unlimited membership support without dropping data.
+alter table public.gv_entitlements
+  add column if not exists unlimited_scans boolean not null default false;
 create table if not exists public.gv_scan_usage (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -41,7 +44,7 @@ begin
      or e.period_end <= now() or e.period_start > now() then return false; end if;
   if exists(select 1 from public.gv_scan_usage where request_id = p_request_id and user_id = p_user_id) then return true; end if;
   select count(*) into n from public.gv_scan_usage where user_id = p_user_id and period_start = e.period_start;
-  if n >= e.scan_limit then return false; end if;
+  if not e.unlimited_scans and n >= e.scan_limit then return false; end if;
   insert into public.gv_scan_usage(user_id,period_start,request_id)
     values(p_user_id,e.period_start,p_request_id);
   return true;
