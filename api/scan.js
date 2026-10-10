@@ -1853,6 +1853,7 @@ Strict rules:
       // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
       if (catalogSold?.count) {
         Object.assign(comps, { min: catalogSold.min, max: catalogSold.max, median: catalogSold.median, count: catalogSold.count,
+          mean: catalogSold.mean, coverageNote: catalogSold.coverageNote, warnings: catalogSold.warnings, fetchedAt: catalogSold.fetchedAt, latestSaleDate: catalogSold.latestSaleDate,
           items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null, parallelName: catalogSold.parallelName || null });
       }
     } catch (e) {
@@ -1882,6 +1883,7 @@ Strict rules:
         min: comps.min,
         max: comps.max,
         median: comps.median,
+        mean: comps.mean, coverageNote: comps.coverageNote, warnings: comps.warnings, fetchedAt: comps.fetchedAt, latestSaleDate: comps.latestSaleDate,
         count: comps.count,
         currency: comps.currency,
         items: comps.items,

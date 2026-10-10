@@ -1,6 +1,8 @@
 // Server-side CardSight AI helper. The API key is read from process.env only and never returned to the browser.
 const BASE = "https://api.cardsight.ai";
 
+import { eligibleAuction, saleKey, exactTitleMatch, summarizeSales } from "./_lib/sold-records.js";
+
 function key() { return process.env.CARDSIGHT_API_KEY || ""; }
 export function cardsightConfigured() { return Boolean(key()); }
 
@@ -50,7 +52,7 @@ async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
   const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
   const groups = gradeId === "null" ? [body?.raw] : (body?.graded || []).flatMap(c => (c.grades || []).filter(g => g.grade_id === gradeId));
   return { body, records: groups.flatMap(g => g?.records || [])
-    .filter(r => r && r.listing_type === "auction" && Number.isFinite(r.price) && r.price > 0 && r.url) };
+    .filter(eligibleAuction) };
 }
 
 // CardSight does not always tag which parallel sold, so each sale is also sorted by its listing title.
@@ -58,12 +60,39 @@ async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
 // Newest auction window first; widen to 1 year, then all time, when fewer than 3 sales match (thin markets like low-numbered autos).
 export async function cardsightSoldComps(cardId, opts = {}) {
   let out = null;
-  const ctx = {};
+  const ctx = { records: new Map(), warnings: [] };
   for (const period of ["6m", "1y", "all"]) {
     out = await soldCompsFor(cardId, { ...opts, period }, ctx);
+    ctx.warnings.push(...(out.warnings || []));
+    for (const r of out.items) ctx.records.set(saleKey(r), r);
     if (out.count >= 3) break;
   }
-  return out;
+  // Title search finds auctions that were not linked to this catalog card at all.
+  // Search a recent window separately because the provider ranks title results by relevance.
+  const card = ctx.card;
+  const parallel = (opts.parallels || []).find(p => p.id === opts.parallelId);
+  const query = [card?.name, card?.set?.year, card?.set?.release, card?.number && `#${card.number}`,
+    parallel?.name, parallel?.numberedTo && `/${parallel.numberedTo}`, opts.cardIsAuto ? "auto" : ""].filter(Boolean).join(" ").slice(0, 300);
+  const warnings = [...ctx.warnings];
+  const found = [];
+  if ((!opts.gradeId || opts.gradeId === "null") && card?.name && card?.number && card?.set?.year && card?.set?.release) {
+    const responses = await Promise.allSettled(["30d", "6m"].map(async period => {
+      const qs = new URLSearchParams({ q: query, period, listing_type: "auction", limit: "500" });
+      return call(`/v1/pricing/search?${qs}`);
+    }));
+    for (const result of responses) {
+      if (result.status !== "fulfilled") { warnings.push("Additional title search unavailable; catalog results only for that window."); continue; }
+      const results = result.value?.results || [];
+      if (results.length >= 500) warnings.push("Title-search result limit reached; additional records may be missing.");
+      found.push(...results.filter(r => eligibleAuction(r) && !r.grade && exactTitleMatch(r, card)
+        && (ctx.cardIsAuto ? /\bauto(graph)?s?\b|\bsigned\b|signature/i.test(r.title || "") : true)
+        && saleBucket({ ...r, parallel_id: null }, opts.parallels, { raw: opts.gradeId !== undefined ? opts.gradeId === "null" : true, cardIsAuto: ctx.cardIsAuto }) === (opts.parallelId || "null")));
+    }
+  }
+  const summary = summarizeSales([...ctx.records.values(), ...found]);
+  return { ...out, ...summary, fetchedAt: new Date().toISOString(), latestSaleDate: summary.items[0]?.date || null,
+    coverage: "partial", warnings: [...new Set(warnings)],
+    coverageNote: "Partial CardSight auction sample, not the complete market. Buy It Now and unknown accepted-offer amounts are excluded. Shipping and tax are excluded." };
 }
 
 // CardSight often files autograph sales under the regular (non-auto) card with the same number.
@@ -95,14 +124,16 @@ export function siblingAutoBucket(record, parallels, { raw = true } = {}) {
 async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null, period = "6m" } = {}, ctx = {}) {
   const tagged = await pricingRecords(cardId, parallelId, gradeId, period);
   let body = tagged.body;
+  ctx.card = body?.card || ctx.card;
   const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
     : isAutoCard({ setName: `${body?.card?.release || ""} ${body?.card?.set || ""}`, attributes: body?.card?.attributes || [] });
+  ctx.cardIsAuto = cardIsAuto;
   let records;
   const autoTitled = []; // sales filed under this non-auto card whose titles say auto (CardSight mis-files)
   let considered = tagged.records.length;
   if (Array.isArray(parallels) && parallels.length) {
     // For a parallel, also look through the untagged sales for titles that name it.
-    const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId, period).catch(() => ({ records: [] }))).records : [];
+    const extra = parallelId !== "null" ? (await pricingRecords(cardId, undefined, gradeId, period).catch(() => ({ records: [] }))).records : [];
     const seen = new Set();
     considered += extra.length;
     let fromSiblings = [];
@@ -124,14 +155,14 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
       }
     }
     records = [...tagged.records, ...extra].filter((r) => {
-      const k = r.url || `${r.title}|${r.date}|${r.price}`;
+      const k = saleKey(r);
       if (seen.has(k)) return false; seen.add(k);
       const b = saleBucket(r, parallels, { raw: gradeId === "null", cardIsAuto });
       if (!cardIsAuto && b === "skip" && /\bauto(graph)?s?\b|signature/i.test(r.title || "")) autoTitled.push(r);
       return b === parallelId;
     });
     for (const r of fromSiblings) {
-      const k = r.url || `${r.title}|${r.date}|${r.price}`;
+      const k = saleKey(r);
       if (!seen.has(k)) { seen.add(k); records.push(r); }
     }
   } else {
@@ -140,11 +171,12 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
   records.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   const prices = records.map(r => r.price);
   return {
+    ...summarizeSales(records), warnings: Array.isArray(body?.messages) ? body.messages.map(m => typeof m === "string" ? m : m.message || "Provider coverage warning") : [],
     source: "cardsight_completed_auctions", currency: "USD", count: records.length, considered, period,
     autoTitled: autoTitled.map(r => ({ title: r.title || null, price: r.price, date: r.date || null, url: r.url, parallel: r.parallel_name || null })),
     min: prices.length ? Math.min(...prices) : null, max: prices.length ? Math.max(...prices) : null,
     median: prices.length ? Math.round(median(prices) * 100) / 100 : null,
-    items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url, image: r.image_url || null })),
+    items: records.map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, listing_type: r.listing_type || "auction", url: r.url, image: r.image_url || null })),
     catalogCard: body?.card ? { name: body.card.name, number: body.card.number, set: body.card.set, parallel: body.card.parallel || null } : null
   };
 }
