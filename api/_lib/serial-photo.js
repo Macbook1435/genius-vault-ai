@@ -19,28 +19,34 @@ export function agreeSerialReads(reads) {
 // Retry the original photos automatically. No catalog name or print run is supplied to the readers.
 export async function readSerialFromPhotos(front,back,askVision,models,crop=cropAndEnlarge) {
  try {
-  const images=[],labels=[];
-  for(const [side,photo] of [['front',front],['back',back]]) {
-   if(!photo) continue;
-   for(const [y0,y1] of [[0,0.4],[0.3,0.7],[0.6,1]]) {
-    images.push(await crop(photo,{x0:0,x1:1,y0,y1},{padX:0,padY:0,targetWidth:2048}));
-    labels.push(`${images.length}: ${side}, ${Math.round(y0*100)}–${Math.round(y1*100)}% from the top`);
+  // Start with only the four enlarged upper corners: most serial stamps are
+  // here, and sending ten images to two vision models slows every scan.
+  const readRegions=async(regions,name)=>{
+   const images=[],labels=[];
+   for(const [side,photo] of [['front',front],['back',back]]) {
+    if(!photo) continue;
+    for(const [label,region] of regions) {
+     images.push(await crop(photo,region,{padX:0,padY:0,targetWidth:2048}));
+     labels.push(`${images.length}: ${side}, ${label}`);
+    }
    }
-  }
-  // Foil serials are frequently tiny in the upper corners (e.g. 371/375).
-  // Include focused corner enlargements rather than only full-width strips.
-  for(const [side,photo] of [['front',front],['back',back]]) {
-   if(!photo) continue;
-   for(const [x0,x1] of [[0,0.46],[0.54,1]]) {
-    images.push(await crop(photo,{x0,x1,y0:0,y1:0.48},{padX:0,padY:0,targetWidth:2048}));
-    labels.push(`${images.length}: ${side}, ${x0===0?'upper left':'upper right'} corner, magnified`);
-   }
-  }
-  if(!images.length) return {status:'no_photo',reads:[],serial:null};
-  const prompt=`These images are enlarged overlapping sections of the supplied trading card photos. Image labels: ${labels.join('; ')}.
-Find a physical printed or foil-stamped serial such as 033/250, including faint stamps near the edges, corners, or autograph. Copy all digits and preserve leading zeros. Never infer numbering from the color, parallel, checklist, jersey, card number, or another listing. Dates, copyright lines, and seat/row numbers are not serials. Return its side and location/appearance. If digits are unreadable, return null; do not guess.`;
-  const read=model=>askVision({model,name:'serial_photo_retry',schema,maxTokens:180,frontImage:images[0],extraImages:images.slice(1),prompt}).catch(()=>null);
-  const reads=await Promise.all([read(models.fast),read(models.strong)]);
-  return {status:'ok',reads,serial:agreeSerialReads(reads)};
+   if(!images.length) return {status:'no_photo',reads:[],serial:null};
+   const prompt=`These are enlarged crops of trading-card photos. Image labels: ${labels.join('; ')}.
+Find a physical foil-stamped serial number. Transcribe EACH digit separately, then return the exact number as printed (e.g. 371/375 is NOT 037/375). Inspect the numerator carefully for faint, overlapping, or stylized digits. Never infer digits from the parallel, checklist, card number, or another listing. Dates and copyright text are not serials. If any digit is unclear, return null, not a guess. Report which side shows the stamp.`;
+   const read=model=>askVision({model,name,schema,maxTokens:180,frontImage:images[0],extraImages:images.slice(1),prompt}).catch(()=>null);
+   const reads=await Promise.all([read(models.fast),read(models.strong)]);
+   return {status:'ok',reads,serial:agreeSerialReads(reads)};
+  };
+  const corners=[['upper left',{x0:0,x1:0.46,y0:0,y1:0.48}],
+                 ['upper right',{x0:0.54,x1:1,y0:0,y1:0.48}]];
+  const first=await readRegions(corners,'serial_corner_retry');
+  if(first.serial || first.status==='no_photo') return first;
+  // Only on a miss: inspect the remaining full-width strips, including
+  // bottom corners and middle stamps. This avoids a second call on successes.
+  const strips=[['top strip',{x0:0,x1:1,y0:0,y1:0.4}],
+                ['middle strip',{x0:0,x1:1,y0:0.3,y1:0.7}],
+                ['bottom strip',{x0:0,x1:1,y0:0.6,y1:1}]];
+  const second=await readRegions(strips,'serial_full_retry');
+  return second.serial ? second : {...first,fallback:second};
  } catch(e) {return {status:'error',reads:[],serial:null};}
 }
