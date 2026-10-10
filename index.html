@@ -73,15 +73,19 @@ async function aiScan() {
  const button=document.getElementById('scanButton'); button.disabled=true; button.textContent='Identifying your card…';
  for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=true;
  window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Reading card details and checking matching sales…';
+ let scanStage='preparing images';
  try {
  const form=new FormData();
- for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file)form.append(key,await compressImage(file),key+'.jpg');
+ for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file){scanStage='preparing '+key+' photo';form.append(key,await compressImage(file),key+'.jpg');}
+ scanStage='sending scan request';
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),180000);
  let response;try{response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal});}finally{clearTimeout(timer);}
+ scanStage='reading scan response';
  const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||'Scan failed. Please try again.');
  if(!data.scan)throw new Error('No card identification returned. Try clear front and back photos.');
+ scanStage='displaying scan result';
  window.gvLast=data;window.gvOrigParallel=data.scan.parallel||'';renderScan(data);notice('Scan ready. Check any unconfirmed details.');
- }catch(e){document.getElementById('emptyResult').textContent=e.name==='AbortError'?'Scan timed out. Please try again.':e.message;notice('The scan did not complete.');}
+ }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'Scan timed out. Please try again.':('Scan failed while '+scanStage+': '+(e.message||String(e)));notice('The scan did not complete.');}
  finally{button.disabled=false;button.textContent='Identify card';for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=false;}
 }
 // Renders the scan output. Called again when the user picks a parallel.
