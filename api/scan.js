@@ -1785,6 +1785,20 @@ Strict rules:
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;
       }
+      // Retry a details lookup without the vision-guessed year/set when the
+      // initial lookup fails. Accept only a unique matching autograph card.
+      if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
+        const retry = await cardsightFindByDetails({ player: scanResult.player,
+          number: scanResult.cardNumber, autograph: scanResult.autograph === true,
+          memorabilia: scanResult.memorabilia === true }).catch((e) => ({status:"error",error:e.message}));
+        if (retry.status === "matched" && retry.card?.id) {
+          pricingCardId = retry.card.id;
+          catalog.detailsLookup = {status:"matched",count:retry.count ?? 1,
+            match:{id:retry.card.id,name:retry.card.name,number:retry.card.number,
+              release:retry.card.releaseName,set:retry.card.setName,year:retry.card.releaseYear},
+            from:"unique identity lookup without guessed year/set"};
+        }
+      }
       if (identityTrusted && pricingCardId) {
         // Comps must be for the same parallel as the card: base, one confirmed parallel, or none at all.
         const effective = v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline;
