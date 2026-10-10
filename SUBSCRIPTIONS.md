@@ -41,3 +41,13 @@ Set `GV_REQUIRE_SUBSCRIPTION=1` **only after** Supabase schema is installed, Str
 - Add Stripe webhook event idempotency / event ordering protections and subscription plan change rules.
 - Configure provider auto-recharge and monthly spending limits separately in the provider billing dashboard.
 - Do not claim payment readiness until those tests pass.
+
+## Unlimited membership plan (October 2026, proposed, NOT LIVE)
+- Position Genius Vault with one competitively priced unlimited-scan monthly membership. A $7.99/month introductory price is a **proposal only**, not a configured Stripe price or public guarantee.
+- "Unlimited" means no monthly scan-count quota for an active paid entitlement; never secretly downgrade to a large fixed scan count. The database supports this with `gv_entitlements.unlimited_scans` and `gv_reserve_scan` skips the quota only for such entitlements.
+- `GV_UNLIMITED_SCANS=1` is a **server-only launch flag** allowing the verified Stripe webhook to issue the unlimited entitlement when the configured price matches. Do not enable it until business costs and abuse protections have been assessed.
+- Legitimate customers may scan without a monthly count cap, subject to transparently disclosed service protections against scripted abuse, credential sharing, and excessive simultaneous requests. Never advertise truly unrestricted throughput if rate/concurrency restrictions apply.
+- Continue recording scan usage for API cost monitoring, operational alerts, and capacity forecasting. Stripe customer charges do not automatically pay for OpenAI credits.
+- The customer-facing preview must not present any plan as available for purchase yet. Do not enable `GV_REQUIRE_SUBSCRIPTION`, paid checkout, or the unlimited flag before tests and explicit approval.
+- Before launch: measure provider cost over a diverse test set, calculate break-even under heavy legitimate usage, test payment and cancellation handling, protect against automation without penalizing normal use, and configure spend alerts and a provider budget.
+- Migration SQL must be applied in Supabase before enabling subscriptions. Existing installations must run the updated SQL to add the `unlimited_scans` column.
