@@ -110,6 +110,7 @@ try{
  const acceptReplace=dialog=>dialog.type()==='prompt'?dialog.accept('REPLACE'):dialog.accept();
  page.on('dialog',acceptReplace);
  await uploadBackup(JSON.stringify(beforeRestore));
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length===3);
  page.off('dialog',acceptReplace);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
  assert.equal(await page.locator('.saved-card').count(),3);
