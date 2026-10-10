@@ -320,7 +320,7 @@ async function fetchWithTimeout(url, timeoutMs = 9000) {
   }
 }
 
-async function fetchSoldComps(query) {
+async function fetchSoldComps(query, card = null) {
   const sourceUrl = buildEbaySoldUrl(query);
   const searchUrl = build130PointUrl(query);
 
@@ -338,7 +338,7 @@ async function fetchSoldComps(query) {
   }
 
   try {
-    const response = await fetchWithTimeout(sourceUrl);
+    const response = await fetchWithTimeout(sourceUrl, 4500);
 
     if (response.status === 401 || response.status === 403 || response.status === 429) {
       return {
@@ -358,7 +358,23 @@ async function fetchSoldComps(query) {
     }
 
     const html = await response.text();
-    const items = parseEbaySoldItems(html);
+    const items = parseEbaySoldItems(html).filter((item) => {
+      if (!card) return true;
+      const title = item.title.toLowerCase();
+      const player = cleanPart(card.player).toLowerCase();
+      const number = cleanPart(card.cardNumber).replace(/^#/, "");
+      const run = Number(card.numberedTo);
+      // Never value a numbered autograph using a different player's,
+      // different print-run, or non-autograph sold listing.
+      if (player && !title.includes(player)) return false;
+      if (number && !new RegExp(`(?:#|\\b)${number}\\b`, "i").test(title)) return false;
+      if (run && !new RegExp(`/\\s*${run}\\b`).test(title)) return false;
+      if (card.autograph && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) return false;
+      // eBay may display the asking price for accepted best offers; that
+      // amount is not a verified sale price and must not enter the median.
+      if (/best offer accepted/i.test(item.title)) return false;
+      return true;
+    });
 
     return {
       ...calculateCompStats(items),
@@ -1726,7 +1742,7 @@ Strict rules:
     // Unverified identities never reach pricing or listing titles.
     const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
     const comps = identityTrusted
-      ? await fetchSoldComps(query)
+      ? await fetchSoldComps(query, scanResult)
       : {
           ...calculateCompStats([]),
           currency: "USD",
