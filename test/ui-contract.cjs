@@ -7,5 +7,7 @@ ctx.window.gvLast=result;ctx.renderScan(result);assert.equal(elements.rawValue.t
 ctx.saveCard();assert.equal(JSON.parse(db['gv-collection-v3']).length,1);ctx.renderCollection();assert.ok(elements.collectionItems.innerHTML.includes('Example &lt;script&gt;'));
 ctx.generateEbay();assert.ok(elements.ebayBox.textContent.includes('Title:'));ctx.generateTikTok();assert.ok(elements.tiktokBox.textContent.includes('#KoollicksVault'));assert.ok(!elements.tiktokBox.textContent.includes('🔥'));
 result.pipeline.unconfirmed=['parallel'];ctx.generateEbay();assert.ok(elements.ebayBox.textContent.includes('Listing blocked'));ctx.generateTikTok();assert.ok(elements.tiktokBox.textContent.includes('Confirm'));
-result.comps={count:0,items:[]};ctx.renderScan(result);assert.equal(elements.rawValue.textContent,'No sales yet');assert.equal(elements.gradedValue.textContent,'Not available');
+result.comps={count:0,items:[]};ctx.renderScan(result);assert.equal(elements.rawValue.textContent,'No sales loaded');assert.equal(elements.gradedValue.textContent,'Not available');
 console.log('Frontend checks passed: sold display, unavailable prices, escaping, safe URLs, collection storage, and listing verification gates.');
+
+result.scan.autograph=true;result.pipeline.fields.parallel={value:'Aqua Surge',status:'unconfirmed'};result.scan.parallel=null;ctx.renderScan(result);assert.ok(elements.output.innerHTML.includes('Aqua Surge'));assert.ok(elements.output.innerHTML.includes('Yes — autograph detected'));assert.equal(elements.resultBadge.textContent,'Review card details');
