@@ -143,6 +143,23 @@ export function parallelCompsPlan({ parallel, fieldStatus, pidStatus, pidStatuse
   return { mode: "base" };
 }
 
+// Unnumbered colorless shiny parallels (Holo, Refractor, Silver Prizm...) look almost the same as a shiny base card in photos.
+const BASE_LOOKALIKE = /^(silver\s+)?(holo|refractor|prizm|chrome|silver)(\s+(prizm|refractor|holo))?$/i;
+export function baseLookalikes(parallels) {
+  return (Array.isArray(parallels) ? parallels : [])
+    .filter((p) => p && p.name && !p.numberedTo && BASE_LOOKALIKE.test(String(p.name).trim()))
+    .map((p) => p.name);
+}
+
+// Options for the "pick the parallel" menu: Base first, then every catalog parallel for this card.
+export function parallelOptions(parallels, cardId) {
+  const list = (Array.isArray(parallels) ? parallels : [])
+    .filter((p) => p && p.id && p.name && (!p.isPartial || !Array.isArray(p.cards) || !cardId || p.cards.includes(cardId)))
+    .map((p) => ({ id: p.id, name: p.name, numberedTo: p.numberedTo || null }))
+    .sort((a, b) => (a.numberedTo || 1e9) === (b.numberedTo || 1e9) ? a.name.localeCompare(b.name) : (b.numberedTo || 1e9) - (a.numberedTo || 1e9));
+  return [{ id: "null", name: "Base", numberedTo: null }, ...list];
+}
+
 export async function cardsightCardParallels(cardId) {
   const body = await call(`/v1/catalog/cards/${encodeURIComponent(cardId)}`);
   return Array.isArray(body?.parallels) ? body.parallels : [];

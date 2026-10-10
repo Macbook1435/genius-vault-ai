@@ -51,3 +51,15 @@ t("plan: any verification step unsure blocks comps", () => {
   assert.equal(parallelCompsPlan({ parallel: null, pidStatuses: ["no_checklist", "base"] }).mode, "base");
 });
 console.log("parallel-comps: multi-step check passed");
+import { baseLookalikes, parallelOptions } from "../api/cardsight.js";
+t("shiny-base lookalikes: unnumbered Holo/Refractor/Silver only", () => {
+  const l = baseLookalikes([{ name: "Holo" }, { name: "Silver Prizm" }, { name: "Refractor" }, { name: "Gold Refractor", numberedTo: 50 }, { name: "Teal Sparkle" }, { name: "Holo", numberedTo: 99 }]);
+  assert.deepEqual(l, ["Holo", "Silver Prizm", "Refractor"]);
+  assert.deepEqual(baseLookalikes([{ name: "Rainbow Foil" }, { name: "Gold", numberedTo: 2018 }]), []);
+});
+t("picker options: Base first, partial parallels from other cards removed", () => {
+  const o = parallelOptions([{ id: "p1", name: "Teal", numberedTo: 99 }, { id: "p2", name: "Holo" }, { id: "p3", name: "Violet", isPartial: true, cards: ["x"] }], "me");
+  assert.equal(o[0].name, "Base"); assert.equal(o[0].id, "null");
+  assert.deepEqual(o.map((x) => x.id), ["null", "p2", "p1"]);
+});
+console.log("parallel-comps: picker checks passed");

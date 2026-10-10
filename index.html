@@ -328,6 +328,17 @@ async function aiScan() {
     });
 
     const data = await response.json();
+    window.gvLast = data;
+    renderScan(data);
+
+  } catch (error) {
+    console.error(error);
+    output.innerHTML = error.message || "AI scan failed.";
+  }
+}
+// Renders the scan output. Called again when the user picks a parallel.
+function renderScan(data) {
+  const output = document.getElementById("output");
     let results = data.results || "No scan result returned.";
     const card = data.scan || {};
 const comps = data.comps || {};
@@ -337,7 +348,7 @@ const comps = data.comps || {};
     `Year: ${card.year || "Not identified"}`,
     `Brand / Set: ${[card.brand, card.set].filter(Boolean).join(" ") || "Not identified"}`,
     `Card Number: ${card.cardNumber || "Not identified"}`,
-    `Parallel / Insert: ${card.parallel || "Not identified"}`,
+    `Parallel / Insert: ${card.parallel || (data.pipeline?.fields?.parallel?.status === "confirmed" && data.pipeline.fields.parallel.value === "Base" ? "Base" : "Not identified")}`,
     `Numbered: ${card.serialNumber && !data.pipeline?.fields?.serial?.printRunConfirmed ? card.serialNumber : card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
     `Autograph: ${card.autograph ? "Yes" : "No"}`,
     `Rookie: ${card.rookie ? "Yes" : "No"}`,
@@ -379,11 +390,67 @@ const comps = data.comps || {};
         </a>
       </div>`;
 
-  } catch (error) {
-    console.error(error);
-    output.innerHTML = error.message || "AI scan failed.";
+  output.innerHTML += parallelPickerHtml(data);
+}
+
+const escHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// "Pick the parallel" menu: every parallel CardSight lists for this exact card.
+function parallelPickerHtml(data) {
+  const pk = data.parallelPicker;
+  if (!pk || !pk.options?.length) return "";
+  const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
+  const sugg = new Set(pk.suggestions || []);
+  const top = pk.options.filter((o) => sugg.has(o.name));
+  const rest = pk.options.filter((o) => !sugg.has(o.name));
+  const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
+  const sales = (data.comps?.items || []).slice(0, 5).map((i) =>
+    `<div style="font-size:14px;margin:4px 0;">$${Number(i.price).toFixed(2)} · ${escHtml((i.date || "").slice(0, 10))} · <a href="${escHtml(i.url)}" target="_blank" style="color:#00ff88;">${escHtml((i.title || "sale").slice(0, 60))}</a></div>`).join("");
+  return `<div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
+    <b style="color:#00ff88;">PARALLEL${pk.needsPick ? " — PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
+    ${pk.needsPick && pk.reason ? `<div style="margin:8px 0;">${escHtml(pk.reason)}</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
+    <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
+      <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card…</option>
+      ${top.length ? `<optgroup label="Most likely">${top.map(opt).join("")}</optgroup><optgroup label="All parallels for this card">${rest.map(opt).join("")}</optgroup>` : pk.options.map(opt).join("")}
+    </select>
+    <button onclick="pickParallel()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">LOAD SOLD PRICES FOR THIS PARALLEL</button>
+    <div id="parallelPickStatus" style="margin-top:8px;"></div>
+    ${sales ? `<div style="margin-top:10px;"><b>Recent sales:</b>${sales}</div>` : ""}
+  </div>`;
+}
+
+async function pickParallel() {
+  const data = window.gvLast;
+  const sel = document.getElementById("parallelPick");
+  const status = document.getElementById("parallelPickStatus");
+  if (!data?.parallelPicker || !sel?.value) { if (status) status.textContent = "Choose a parallel first."; return; }
+  const pk = data.parallelPicker;
+  const choice = pk.options.find((o) => o.id === sel.value);
+  status.textContent = "Loading sold prices…";
+  try {
+    const r = await fetch(`/api/parallel-comps?cardId=${encodeURIComponent(pk.cardId)}&parallelId=${encodeURIComponent(sel.value)}`);
+    const c = await r.json();
+    if (!r.ok) throw new Error(c.error || "Could not load sold prices.");
+    // The user confirmed the parallel: it now counts as confirmed for prices and listings.
+    const isBase = choice.id === "null";
+    data.scan = { ...(data.scan || {}), parallel: isBase ? null : choice.name, numberedTo: choice.numberedTo || data.scan?.numberedTo || null };
+    if (data.pipeline?.fields) {
+      data.pipeline.fields.parallel = { value: choice.name, status: "confirmed", basis: "Picked by you from the catalog list for this card." };
+      data.pipeline.unconfirmed = (data.pipeline.unconfirmed || []).filter((k) => k !== "parallel");
+    }
+    data.comps = { ...(data.comps || {}), count: c.count, min: c.min, max: c.max, median: c.median, items: c.items, source: c.source,
+      status: c.count ? "comps_found" : "no_sales", error: c.count ? null : `No sold sales found for the ${choice.name} parallel in the last 6 months.` };
+    if (data.soldComps) {
+      const q = String(data.soldComps.query || "");
+      if (!isBase && !q.toLowerCase().includes(choice.name.toLowerCase())) data.soldComps.query = q.replace(/\s+RC\b/, "") + ` ${choice.name}${q.match(/\bRC\b/) ? " RC" : ""}`;
+    }
+    pk.selectedId = choice.id; pk.needsPick = false; pk.reason = null;
+    renderScan(data);
+  } catch (e) {
+    status.textContent = e.message;
   }
 }
+
 // Field-by-field verification from the server pipeline. Unresolved fields say "Unconfirmed".
 function fieldCheckLines(data) {
   const p = data.pipeline;
@@ -491,7 +558,7 @@ Rescan the front and back straight-on in bright light, then try again.`;
   const year = clean(getLine("Year", scan));
   const brand = clean(getLine("Brand / Set", scan));
   const cardNumber = clean(getLine("Card Number", scan));
-  const parallel = clean(getLine("Parallel / Insert", scan));
+  const parallel = clean(getLine("Parallel / Insert", scan)).replace(/^base$/i, "");
   const numbered = clean(getLine("Numbered", scan));
   const rookie = getLine("Rookie", scan).toLowerCase() === "yes";
   const auto = getLine("Autograph", scan).toLowerCase() === "yes";

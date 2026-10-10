@@ -2,7 +2,7 @@ import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
-  cardsightCardParallels, pickParallel, parallelCompsPlan } from "./cardsight.js";
+  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
@@ -1723,6 +1723,7 @@ Strict rules:
     // Field-level verification + market data (additive; a failure here never breaks the scan).
     let pipeline = null;
     let market = null;
+    let parallelPicker = null;
     try {
       pipeline = buildFieldVerification(scanResult, verification, {
         checklist: findChecklist(scanResult),
@@ -1735,6 +1736,7 @@ Strict rules:
     }
     try {
       let catalogSold = null;
+      parallelPicker = null;
       let pricingCardId = catalog.status === "accepted" ? catalog.match?.id : null;
       // Photo match was a different card: look the verified card up by player + number + year instead.
       if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
@@ -1756,8 +1758,19 @@ Strict rules:
         });
         let parallelId = "null";
         catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
+        const list = await cardsightCardParallels(pricingCardId).catch((e) => ({ error: e.message }));
+        // Shiny base vs. Holo/Refractor cannot be told apart reliably from photos: the user picks.
+        const lookalikes = plan.mode === "base" && Array.isArray(list) ? baseLookalikes(list) : [];
+        if (lookalikes.length) {
+          plan.mode = "blocked";
+          catalog.parallelComps.mode = "blocked";
+          catalog.parallelComps.reason = `Base and ${lookalikes.join(" / ")} look almost the same in photos. Pick the parallel below to load sold prices.`;
+        }
+        if (Array.isArray(list)) {
+          parallelPicker = { cardId: pricingCardId, options: parallelOptions(list, pricingCardId), selectedId: null, needsPick: false,
+            suggestions: [...new Set([...(lookalikes.length ? ["Base", ...lookalikes] : []), ...(catalog.rawParallels || []).map((p) => p.name)])] };
+        }
         if (plan.mode === "parallel") {
-          const list = await cardsightCardParallels(pricingCardId).catch((e) => ({ error: e.message }));
           const pick = Array.isArray(list)
             ? pickParallel(list, { name: plan.name, numberedTo: scanResult.numberedTo, cardId: pricingCardId })
             : { status: "error", error: list?.error };
@@ -1772,6 +1785,11 @@ Strict rules:
               ? `More than one catalog parallel could be "${plan.name}" (${pick.candidates.join(", ")}), so sold prices are not shown.`
               : `"${plan.name}" was not found in the catalog for this card, so sold prices are not shown.`;
           }
+        }
+        if (parallelPicker) {
+          parallelPicker.needsPick = plan.mode === "blocked";
+          parallelPicker.selectedId = plan.mode === "blocked" ? null : parallelId;
+          parallelPicker.reason = plan.mode === "blocked" ? catalog.parallelComps.reason : null;
         }
         if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
@@ -1826,6 +1844,7 @@ Strict rules:
       pipeline: v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline,
       ...(v2Mode !== "off" ? { v2: { mode: v2Mode, ...v2, pipelineV1: pipeline, ...(v2Mode === "shadow" ? { debug: { raw: rawReads } } : {}) } } : {}),
       market,
+      parallelPicker,
       integrations: integrationStatus({ cardsight: cardsightConfigured(), ebay: ebayConfigured() }),
       readoutSummary,
       alternates: identityTrusted ? alternates : [],
