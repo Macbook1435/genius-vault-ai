@@ -2,10 +2,10 @@
 // Enable with GV_REQUIRE_SUBSCRIPTION=1 after configuring Supabase and Stripe.
 const configured = () => Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY);
 const headers = (key, bearer) => ({apikey:key,Authorization:'Bearer '+(bearer||key),'Content-Type':'application/json'});
-export async function supabaseRequest(path,{method='GET',body,admin=false,token}={}) {
+export async function supabaseRequest(path,{method='GET',body,admin=false,token,prefer}={}) {
   if (!configured()) throw new Error('Subscription database is not configured');
   const key=admin?process.env.SUPABASE_SERVICE_ROLE_KEY:process.env.SUPABASE_ANON_KEY;
-  const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+path,{method,headers:headers(key,token||key),...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+path,{method,headers:{...headers(key,token||key),...(prefer?{Prefer:prefer}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
   const text=await response.text();let data;try{data=JSON.parse(text)}catch{data=text}
   if(!response.ok)throw new Error('Database request failed ('+response.status+')');
   return data;
