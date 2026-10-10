@@ -48,3 +48,16 @@ begin
 end $$;
 revoke all on function public.gv_reserve_scan(uuid,uuid) from public, anon, authenticated;
 grant execute on function public.gv_reserve_scan(uuid,uuid) to service_role;
+
+-- Count usage in the database, not a paginated REST list (which would
+-- silently stop at the default API row limit for higher-volume plans).
+create or replace function public.gv_usage_count(p_user_id uuid, p_period_start timestamptz)
+returns bigint language plpgsql security definer set search_path = public as $$
+begin
+  if auth.role() <> 'service_role' then raise exception 'server only'; end if;
+  if p_period_start is null then return 0; end if;
+  return (select count(*) from public.gv_scan_usage
+          where user_id = p_user_id and period_start = p_period_start);
+end $$;
+revoke all on function public.gv_usage_count(uuid,timestamptz) from public, anon, authenticated;
+grant execute on function public.gv_usage_count(uuid,timestamptz) to service_role;
