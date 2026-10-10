@@ -71,7 +71,7 @@ test('CSV export quotes embedded delimiters and neutralizes formula cells',()=>{
  vm.runInContext(csvScript,ctx);
  vm.runInContext('exportCollectionCsv()',ctx);
  assert.equal(captured.name,'genius-vault-collection.csv');
- assert.ok(captured.body.includes('""')===false);
+ assert.ok(captured.body.includes('""'),'Empty fields must remain valid quoted CSV cells');
  assert.ok(captured.body.includes('"\'=SUM(1,1)"'),'Formula should be quoted and escaped');
  assert.ok(captured.body.includes('"Resurgence, Special"'));
 });
