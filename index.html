@@ -40,6 +40,17 @@
 .member-disclaimer{margin:12px 0 0;color:#546f90;font-size:12px;line-height:1.5}
 @media(max-width:650px){.member-dashboard{margin:12px;padding:15px}.member-stats{grid-template-columns:1fr}.member-stat{padding:12px}.member-head h2{font-size:20px}}
 .member-offer{margin:8px 0 15px;padding:12px 14px;border-radius:10px;background:#e8f2ff;color:#0b2c58;font-size:13px;line-height:1.6}
+
+.collection-tools{display:grid;grid-template-columns:minmax(190px,2fr) minmax(130px,1fr) minmax(130px,1fr);gap:10px;margin:16px 0}
+.collection-tools input,.collection-tools select{min-width:0;width:100%;box-sizing:border-box}
+.collection-dialog{width:min(540px,calc(100% - 28px));max-height:85vh;overflow:auto;border:1px solid #bed5f0;border-radius:16px;padding:20px;color:#0b2c58;background:white}
+.collection-dialog::backdrop{background:rgba(7,24,49,.6)}
+.collection-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.collection-edit-grid label{font-size:13px;font-weight:700;color:#0b2c58}
+.collection-edit-grid input{display:block;width:100%;box-sizing:border-box;margin-top:5px}
+.saved-card .member-buttons{margin:0}
+.collection-duplicate{font-size:12px;color:#81551b;font-weight:700}
+@media(max-width:650px){.collection-tools{grid-template-columns:1fr}.collection-edit-grid{grid-template-columns:1fr}}
 </style></head><body><header><div class="brand"><span class="logo">GV</span><div>Genius Vault<small>BY KOOLLICKS VAULT</small></div></div><span class="private">Your cards. Your next move.</span></header><nav aria-label="Main"><button data-view="scanner" class="selected" onclick="switchView('scanner')">Scanner</button><button data-view="collection" onclick="switchView('collection')">My collection <span id="collectionCount">0</span></button></nav><section id="memberPanel" class="member-dashboard" aria-labelledby="memberTitle">
 <div class="member-head"><div><span class="eyebrow">CUSTOMER ACCOUNTS</span><h2 id="memberTitle">Genius Vault Unlimited</h2><p id="memberStatus" role="status">Unlimited card scans planned at a competitive monthly rate. Membership signup and payment are not open yet.</p></div><span id="memberState" class="member-state">Coming soon</span></div><p class="member-offer"><strong>Unlimited scanning. One simple monthly membership.</strong> No monthly scan-count cap on an active unlimited plan. Pricing will be confirmed after live scan-cost testing; reasonable anti-abuse protections may apply and will be disclosed before launch.</p>
 <div class="member-stats" aria-label="Membership overview">
@@ -51,7 +62,9 @@
 <div id="memberLogin" hidden class="member-login"><label for="memberEmail">Email</label><input id="memberEmail" type="email" autocomplete="email" placeholder="you@example.com"><label for="memberPassword">Password</label><input id="memberPassword" type="password" autocomplete="current-password" placeholder="Password (at least 6 characters)"><div class="member-buttons"><button class="secondary" onclick="memberAuth('login')">Sign in</button><button class="secondary" onclick="memberAuth('signup')">Create account</button></div><p class="muted">Accounts must be confirmed before paid memberships can be activated.</p></div>
 <div id="memberActions" hidden class="member-buttons"><button id="memberSubscribeButton" class="secondary" hidden onclick="memberCheckout()">Subscribe securely</button><button class="secondary" onclick="memberRefresh()">Refresh balance</button><button class="text-button" onclick="memberLogout()">Sign out</button></div>
 <p class="member-disclaimer" id="memberDisclaimer">This is a preview of the customer dashboard. No membership charge will be made until checkout is configured and approved for launch.</p>
-</section><main><section id="scanner" class="view"><div class="heading"><div><span class="eyebrow">CARD INTELLIGENCE</span><h1>Know what’s in your hands.</h1><p class="muted">Identify the card. Check the sales. Make your next move.</p></div><button class="text-button" onclick="resetScan()">＋ Start a new scan</button></div><div class="workspace"><aside class="panel scanner"><div class="panel-head"><h2>Scan your card</h2><span class="step">01</span></div><p class="muted">Clear photos make a better match.</p><div class="photo-stage"><img id="preview" alt="Front of your card" style="display:none"><div class="placeholder"><div class="card-symbol">GV</div><small>Add the front of your card<br>Keep all four corners visible.</small></div></div><label for="imageUpload">Front photo</label><input type="file" id="imageUpload" accept="image/*" onchange="previewImage()"><div class="upload-row"><label for="backImageUpload">Back photo <small> · Recommended</small></label><input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()"><img id="backPreview" alt="Back of your card" style="display:none"></div><details id="serialDetails"><summary>Add a serial-number close-up</summary><input aria-label="Serial-number photo" type="file" id="serialUpload" accept="image/*" onchange="previewSerialImage()"><img id="serialPreview" alt="Serial number close-up" style="display:none"></details><button id="scanButton" class="primary wide" onclick="aiScan()">Identify card</button><small style="display:block;text-align:center;margin-top:12px">Year · Set · Parallel · Sold comps</small></aside><section class="panel"><div class="panel-head"><div><h2 id="resultTitle">Card intelligence</h2><p id="resultSubtitle" class="muted">One card. A clearer picture.</p></div><span class="badge" id="resultBadge">Ready to scan</span></div><div id="emptyResult" class="empty">Your card details and market snapshot will appear here.</div><div id="resultBody" hidden><section id="accuracyDashboard" class="accuracy-dashboard" aria-labelledby="accuracyTitle"><h3 id="accuracyTitle">Accuracy dashboard</h3><p class="accuracy-intro">What the evidence confirms, what needs review, and what has not been verified.</p><div id="accuracyOverview" class="accuracy-overview"></div><div id="accuracyChecks" class="accuracy-checks"></div><p id="accuracyFooter" class="accuracy-footer"></p></section><div id="output"></div><div id="parallelSlot"></div><div class="values"><div class="value"><small>RETURNED AUCTION MEDIAN</small><strong id="rawValue">—</strong><p id="rawDetail"></p></div><div class="value"><small>GRADE / SLAB</small><strong id="gradedValue">—</strong><p id="gradedDetail"></p></div></div><h3>Recent sold records</h3><p id="soldMatchSummary" class="muted"></p><div id="sales"></div><details class="review" id="soldAuditPanel" hidden><summary>Why some sold listings were excluded</summary><div id="soldAuditReasons"></div></details><div class="links"><a id="ebaySold" class="primary" target="_blank" rel="noopener noreferrer">View eBay sold listings ↗</a><a id="pointSold" class="secondary" target="_blank" rel="noopener noreferrer">130Point sales ↗</a></div><details class="review"><summary style="color:#5e7662">Search phrase and asking prices</summary><input id="searchCopyBox" aria-label="Sold-search phrase" type="text" readonly><button class="secondary" onclick="copySearchText()">Copy phrase</button><p id="activeAsks" class="muted"></p></details><details class="review"><summary style="color:#5e7662">Identity checks and condition review</summary><pre id="verification"></pre><p class="muted">Inspect centering, corners, edges and surface under good light. A photo does not establish a PSA grade; grading and graded value stay unavailable unless supported data is returned.</p></details></div><button id="saveCard" class="secondary wide" disabled onclick="saveCard()">＋ Save to my collection</button><small style="display:block;margin-top:8px;text-align:center">Saved on this browser and device.</small></section></div><div class="lower"><section class="panel"><span class="eyebrow">SHARE YOUR FIND</span><h2 style="margin:8px 0 16px">TikTok post</h2><button class="secondary" onclick="generateTikTok()">Create post + first comment</button><button class="text-button" onclick="copyText(document.getElementById('tiktokBox').textContent)">Copy</button><div class="result" id="tiktokBox">Your post will appear here.</div></section><section class="panel"><span class="eyebrow">READY TO LIST</span><h2 style="margin:8px 0 16px">eBay listing</h2><button class="secondary" onclick="generateEbay()">Create listing draft</button><button class="text-button" onclick="copyText(document.getElementById('ebayBox').textContent)">Copy</button><div class="result" id="ebayBox">Your listing will appear here.</div></section></div></section><section id="collection" class="view" hidden><div class="heading"><div><span class="eyebrow">MY COLLECTION</span><h1>Your corner of the hobby.</h1><p class="muted">Saved identifications and market snapshots from this device.</p></div><button class="secondary" onclick="exportCollection()">Export collection</button></div><div id="collectionItems" class="panel"></div></section></main><footer>Genius Vault · Koollicks Vault · Prices reflect returned sale records, not guaranteed offers.</footer><div id="notice" role="status" aria-live="polite"></div><script>
+</section><main><section id="scanner" class="view"><div class="heading"><div><span class="eyebrow">CARD INTELLIGENCE</span><h1>Know what’s in your hands.</h1><p class="muted">Identify the card. Check the sales. Make your next move.</p></div><button class="text-button" onclick="resetScan()">＋ Start a new scan</button></div><div class="workspace"><aside class="panel scanner"><div class="panel-head"><h2>Scan your card</h2><span class="step">01</span></div><p class="muted">Clear photos make a better match.</p><div class="photo-stage"><img id="preview" alt="Front of your card" style="display:none"><div class="placeholder"><div class="card-symbol">GV</div><small>Add the front of your card<br>Keep all four corners visible.</small></div></div><label for="imageUpload">Front photo</label><input type="file" id="imageUpload" accept="image/*" onchange="previewImage()"><div class="upload-row"><label for="backImageUpload">Back photo <small> · Recommended</small></label><input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()"><img id="backPreview" alt="Back of your card" style="display:none"></div><details id="serialDetails"><summary>Add a serial-number close-up</summary><input aria-label="Serial-number photo" type="file" id="serialUpload" accept="image/*" onchange="previewSerialImage()"><img id="serialPreview" alt="Serial number close-up" style="display:none"></details><button id="scanButton" class="primary wide" onclick="aiScan()">Identify card</button><small style="display:block;text-align:center;margin-top:12px">Year · Set · Parallel · Sold comps</small></aside><section class="panel"><div class="panel-head"><div><h2 id="resultTitle">Card intelligence</h2><p id="resultSubtitle" class="muted">One card. A clearer picture.</p></div><span class="badge" id="resultBadge">Ready to scan</span></div><div id="emptyResult" class="empty">Your card details and market snapshot will appear here.</div><div id="resultBody" hidden><section id="accuracyDashboard" class="accuracy-dashboard" aria-labelledby="accuracyTitle"><h3 id="accuracyTitle">Accuracy dashboard</h3><p class="accuracy-intro">What the evidence confirms, what needs review, and what has not been verified.</p><div id="accuracyOverview" class="accuracy-overview"></div><div id="accuracyChecks" class="accuracy-checks"></div><p id="accuracyFooter" class="accuracy-footer"></p></section><div id="output"></div><div id="parallelSlot"></div><div class="values"><div class="value"><small>RETURNED AUCTION MEDIAN</small><strong id="rawValue">—</strong><p id="rawDetail"></p></div><div class="value"><small>GRADE / SLAB</small><strong id="gradedValue">—</strong><p id="gradedDetail"></p></div></div><h3>Recent sold records</h3><p id="soldMatchSummary" class="muted"></p><div id="sales"></div><details class="review" id="soldAuditPanel" hidden><summary>Why some sold listings were excluded</summary><div id="soldAuditReasons"></div></details><div class="links"><a id="ebaySold" class="primary" target="_blank" rel="noopener noreferrer">View eBay sold listings ↗</a><a id="pointSold" class="secondary" target="_blank" rel="noopener noreferrer">130Point sales ↗</a></div><details class="review"><summary style="color:#5e7662">Search phrase and asking prices</summary><input id="searchCopyBox" aria-label="Sold-search phrase" type="text" readonly><button class="secondary" onclick="copySearchText()">Copy phrase</button><p id="activeAsks" class="muted"></p></details><details class="review"><summary style="color:#5e7662">Identity checks and condition review</summary><pre id="verification"></pre><p class="muted">Inspect centering, corners, edges and surface under good light. A photo does not establish a PSA grade; grading and graded value stay unavailable unless supported data is returned.</p></details></div><button id="saveCard" class="secondary wide" disabled onclick="saveCard()">＋ Save to my collection</button><small style="display:block;margin-top:8px;text-align:center">Saved on this browser and device.</small></section></div><div class="lower"><section class="panel"><span class="eyebrow">SHARE YOUR FIND</span><h2 style="margin:8px 0 16px">TikTok post</h2><button class="secondary" onclick="generateTikTok()">Create post + first comment</button><button class="text-button" onclick="copyText(document.getElementById('tiktokBox').textContent)">Copy</button><div class="result" id="tiktokBox">Your post will appear here.</div></section><section class="panel"><span class="eyebrow">READY TO LIST</span><h2 style="margin:8px 0 16px">eBay listing</h2><button class="secondary" onclick="generateEbay()">Create listing draft</button><button class="text-button" onclick="copyText(document.getElementById('ebayBox').textContent)">Copy</button><div class="result" id="ebayBox">Your listing will appear here.</div></section></div></section><section id="collection" class="view" hidden><div class="heading"><div><span class="eyebrow">MY COLLECTION</span><h1>Your corner of the hobby.</h1><p class="muted">Saved identifications and market snapshots from this device.</p></div><div class="member-buttons"><button class="secondary" onclick="exportCollection()">Export backup (JSON)</button><button class="secondary" onclick="exportCollectionCsv()">Export CSV</button></div></div>
+<div class="collection-tools" aria-label="Collection filters"><input id="collectionSearch" type="search" placeholder="Search player, set, team or card number" aria-label="Search saved cards" oninput="renderCollection()"><select id="collectionFilter" aria-label="Filter saved cards" onchange="renderCollection()"><option value="all">All cards</option><option value="verified">Identity verified</option><option value="review">Needs review</option><option value="numbered">Numbered</option><option value="autograph">Autographs</option><option value="duplicates">Potential duplicates</option></select><select id="collectionSort" aria-label="Sort saved cards" onchange="renderCollection()"><option value="newest">Newest saved</option><option value="oldest">Oldest saved</option><option value="player">Player A–Z</option><option value="year">Newest card year</option></select></div><p id="collectionSummary" class="muted" aria-live="polite"></p><div id="collectionItems" class="panel"></div>
+<dialog id="collectionEditDialog" class="collection-dialog" aria-labelledby="collectionEditTitle"><form id="collectionEditForm" onsubmit="saveCollectionEdit(event)"><h2 id="collectionEditTitle">Edit saved card</h2><p class="muted">Manual corrections are labeled as user-edited, not independently verified.</p><input id="collectionEditId" type="hidden"><div class="collection-edit-grid"><label>Player<input id="collectionEditPlayer" maxlength="120" required></label><label>Year<input id="collectionEditYear" type="number" min="1880" max="2100"></label><label>Set<input id="collectionEditSet" maxlength="130"></label><label>Card number<input id="collectionEditNumber" maxlength="50"></label><label>Parallel<input id="collectionEditParallel" maxlength="100"></label><label>Stamped serial (e.g. 25/99)<input id="collectionEditSerial" maxlength="30"></label></div><div class="member-buttons"><button class="primary" type="submit">Save changes</button><button class="secondary" type="button" onclick="document.getElementById('collectionEditDialog').close()">Cancel</button></div></form></dialog></section></main><footer>Genius Vault · Koollicks Vault · Prices reflect returned sale records, not guaranteed offers.</footer><div id="notice" role="status" aria-live="polite"></div><script>
 function previewImage() {
   const file = document.getElementById("imageUpload").files[0];
   const preview = document.getElementById("preview");
@@ -427,12 +440,130 @@ Ships protected with care.`;
 function notice(message){const el=document.getElementById('notice');el.textContent=message;clearTimeout(window.noticeTimer);window.noticeTimer=setTimeout(()=>el.textContent='',6000);}
 async function copyText(value){try{await navigator.clipboard.writeText(value);notice('Copied.');}catch{notice('Copy unavailable. Select the text and copy it.');}}
 function switchView(view){document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!==view);document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('selected',el.dataset.view===view));if(view==='collection')renderCollection();}
-function readCollection(){try{return JSON.parse(localStorage.getItem('gv-collection-v3')||'[]');}catch{return [];}}
-function saveCard(){if(!window.gvLast?.scan)return;try{const list=readCollection();list.unshift({id:crypto.randomUUID(),savedAt:new Date().toISOString(),data:window.gvLast});localStorage.setItem('gv-collection-v3',JSON.stringify(list));notice('Saved to your collection on this device.');updateCount();}catch{notice('Could not save. Device storage may be full.');}}
+function readCollection(){
+ try{const data=JSON.parse(localStorage.getItem('gv-collection-v3')||'[]');return Array.isArray(data)?data.filter(x=>x&&x.id&&x.data&&x.data.scan):[];}
+ catch{return [];}
+}
+function writeCollection(list){
+ localStorage.setItem('gv-collection-v3',JSON.stringify(list));
+ updateCount();
+}
+function collectionSignature(card){
+ const norm=v=>String(v??'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+ return ['player','year','brand','set','cardNumber','parallel','serialNumber'].map(k=>norm(card?.[k])).join('|');
+}
+function duplicateCounts(list){
+ const counts=new Map();
+ for(const item of list){
+  const key=collectionSignature(item.data.scan);
+  counts.set(key,(counts.get(key)||0)+1);
+ }
+ return counts;
+}
+function saveCard(){
+ if(!window.gvLast?.scan)return;
+ try{
+  const list=readCollection(),signature=collectionSignature(window.gvLast.scan);
+  if(list.some(x=>collectionSignature(x.data.scan)===signature)){
+   if(!confirm('This card matches one already in your collection. Save another copy anyway?'))return;
+  }
+  // Store a snapshot instead of sharing the live scan object with the collection.
+  list.unshift({id:crypto.randomUUID(),savedAt:new Date().toISOString(),data:JSON.parse(JSON.stringify(window.gvLast))});
+  writeCollection(list);
+  notice('Saved to your collection on this device.');
+ }catch{notice('Could not save. Device storage may be full.');}
+}
 function updateCount(){document.getElementById('collectionCount').textContent=readCollection().length;}
-function renderCollection(){const list=readCollection();document.getElementById('collectionItems').innerHTML=list.map(item=>`<article class="saved-card"><div class="card-symbol">GV</div><div><strong>${escHtml(item.data.scan.player||'Unidentified card')}</strong><p>${escHtml([item.data.scan.year,item.data.scan.set,item.data.scan.parallel].filter(Boolean).join(' · '))}</p><small>${new Date(item.savedAt).toLocaleDateString()} · ${escHtml(item.data.verification?.status||'needs_review')}</small></div><button class="secondary" data-load="${escHtml(item.id)}">Open</button><button class="text-button" data-delete="${escHtml(item.id)}" aria-label="Remove saved card">Remove</button></article>`).join('')||'<div class="empty">Your collection starts with your first scan.<br><small>Saved cards stay on this browser and device.</small></div>';}
-document.getElementById('collectionItems').addEventListener('click',e=>{const id=e.target.dataset.load||e.target.dataset.delete;if(!id)return;const list=readCollection();if(e.target.dataset.load){const item=list.find(x=>x.id===id);resetScan();window.gvLast=item.data;window.gvOrigParallel=item.data.scan?.parallel||'';renderScan(item.data);switchView('scanner');}else{try{localStorage.setItem('gv-collection-v3',JSON.stringify(list.filter(x=>x.id!==id)));renderCollection();updateCount();}catch{notice('Could not remove this card.');}}});
-function exportCollection(){const blob=new Blob([JSON.stringify(readCollection(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='genius-vault-collection.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function renderCollection(){
+ const all=readCollection(),counts=duplicateCounts(all);
+ const query=(document.getElementById('collectionSearch')?.value||'').trim().toLowerCase();
+ const filter=document.getElementById('collectionFilter')?.value||'all';
+ const sort=document.getElementById('collectionSort')?.value||'newest';
+ const duplicates=item=>(counts.get(collectionSignature(item.data.scan))||0)>1;
+ const isVerified=item=>item.data.verification?.status==='verified'&&!item.userEdited;
+ const filtered=all.filter(item=>{
+  const card=item.data.scan,blob=[card.player,card.year,card.brand,card.set,card.team,card.cardNumber,card.parallel,card.serialNumber].join(' ').toLowerCase();
+  if(query&&!blob.includes(query))return false;
+  if(filter==='verified'&&!isVerified(item))return false;
+  if(filter==='review'&&isVerified(item))return false;
+  if(filter==='numbered'&&!card.numberedTo&&!card.serialNumber)return false;
+  if(filter==='autograph'&&!card.autograph)return false;
+  if(filter==='duplicates'&&!duplicates(item))return false;
+  return true;
+ });
+ filtered.sort((a,b)=>{
+  if(sort==='player')return String(a.data.scan.player||'').localeCompare(String(b.data.scan.player||''));
+  if(sort==='year')return Number(b.data.scan.year||0)-Number(a.data.scan.year||0);
+  return sort==='oldest'?String(a.savedAt).localeCompare(String(b.savedAt)):String(b.savedAt).localeCompare(String(a.savedAt));
+ });
+ const dups=all.filter(duplicates).length;
+ document.getElementById('collectionSummary').textContent=filtered.length+' of '+all.length+' saved cards shown'+(dups?' · '+dups+' entries flagged as potential duplicates':'')+'. Stored on this browser only.';
+ document.getElementById('collectionItems').innerHTML=filtered.map(item=>{
+  const c=item.data.scan||{},state=item.userEdited?'Manually edited · verify details':isVerified(item)?'Identity verified':'Needs review';
+  const duplicate=duplicates(item)?'<span class="collection-duplicate">Potential duplicate</span>':'';
+  return '<article class="saved-card"><div class="card-symbol">GV</div><div><strong>'+escHtml(c.player||'Unidentified card')+'</strong><p>'+escHtml([c.year,c.set,c.parallel,c.cardNumber].filter(Boolean).join(' · '))+'</p><small>'+escHtml(new Date(item.savedAt).toLocaleDateString())+' · '+escHtml(state)+'</small> '+duplicate+'</div><div class="member-buttons"><button class="secondary" data-load="'+escHtml(item.id)+'">Open</button><button class="secondary" data-edit="'+escHtml(item.id)+'">Edit</button><button class="text-button" data-delete="'+escHtml(item.id)+'" aria-label="Remove saved card">Remove</button></div></article>';
+ }).join('')||'<div class="empty">No cards match this view. Change your filters or save a card from the scanner.</div>';
+}
+function openCollectionEdit(item){
+ const c=item.data.scan||{},fields={Player:c.player,Year:c.year,Set:c.set,Number:c.cardNumber,Parallel:c.parallel,Serial:c.serialNumber};
+ document.getElementById('collectionEditId').value=item.id;
+ for(const [key,value] of Object.entries(fields))document.getElementById('collectionEdit'+key).value=value??'';
+ document.getElementById('collectionEditDialog').showModal();
+}
+function saveCollectionEdit(event){
+ event.preventDefault();
+ const id=document.getElementById('collectionEditId').value,list=readCollection(),item=list.find(x=>x.id===id);
+ if(!item){notice('Saved card no longer exists.');return;}
+ const get=k=>document.getElementById('collectionEdit'+k).value.trim();
+ const year=get('Year'),serial=get('Serial');
+ if(year&&(!/^\d{4}$/.test(year)||+year<1880||+year>new Date().getFullYear()+1)){notice('Enter a valid card year.');return;}
+ if(serial&&!/^\d{1,5}\s*\/\s*\d{1,5}$/.test(serial)){notice('Use a stamped serial like 25/99, or leave blank.');return;}
+ if(serial){const [n,d]=serial.split('/').map(Number);if(n<1||d<1||n>d){notice('Serial number must be within its print run.');return;}}
+ Object.assign(item.data.scan,{player:get('Player'),year:year?Number(year):null,set:get('Set')||null,cardNumber:get('Number')||null,parallel:get('Parallel')||null,serialNumber:serial||null,numberedTo:serial?Number(serial.split('/')[1]):null});
+ item.userEdited=true;item.editedAt=new Date().toISOString();
+ // Old AI verification and sold estimates must not be promoted to the new manual identity.
+ item.data.verification={status:'needs_review',warnings:['Card details were manually edited. Re-scan to verify the corrected identity.']};
+ item.data.pipeline=null;item.data.comps={count:0,items:[],status:'identity_unverified',error:'Manually edited identity: sold comps require a fresh verified scan.'};
+ item.data.market=null;item.data.soldComps={query:'',summary:'Verification required before sold comparisons.'};
+ item.data.parallelPicker=null;
+ try{writeCollection(list);document.getElementById('collectionEditDialog').close();renderCollection();notice('Card updated. AI verification and stale prices were cleared.');}
+ catch{notice('Could not save changes.');}
+}
+document.getElementById('collectionItems').addEventListener('click',e=>{
+ const button=e.target.closest('button[data-load],button[data-edit],button[data-delete]');if(!button)return;
+ const id=button.dataset.load||button.dataset.edit||button.dataset.delete,list=readCollection(),item=list.find(x=>x.id===id);
+ if(!item)return;
+ if(button.dataset.load){resetScan();window.gvLast=item.data;window.gvOrigParallel=item.data.scan?.parallel||'';renderScan(item.data);switchView('scanner');return;}
+ if(button.dataset.edit){openCollectionEdit(item);return;}
+ if(button.dataset.delete){
+  if(!confirm('Remove this saved card from this browser?'))return;
+  try{writeCollection(list.filter(x=>x.id!==id));renderCollection();notice('Card removed.');}
+  catch{notice('Could not remove this card.');}
+ }
+});
+function downloadCollectionFile(text,filename,type){
+ const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportCollection(){
+ downloadCollectionFile(JSON.stringify(readCollection(),null,2),'genius-vault-collection.json','application/json');
+}
+function exportCollectionCsv(){
+ const headers=['Player','Year','Brand','Set','Card Number','Parallel','Stamped Serial','Print Run','Autograph','Team','Verification','Saved On','Manually Edited'];
+ const csvCell=value=>{
+  let v=String(value??'');
+  // Avoid formula execution when CSV is opened in Excel or another spreadsheet.
+  if(/^[\s]*[=+\-@\t\r]/.test(v))v="'"+v;
+  return '"'+v.replace(/"/g,'""')+'"';
+ };
+ const rows=readCollection().map(item=>{
+  const c=item.data.scan||{};
+  return [c.player,c.year,c.brand,c.set,c.cardNumber,c.parallel,c.serialNumber,c.numberedTo,c.autograph?'Yes':'No',c.team,item.userEdited?'Manually edited':item.data.verification?.status,item.savedAt,item.userEdited?'Yes':'No'];
+ });
+ const csv=[headers,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
+ downloadCollectionFile('\uFEFF'+csv,'genius-vault-collection.csv','text/csv;charset=utf-8');
+}
 function resetScan(){if(document.getElementById('scanButton').disabled){notice('Wait for the scan to finish.');return;}window.gvLast=null;for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).value='';for(const id of ['preview','backPreview','serialPreview']){const el=document.getElementById(id);el.removeAttribute('src');el.style.display='none';}document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Your card details and market snapshot will appear here.';document.getElementById('resultBody').hidden=true;document.getElementById('resultTitle').textContent='Card intelligence';document.getElementById('resultSubtitle').textContent='One card. A clearer picture.';document.getElementById('saveCard').disabled=true;document.getElementById('tiktokBox').textContent='Your post will appear here.';document.getElementById('ebayBox').textContent='Your listing will appear here.';}
 for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).addEventListener('change',()=>{window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Photos updated. Identify the card to refresh its details.';});
 updateCount();
