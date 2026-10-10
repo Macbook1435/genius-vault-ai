@@ -1919,6 +1919,27 @@ Strict rules:
           }
         }
       }
+      // A normal two-reader serial agreement is also valid confirmation.
+      // The earlier verification pipeline can remain stale even when both
+      // independent full-card readers agree with the final printed stamp.
+      const finalStamp = serialValue(scanResult.serialNumber);
+      const fullA = serialValue(combinedCheck?.stampedSerial);
+      const fullB = serialValue(strongCheck?.stampedSerial);
+      const fullAgree = finalStamp && fullA && fullB &&
+        fullA.num === finalStamp.num && fullA.den === finalStamp.den &&
+        fullB.num === finalStamp.num && fullB.den === finalStamp.den;
+      const noConflictingMain = !mainSerial ||
+        (mainSerial.num === finalStamp?.num && mainSerial.den === finalStamp?.den);
+      const noConflictingCloseup = (!serialPhotoRetry?.serial ||
+        (serialPhotoRetry.serial.num === finalStamp?.num && serialPhotoRetry.serial.den === finalStamp?.den)) &&
+        (!closeupSerial || (closeupSerial.num === finalStamp?.num && closeupSerial.den === finalStamp?.den));
+      if (fullAgree && noConflictingMain && noConflictingCloseup) {
+        for (const fields of [pipeline?.fields, v2?.pipeline?.fields]) {
+          if (fields?.serial) fields.serial = { ...fields.serial,
+            value: scanResult.serialNumber, status: "confirmed", printRunConfirmed: true,
+            basis: "Two independent full-card serial reads agree with the final stamp." };
+        }
+      }
       // A unique catalog card and matched parallel provide stronger identity evidence
       // than the generic vision label ("Topps"). Only promote fields when the
       // catalog lookup is unambiguous and the selected parallel actually matches.
@@ -1964,13 +1985,14 @@ Strict rules:
         result.unconfirmed = keys.filter((key) => result.fields[key]?.status !== "confirmed");
         result.allConfirmed = result.unconfirmed.length === 0;
       }
-      market = buildMarket(comps, ebayMatches, catalogSold);
-      // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
-      if (catalogSold?.count) {
+      // Completed catalog auctions take precedence over blocked or incomplete
+      // eBay scraping. Update comps BEFORE computing the market summary.
+      if (catalogSold?.count && Array.isArray(catalogSold.items) && catalogSold.items.length) {
         Object.assign(comps, { min: catalogSold.min, max: catalogSold.max, median: catalogSold.median, count: catalogSold.count,
           mean: catalogSold.mean, coverageNote: catalogSold.coverageNote, warnings: catalogSold.warnings, fetchedAt: catalogSold.fetchedAt, latestSaleDate: catalogSold.latestSaleDate,
           items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null, parallelName: catalogSold.parallelName || null });
       }
+      market = buildMarket(comps, ebayMatches, catalogSold);
     } catch (e) {
       console.error("market error:", e);
     }
