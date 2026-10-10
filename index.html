@@ -39,11 +39,12 @@
 .member-meter p{margin:5px 0}
 .member-disclaimer{margin:12px 0 0;color:#546f90;font-size:12px;line-height:1.5}
 @media(max-width:650px){.member-dashboard{margin:12px;padding:15px}.member-stats{grid-template-columns:1fr}.member-stat{padding:12px}.member-head h2{font-size:20px}}
+.member-offer{margin:8px 0 15px;padding:12px 14px;border-radius:10px;background:#e8f2ff;color:#0b2c58;font-size:13px;line-height:1.6}
 </style></head><body><header><div class="brand"><span class="logo">GV</span><div>Genius Vault<small>BY KOOLLICKS VAULT</small></div></div><span class="private">Your cards. Your next move.</span></header><nav aria-label="Main"><button data-view="scanner" class="selected" onclick="switchView('scanner')">Scanner</button><button data-view="collection" onclick="switchView('collection')">My collection <span id="collectionCount">0</span></button></nav><section id="memberPanel" class="member-dashboard" aria-labelledby="memberTitle">
-<div class="member-head"><div><span class="eyebrow">CUSTOMER ACCOUNTS</span><h2 id="memberTitle">Genius Vault Membership</h2><p id="memberStatus" role="status">Memberships are coming soon. No signup or payment is available yet.</p></div><span id="memberState" class="member-state">Coming soon</span></div>
+<div class="member-head"><div><span class="eyebrow">CUSTOMER ACCOUNTS</span><h2 id="memberTitle">Genius Vault Unlimited</h2><p id="memberStatus" role="status">Unlimited card scans planned at a competitive monthly rate. Membership signup and payment are not open yet.</p></div><span id="memberState" class="member-state">Coming soon</span></div><p class="member-offer"><strong>Unlimited scanning. One simple monthly membership.</strong> No monthly scan-count cap on an active unlimited plan. Pricing will be confirmed after live scan-cost testing; reasonable anti-abuse protections may apply and will be disclosed before launch.</p>
 <div class="member-stats" aria-label="Membership overview">
 <div class="member-stat"><small>YOUR PLAN</small><strong id="memberPlan">Not activated</strong><span id="memberPeriod">Billing is not connected</span></div>
-<div class="member-stat"><small>SCANS REMAINING</small><strong id="memberRemaining">—</strong><span id="memberUsed">No usage data available</span></div>
+<div class="member-stat"><small>SCANNING ACCESS</small><strong id="memberRemaining">Unlimited planned</strong><span id="memberUsed">Not active yet</span></div>
 <div class="member-stat"><small>PAYMENTS</small><strong id="memberBilling">Not accepting payments</strong><span id="memberBillingNote">Stripe connection and testing pending</span></div>
 </div>
 <div class="member-meter" id="memberMeter" hidden><div class="member-meter-track" role="progressbar" aria-label="Monthly scans used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="memberProgress"><div id="memberProgressFill"></div></div><p id="memberMeterLabel" class="muted"></p></div>
@@ -470,6 +471,7 @@ async function memberRefresh(){
   if(!r.ok)throw Error('Membership status is temporarily unavailable.');
   const d=await r.json(),plan=d.plan||null;
   const used=Number(d.used),remaining=Number(d.remaining),limit=Number(plan?.scan_limit);
+  const unlimited=Boolean(d.allowanceActive&&d.unlimitedScans);
   const validUsage=Boolean(d.allowanceActive)&&Number.isFinite(used)&&used>=0&&Number.isFinite(remaining)&&remaining>=0&&Number.isFinite(limit)&&limit>=0;
   document.getElementById('memberLogin').hidden=true;
   document.getElementById('memberActions').hidden=false;
@@ -478,10 +480,10 @@ async function memberRefresh(){
   document.getElementById('memberPlan').textContent=plan?.status||'No active plan';
   const end=plan?.period_end?new Date(plan.period_end):null;
   document.getElementById('memberPeriod').textContent=end&&!Number.isNaN(end.getTime())?'Current period ends '+end.toLocaleDateString():'No billing period available';
-  document.getElementById('memberRemaining').textContent=validUsage?String(remaining):'—';
-  document.getElementById('memberUsed').textContent=validUsage?used+' of '+limit+' scans used':'No active scan allowance';
+  document.getElementById('memberRemaining').textContent=unlimited?'Unlimited':validUsage?String(remaining):'Not active';
+  document.getElementById('memberUsed').textContent=unlimited?used+' scans completed this period · no monthly scan-count cap':validUsage?used+' of '+limit+' scans used':'No active scan allowance';
   const meter=document.getElementById('memberMeter');
-  meter.hidden=!validUsage||limit===0;
+  meter.hidden=unlimited||!validUsage||limit===0;
   if(!meter.hidden){
    const pct=Math.min(100,Math.round(used/limit*100));
    document.getElementById('memberProgressFill').style.width=pct+'%';
@@ -496,7 +498,7 @@ async function memberRefresh(){
  }catch(e){
   document.getElementById('memberStatus').textContent='Unable to confirm your membership status right now. Please try refreshing.';
   document.getElementById('memberPlan').textContent='Status unavailable';
-  document.getElementById('memberRemaining').textContent='—';
+  document.getElementById('memberRemaining').textContent='Not active';
   document.getElementById('memberUsed').textContent='Usage unavailable';
   document.getElementById('memberMeter').hidden=true;
   document.getElementById('memberSubscribeButton').hidden=true;
@@ -506,11 +508,11 @@ async function memberRefresh(){
 function memberLogout(){
  gvMemberToken=null;sessionStorage.removeItem('gv-member-token');
  document.getElementById('memberLogin').hidden=false;document.getElementById('memberActions').hidden=true;
- document.getElementById('memberStatus').textContent='Sign in to view your account and scan allowance.';
+ document.getElementById('memberStatus').textContent='Sign in to view your unlimited membership status.';
  document.getElementById('memberState').textContent='Signed out';
  document.getElementById('memberPlan').textContent='Not signed in';
  document.getElementById('memberRemaining').textContent='—';
- document.getElementById('memberUsed').textContent='Sign in to see usage';
+ document.getElementById('memberUsed').textContent='Sign in to view your usage';
  document.getElementById('memberMeter').hidden=true;
  document.getElementById('memberBilling').textContent='Not accepting payments';
  document.getElementById('memberSubscribeButton').hidden=true;
