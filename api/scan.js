@@ -1907,6 +1907,17 @@ Strict rules:
           && catalog.detailsLookup.match && catalog.parallelComps?.status === "matched"
           && Number(catalog.parallelComps.catalogParallel?.numberedTo) === Number(scanResult.numberedTo)) {
         const m = catalog.detailsLookup.match;
+        // A unique catalog card also verifies its printed checklist number.
+        // Do not promote an OCR guess unless the catalog number matches it.
+        const catalogNumber = String(m.number || "").trim();
+        if (catalogNumber && normalizeCode(catalogNumber) === normalizeCode(scanResult.cardNumber)) {
+          for (const fields of [pipeline?.fields, v2?.pipeline?.fields]) {
+            if (fields?.cardNumber) fields.cardNumber = { value: scanResult.cardNumber,
+              status: "confirmed", basis: "Unique catalog card with matching checklist number." };
+            if (fields?.number) fields.number = { value: scanResult.cardNumber,
+              status: "confirmed", basis: "Unique catalog card with matching checklist number." };
+          }
+        }
         const year = Number(m.year);
         if (year >= 1880 && year <= new Date().getFullYear() + 1) {
           scanResult.year = year;
