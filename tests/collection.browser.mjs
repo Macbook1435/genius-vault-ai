@@ -41,6 +41,7 @@ try{
  await page.evaluate(()=>{window.compressImage=async()=>new Blob(['jpeg-fixture'],{type:'image/jpeg'});});
  await page.locator('#scanButton').click();
  assert.equal(apiRequests,1);
+ await page.waitForFunction(()=>document.getElementById('emptyResult')?.textContent?.includes('temporarily unavailable')); 
  assert.match(await page.locator('#emptyResult').innerText(),/temporarily unavailable/i);
  assert.equal(await page.locator('#scanButton').isDisabled(),false);
  assert.equal(await page.locator('#imageUpload').isDisabled(),false);
