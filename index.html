@@ -85,7 +85,7 @@ async function aiScan() {
  window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Reading card details and checking matching sales…';
  try {
  const form=new FormData();
- for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file){const image=await compressImage(file);form.append(key,image,image.name||key+'.jpg');}
+ for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file){const image=await compressImage(file);form.append(key,image,key+'.jpg');}
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),180000);
  let response;try{response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal});}finally{clearTimeout(timer);}
  const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||'Scan failed. Please try again.');
