@@ -2,7 +2,7 @@ import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
-  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions, suggestOptionIds,
+  cardsightCardInfo, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions, suggestOptionIds,
   isAutoCard, isRelicCard } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
@@ -1774,7 +1774,23 @@ Strict rules:
         });
         let parallelId = "null";
         catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
-        const list = await cardsightCardParallels(pricingCardId).catch((e) => ({ error: e.message }));
+        const info = await cardsightCardInfo(pricingCardId).catch((e) => ({ error: e.message }));
+        const list = info?.error ? info : info.parallels;
+        // A confirmed serial print run (e.g. 13/250) rules out base: use the one parallel with that print run.
+        const serialOk = scanResult.numberedTo && effective?.fields?.serial?.status === "confirmed";
+        if (serialOk && plan.mode !== "parallel" && Array.isArray(list)) {
+          const runFits = list.filter((p) => p && Number(p.numberedTo) === Number(scanResult.numberedTo)
+            && (!p.isPartial || !Array.isArray(p.cards) || p.cards.includes(pricingCardId)));
+          if (runFits.length === 1) {
+            plan.mode = "parallel"; plan.name = runFits[0].name; delete plan.reason;
+            catalog.parallelComps = { mode: "parallel", name: plan.name, reason: null, from: `only /${scanResult.numberedTo} parallel for this card` };
+            if (!scanResult.parallel) scanResult.parallel = plan.name;
+            verification.warnings.push(`Parallel "${plan.name}" set from the confirmed serial: it is the only /${scanResult.numberedTo} parallel for this card.`);
+          } else if (runFits.length > 1) {
+            plan.mode = "blocked";
+            catalog.parallelComps = { mode: "blocked", name: null, reason: `More than one /${scanResult.numberedTo} parallel fits (${runFits.map((p) => p.name).join(", ")}). Pick the one on your card.` };
+          }
+        }
         // Shiny base vs. Holo/Refractor cannot be told apart reliably from photos: the user picks.
         const shinyLookalikes = Array.isArray(list) ? baseLookalikes(list) : [];
         const lookalikes = plan.mode === "base" ? shinyLookalikes : [];
@@ -1817,7 +1833,8 @@ Strict rules:
         if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
         } else {
-          catalogSold = await cardsightSoldComps(pricingCardId, { parallelId, parallels: Array.isArray(list) ? list : null }).catch((e) => ({ error: e.message, count: 0 }));
+          catalogSold = await cardsightSoldComps(pricingCardId, { parallelId, parallels: Array.isArray(list) ? list : null,
+            cardIsAuto: info && !info.error ? info.isAuto : null }).catch((e) => ({ error: e.message, count: 0 }));
           if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
         }

@@ -54,9 +54,11 @@ async function pricingRecords(cardId, parallelId, gradeId) {
 
 // CardSight does not always tag which parallel sold, so each sale is also sorted by its listing title.
 // Pass `parallels` (the card's catalog parallel list) to turn this on.
-export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId = "null", parallels = null } = {}) {
+export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null } = {}) {
   const tagged = await pricingRecords(cardId, parallelId, gradeId);
   let body = tagged.body;
+  const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
+    : isAutoCard({ setName: `${body?.card?.release || ""} ${body?.card?.set || ""}`, attributes: body?.card?.attributes || [] });
   let records;
   if (Array.isArray(parallels) && parallels.length) {
     // For a parallel, also look through the untagged sales for titles that name it.
@@ -65,7 +67,7 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
     records = [...tagged.records, ...extra].filter((r) => {
       const k = r.url || `${r.title}|${r.date}|${r.price}`;
       if (seen.has(k)) return false; seen.add(k);
-      return saleBucket(r, parallels, { raw: gradeId === "null" }) === parallelId;
+      return saleBucket(r, parallels, { raw: gradeId === "null", cardIsAuto }) === parallelId;
     });
   } else {
     records = tagged.records.filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId);
@@ -87,18 +89,19 @@ const titleWords = (t) => new Set(String(t || "").toLowerCase().replace(/\bauto(
 const distinctWords = (name) => words(name).filter((w) => !SUBSET_WORDS.has(w)).map((w) => (/^auto(graph)?s?$/.test(w) ? "autographs" : w));
 
 // Which bucket a sale belongs to: a parallel id, "null" (base), or "skip" (graded in raw comps, autograph mismatch, unclear).
-export function saleBucket(record, parallels, { raw = true } = {}) {
+export function saleBucket(record, parallels, { raw = true, cardIsAuto = false } = {}) {
   const title = String(record?.title || "");
   if (raw && /\b(psa|bgs|sgc|cgc|csg|hga|tag)\s*-?\s*(\d{1,2}(\.5)?|auth)/i.test(title)) return "skip";
   const tw = titleWords(title);
   const hits = [];
   for (const p of parallels || []) {
-    const dw = distinctWords(p.name);
+    const dw = distinctWords(p.name).filter((w) => !(cardIsAuto && w === "autographs"));
     if (!dw.length || !dw.every((w) => tw.has(w))) continue;
     if (p.numberedTo && !new RegExp(`/\\s*${Number(p.numberedTo)}\\b`).test(title)) continue;
     hits.push({ id: p.id, size: dw.length + (p.numberedTo ? 1 : 0) });
   }
-  if (tw.has("autographs") && !hits.some((h) => distinctWords((parallels || []).find((p) => p.id === h.id)?.name).includes("autographs"))) return "skip";
+  // On a non-auto card, an "Auto" title is a different card (unless it names an autograph parallel). On an auto card it is expected.
+  if (!cardIsAuto && tw.has("autographs") && !hits.some((h) => distinctWords((parallels || []).find((p) => p.id === h.id)?.name).includes("autographs"))) return "skip";
   if (!hits.length) return record?.parallel_id || "null";
   const best = Math.max(...hits.map((h) => h.size));
   const top = hits.filter((h) => h.size === best);
@@ -228,9 +231,15 @@ export function suggestOptionIds(options, names, { unnumbered = false } = {}) {
   return [...new Set(ids)];
 }
 
-export async function cardsightCardParallels(cardId) {
+export async function cardsightCardInfo(cardId) {
   const body = await call(`/v1/catalog/cards/${encodeURIComponent(cardId)}`);
-  return Array.isArray(body?.parallels) ? body.parallels : [];
+  return { parallels: Array.isArray(body?.parallels) ? body.parallels : [],
+    isAuto: isAutoCard({ setName: `${body?.releaseName || ""} ${body?.setName || ""}`, attributes: body?.attributes || [] }),
+    isRelic: isRelicCard({ setName: `${body?.setName || ""}` }) };
+}
+
+export async function cardsightCardParallels(cardId) {
+  return (await cardsightCardInfo(cardId)).parallels;
 }
 
 export function confidenceRank(c) { return RANK[c] || 0; }

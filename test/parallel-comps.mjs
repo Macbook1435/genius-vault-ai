@@ -103,3 +103,11 @@ t("subset prefix ignored, finish words kept", () => {
   assert.equal(saleBucket({ title: "2030 Chromey Sam Example #9" }, P), "null");
 });
 console.log("parallel-comps: chrome-style checks passed");
+t("auto card: 'Auto' titles count; non-auto card: they don't", () => {
+  const P = [{ id: "aq", name: "Teal Surge", numberedTo: 250 }];
+  const title = "2030 Brandco Sam Example Rookie Auto Teal Surge /250 #9";
+  assert.equal(saleBucket({ title }, P, { cardIsAuto: true }), "aq");
+  assert.equal(saleBucket({ title }, P, { cardIsAuto: false }), "skip");
+  assert.equal(saleBucket({ title: "2030 Brandco Sam Example Rookie Auto #9" }, P, { cardIsAuto: true }), "null");
+});
+console.log("parallel-comps: auto-card checks passed");
