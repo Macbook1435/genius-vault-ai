@@ -1544,15 +1544,25 @@ Strict rules:
       }
     }
 
-    // Serial missed by the main scan: never adopt it automatically (two checks have
-    // agreed on an invented serial before). Just tell the user to check.
+    // If the main identification missed a stamp, require a third focused read.
+    // The ordinary side/date/conflict checks below still apply before pricing.
     if (!serialImage && !cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
-      const a = cleanPart(combinedCheck?.stampedSerial);
-      const b = cleanPart(strongCheck?.stampedSerial);
-      if (a || b) {
-        detailWarnings.push(
-          `Possible serial number seen ("${a || "none"}" / "${b || "none"}") but not confirmed. Check the card and enter it manually.`,
-        );
+      const a = parseSerial(combinedCheck?.stampedSerial);
+      const b = parseSerial(strongCheck?.stampedSerial);
+      const side = combinedCheck?.stampedSerialSide;
+      if (a && b && a.num === b.num && a.den === b.den && side && side === strongCheck?.stampedSerialSide) {
+        const photo = side === "back" ? backImage : side === "front" ? frontImage : null;
+        const focused = photo ? await safe("missed serial recheck", readSerialCloseup(photo, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o", ex)) : null;
+        const c = focused && !focused.isDate ? parseSerial(focused.stampedSerial) : null;
+        if (c && c.num === a.num && c.den === a.den) {
+          scanResult.serialNumber = cleanPart(focused.stampedSerial);
+          scanResult.numberedTo = c.den;
+          if (scanResult.evidence) scanResult.evidence.serialNumberText = scanResult.serialNumber;
+          detailWarnings.push("Serial missed by the main identification was recovered by a third focused read.");
+        }
+      }
+      if (!scanResult.serialNumber && (combinedCheck?.stampedSerial || strongCheck?.stampedSerial)) {
+        detailWarnings.push("Possible stamped serial seen but not confirmed. Add a serial close-up to settle it.");
       }
     }
 
