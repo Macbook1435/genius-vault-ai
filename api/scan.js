@@ -374,6 +374,18 @@ async function fetchSoldComps(query, card = null) {
       if (number && !new RegExp(`(?:#|\\b)${number}\\b`, "i").test(title)) return false;
       if (run && !new RegExp(`/\\s*${run}\\b`).test(title)) return false;
       if (card.autograph && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) return false;
+      // Reject listings explicitly labeled as another parallel. A matching /print
+      // run is necessary but not sufficient: different parallels can share it.
+      // If the listing omits the parallel entirely, exclude it from the median
+      // rather than guessing which version sold.
+      const expectedParallel = cleanPart(card.parallel).toLowerCase();
+      if (expectedParallel && !/^(unknown|unconfirmed|base|none)$/.test(expectedParallel)) {
+        const normalizeParallel = (v) => v.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+        const expected = normalizeParallel(expectedParallel);
+        const listing = normalizeParallel(title);
+        const aliases = expected === "black and white" ? ["black and white", "black white", "b w"] : [expected];
+        if (!aliases.some((alias) => (" " + listing + " ").includes(" " + alias + " "))) return false;
+      }
       return true;
     });
 
