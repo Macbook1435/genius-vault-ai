@@ -81,6 +81,24 @@ try{
  page.once('dialog',dialog=>dialog.accept());
  await page.evaluate(()=>saveCard());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
+ // Simulate narrow phone and tablet viewports in Chromium; test real touch-size controls.
+ for(const width of [320,375,390,768]){
+  await page.setViewportSize({width,height:812});
+  await page.locator('[data-view="collection"]').click();
+  const dimensions=await page.evaluate(()=>({
+   pageWidth:document.documentElement.scrollWidth,
+   viewportWidth:document.documentElement.clientWidth
+  }));
+  assert.ok(dimensions.pageWidth<=dimensions.viewportWidth+1,
+   'Collection overflows viewport at '+width+'px: '+JSON.stringify(dimensions));
+  assert.equal(await page.locator('#collectionSearch').isVisible(),true);
+  assert.equal(await page.locator('#collectionFilter').isVisible(),true);
+  await page.locator('#collectionSearch').fill('bijan');
+  assert.match(await page.locator('#collectionSummary').innerText(),/0 of 3|0 of 2/);
+  await page.locator('#collectionSearch').fill('');
+  const box=await page.locator('#collectionSearch').boundingBox();
+  assert.ok(box&&box.width>=180,'Search too narrow on '+width+'px');
+ }
  assert.deepEqual(errors,[]);
  console.log('PASS Chromium collection UI: search, sorting/filter state, duplicates, edit/invalidate comps, JSON/CSV exports, remove, duplicate save.');
 }finally{
