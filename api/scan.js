@@ -353,20 +353,34 @@ async // Conservative title audit: never count a vaguely similar sale as an exac
 // Marketplace titles are seller-authored, so even a pass is a candidate, not proof.
 function auditSoldTitle(item, card) {
   const title = String(item.title || "");
-  const normalized = " " + title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ";
-  const hasWords = (value) => {
-    const words = String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    return !words || normalized.includes(" " + words + " ");
-  };
+  const normalize = (v) => String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const words = " " + normalize(title) + " ";
+  const contains = (v) => !normalize(v) || words.includes(" " + normalize(v) + " ");
   const reasons = [];
   const player = cleanPart(card.player);
-  const number = cleanPart(card.cardNumber).replace(/^#/, "");
+  const number = cleanPart(card.cardNumber).replace(/^#/, "").replace(/[^a-z0-9]/gi, "");
   const year = Number(card.year);
-  if (player && !hasWords(player)) reasons.push("Player name does not match.");
+  if (player && !contains(player)) reasons.push("Player name does not match.");
   if (year && !new RegExp("\\b" + year + "\\b").test(title)) reasons.push("Year not confirmed in sale title.");
   const brand = cleanPart(card.brand);
-  if (brand && !hasWords(brand)) reasons.push("Manufacturer missing or different.");
-  const set = cleanPart(card.set).replace(new RegExp("^" + brand.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\function fetchSoldComps(query, card = null) {") + "\\s+", "i"), "");
+  if (brand && !contains(brand)) reasons.push("Manufacturer missing or different.");
+  let set = cleanPart(card.set);
+  if (brand && set.toLowerCase().startsWith(brand.toLowerCase() + " ")) set = set.slice(brand.length).trim();
+  if (set && !contains(set)) reasons.push("Set not confirmed in sale title.");
+  if (number && !new RegExp("(?:^|[^a-z0-9])#?" + number + "(?![a-z0-9])", "i").test(title)) reasons.push("Card number not confirmed.");
+  const run = Number(card.numberedTo);
+  if (run && !new RegExp("/\\s*" + run + "\\b").test(title)) reasons.push("Different or missing serial print run.");
+  const parallel = cleanPart(card.parallel);
+  if (parallel && !/^(unknown|unconfirmed|base|none)$/i.test(parallel) && !contains(parallel)) reasons.push("Exact parallel name not confirmed.");
+  if (card.autograph === true && !/\b(auto|autograph|signed|signature)\b/i.test(title)) reasons.push("Autograph not confirmed.");
+  if (card.autograph === false && /\b(auto|autograph|signed|signature)\b/i.test(title)) reasons.push("Autograph version differs.");
+  if (card.memorabilia === false && /\b(patch|relic|jersey|memorabilia)\b/i.test(title)) reasons.push("Memorabilia version differs.");
+  if (card.grade && (!contains(card.gradingCompany) || !contains(String(card.grade)))) reasons.push("Grade/slab differs.");
+  if (!card.grade && /\b(psa|bgs|sgc|cgc)\s*(?:\d+(?:\.\d+)?|gem|mint|authentic)\b/i.test(title)) reasons.push("Graded card; raw price cannot be compared.");
+  return { matched: reasons.length === 0, reasons, note: reasons.length ? reasons.join(" ") : "Title includes required card details; confirm sale independently." };
+}
+
+function fetchSoldComps(query, card = null) {") + "\\s+", "i"), "");
   if (set && !hasWords(set)) reasons.push("Set not confirmed in sale title.");
   if (number && !new RegExp("(?:^|[^a-z0-9])#?" + number.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\function fetchSoldComps(query, card = null) {") + "(?![a-z0-9])", "i").test(title)) reasons.push("Card number not confirmed.");
   const run = Number(card.numberedTo);
