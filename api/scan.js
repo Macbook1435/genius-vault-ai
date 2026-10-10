@@ -1877,6 +1877,32 @@ Strict rules:
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
         }
       }
+      // A unique catalog card and matched parallel provide stronger identity evidence
+      // than the generic vision label ("Topps"). Only promote fields when the
+      // catalog lookup is unambiguous and the selected parallel actually matches.
+      if (identityTrusted && pricingCardId && catalog.detailsLookup?.status === "matched"
+          && catalog.detailsLookup.match && catalog.parallelComps?.status === "matched"
+          && Number(catalog.parallelComps.catalogParallel?.numberedTo) === Number(scanResult.numberedTo)) {
+        const m = catalog.detailsLookup.match;
+        const year = Number(m.year);
+        if (year >= 1880 && year <= new Date().getFullYear() + 1) {
+          scanResult.year = year;
+          if (pipeline?.fields?.year) pipeline.fields.year = { value: year, status: "confirmed", basis: "Unique catalog card match." };
+          if (v2?.pipeline?.fields?.year) v2.pipeline.fields.year = { value: year, status: "confirmed", basis: "Unique catalog card match." };
+        }
+        const release = String(m.release || "").trim();
+        if (release && /[a-z]/i.test(release)) {
+          scanResult.set = release.replace(/^topps\\s+/i, "");
+          if (pipeline?.fields?.set) pipeline.fields.set = { value: release, status: "confirmed", basis: "Unique catalog card match." };
+          if (v2?.pipeline?.fields?.set) v2.pipeline.fields.set = { value: release, status: "confirmed", basis: "Unique catalog card match." };
+        }
+        const pname = catalog.parallelComps.catalogParallel?.name;
+        if (pname) {
+          scanResult.parallel = pname;
+          for (const f of [pipeline?.fields, v2?.pipeline?.fields]) if (f?.parallel)
+            f.parallel = { value: pname, status: "confirmed", basis: "Matched catalog parallel and serial print run." };
+        }
+      }
       market = buildMarket(comps, ebayMatches, catalogSold);
       // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
       if (catalogSold?.count) {
