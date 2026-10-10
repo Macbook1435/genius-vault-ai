@@ -2039,6 +2039,27 @@ Strict rules:
       console.error("market error:", e);
     }
 
+    // Final response safety net: never let catalog pricing bypass an
+    // unverified identity or a numbered-card exact-match failure.
+    // Active listings remain visible strictly as asking prices, not value.
+    const soldBlocked = !identityTrusted || comps.status === "exact_match_unverified";
+    if (soldBlocked && market?.sold) {
+      market.sold = {
+        kind: "sold",
+        source: "verification_gate",
+        status: !identityTrusted ? "identity_unverified" : "exact_match_unverified",
+        count: 0,
+        min: null,
+        median: null,
+        max: null,
+        items: [],
+        error: !identityTrusted
+          ? "Identity unverified; sold-price estimates are unavailable."
+          : "Exact numbered parallel not verified; no sold-price estimate.",
+        note: "No estimated value until the exact card is verified.",
+      };
+    }
+
     const readoutSummary = identityTrusted
       ? buildReadoutSummary(scanResult, comps)
       : verification.status === "rejected"
