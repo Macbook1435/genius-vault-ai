@@ -360,7 +360,7 @@ function auditSoldTitle(item, card) {
   const player = cleanPart(card.player);
   const number = cleanPart(card.cardNumber).replace(/^#/, "").replace(/[^a-z0-9]/gi, "");
   const year = Number(card.year);
-  if (player && !contains(player)) reasons.push("Player name does not match.");
+  if (player && !new RegExp("(?:^|[^a-z])" + player.toLowerCase().replace(/[^a-z0-9]+/g," ") + "(?:$|[^a-z])","i").test(normalize(title))) reasons.push("Player name does not match.");
   if (year && !new RegExp("\\b" + year + "\\b").test(title)) reasons.push("Year not confirmed in sale title.");
   const brand = cleanPart(card.brand);
   if (brand && !contains(brand)) reasons.push("Manufacturer missing or different.");
@@ -380,22 +380,7 @@ function auditSoldTitle(item, card) {
   return { matched: reasons.length === 0, reasons, note: reasons.length ? reasons.join(" ") : "Title includes required card details; confirm sale independently." };
 }
 
-function fetchSoldComps(query, card = null) {") + "\\s+", "i"), "");
-  if (set && !hasWords(set)) reasons.push("Set not confirmed in sale title.");
-  if (number && !new RegExp("(?:^|[^a-z0-9])#?" + number.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\function fetchSoldComps(query, card = null) {") + "(?![a-z0-9])", "i").test(title)) reasons.push("Card number not confirmed.");
-  const run = Number(card.numberedTo);
-  if (run && !new RegExp("/\\s*" + run + "\\b").test(title)) reasons.push("Different or missing serial print run.");
-  const parallel = cleanPart(card.parallel);
-  if (parallel && !/^(unknown|unconfirmed|base|none)$/i.test(parallel) && !hasWords(parallel)) reasons.push("Exact parallel name not confirmed.");
-  if (card.autograph === true && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) reasons.push("Autograph not confirmed.");
-  if (card.autograph === false && /\\b(auto|autograph|signed|signature)\\b/i.test(title)) reasons.push("Autograph version differs.");
-  if (card.memorabilia === false && /\\b(patch|relic|jersey|memorabilia)\\b/i.test(title)) reasons.push("Memorabilia version differs.");
-  if (card.grade && (!hasWords(card.gradingCompany) || !hasWords(String(card.grade)))) reasons.push("Grade/slab differs.");
-  if (!card.grade && /\\b(psa|bgs|sgc|cgc)\\s*(?:\\d+(?:\\.\\d+)?|gem|mint|authentic)\\b/i.test(title)) reasons.push("Graded card; raw price cannot be compared.");
-  return { matched: reasons.length === 0, reasons, note: reasons.length ? reasons.join(" ") : "Title includes required card details; confirm sale independently." };
-}
-
-function fetchSoldComps(query, card = null) {
+async function fetchSoldComps(query, card = null) {
   const sourceUrl = buildEbaySoldUrl(query);
   const searchUrl = build130PointUrl(query);
 
