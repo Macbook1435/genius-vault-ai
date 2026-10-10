@@ -30,7 +30,8 @@ export async function entitlement(userId){
 }
 export async function usageCount(userId,periodStart){
   if(!periodStart)return 0;
-  const rows=await supabaseRequest('/rest/v1/gv_scan_usage?user_id=eq.'+encodeURIComponent(userId)+'&period_start=eq.'+encodeURIComponent(periodStart)+'&select=id',{admin:true});
-  return rows.length;
+  const count=await supabaseRequest('/rest/v1/rpc/gv_usage_count',{method:'POST',admin:true,body:{p_user_id:userId,p_period_start:periodStart}});
+  if(!Number.isSafeInteger(Number(count))||Number(count)<0)throw new Error('Invalid usage count');
+  return Number(count);
 }
 export function subscriptionsEnabled(){return process.env.GV_REQUIRE_SUBSCRIPTION==='1';}
