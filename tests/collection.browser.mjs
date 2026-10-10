@@ -59,6 +59,36 @@ try{
  await page.getByRole('button',{name:'Reset crop'}).click();
  assert.equal(await page.evaluate(()=>listingFrame),null,'Reset should restore full original image');
  assert.equal(await page.locator('#listingFineRotate').inputValue(),'0','Reset also clears fine straightening');
+ // Harder simulated photographs: a mild tilt with glare should still be a candidate,
+ // while busy or cut-off scenes must NOT produce a confident crop.
+ const cases=await page.evaluate(()=>{
+  const render=kind=>{
+   const c=document.createElement('canvas');c.width=320;c.height=400;
+   const g=c.getContext('2d');g.fillStyle='#eaeaea';g.fillRect(0,0,320,400);
+   if(kind==='busy'){
+    for(let y=0;y<400;y+=34)for(let x=0;x<320;x+=34){
+     g.fillStyle=(x+y)%3===0?'#173252':'#9a6c3f';g.fillRect(x+3,y+3,24,24);
+    }
+   }else{
+    g.save();g.translate(kind==='edge'?24:160,190);g.rotate(kind==='tilted'?8*Math.PI/180:0);
+    g.fillStyle='#173252';g.fillRect(-80,-130,160,260);
+    if(kind==='tilted'){g.fillStyle='rgba(255,255,255,0.9)';g.fillRect(-70,-65,130,15);}
+    g.restore();
+   }
+   return c.toDataURL('image/png').split(',')[1];
+  };
+  return {tilted:render('tilted'),busy:render('busy'),edge:render('edge')};
+ });
+ for(const [kind,expected] of [['tilted',true],['busy',false],['edge',false]]){
+  await page.locator('#listingPhotoFile').setInputFiles({name:kind+'.png',mimeType:'image/png',buffer:Buffer.from(cases[kind],'base64')});
+  await page.waitForFunction(()=>!document.getElementById('listingAutoFrame').disabled);
+  await page.getByRole('button',{name:'Auto-frame card'}).click();
+  const result=await page.evaluate(()=>({hasFrame:Boolean(listingFrame),angle:Number(document.getElementById('listingFineRotate').value)}));
+  assert.equal(result.hasFrame,expected,kind+' should '+(expected?'be detected':'remain unframed'));
+  if(kind==='tilted')assert.ok(Math.abs(result.angle)<=15,'Tilt estimate must remain bounded');
+  if(!expected)assert.match(await page.locator('#listingPhotoStatus').innerText(),/could not confidently/i);
+  await page.getByRole('button',{name:'Reset crop'}).click();
+ }
  // Scanner failures are tested with mocked responses, never calling the paid AI endpoint.
  let apiRequests=0;
  await page.route('**/api/scan',async route=>{
