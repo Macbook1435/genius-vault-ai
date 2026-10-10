@@ -66,7 +66,28 @@ try{
  assert.ok(qualityCases.dark.flags.some(x=>/too dark/i.test(x)));
  assert.ok(qualityCases.bright.flags.some(x=>/overexposed/i.test(x)));
  assert.ok(qualityCases.flat.flags.some(x=>/Low visible detail/i.test(x)));
- assert.match(await page.locator('#listingQuality').innerText(),/Photo review recommended|Basic brightness/i);
+ assert.match(await page.locator('#listingQuality').innerText(),/Photo review recommended|Basic brightness|corner photos need a closer look/i);
+ // Each corner gets independent feedback, not an invented card-condition score.
+ const cornerLabels=await Promise.all(['TL','TR','BL','BR'].map(id=>page.locator('#listingCornerQuality'+id).innerText()));
+ assert.equal(cornerLabels.length,4);
+ for(const label of cornerLabels)assert.match(label,/Check photo:|Basic lighting\/detail check passed/);
+ // A single artificially dark corner should generate its own warning without falsely
+ // labeling the other three as damaged.
+ const darkCorner=await page.evaluate(()=>{
+  const img=document.createElement('canvas');img.width=320;img.height=400;
+  const ctx=img.getContext('2d');ctx.fillStyle='#ddd';ctx.fillRect(0,0,320,400);
+  ctx.fillStyle='#18324a';ctx.fillRect(80,55,160,260);
+  ctx.fillStyle='#050505';ctx.fillRect(80,55,45,55);
+  return img.toDataURL('image/png').split(',')[1];
+ });
+ await page.locator('#listingPhotoFile').setInputFiles({name:'dark-corner.png',mimeType:'image/png',buffer:Buffer.from(darkCorner,'base64')});
+ await page.waitForFunction(()=>!document.getElementById('listingAutoFrame').disabled);
+ await page.getByRole('button',{name:'Auto-frame card'}).click();
+ assert.equal(await page.locator('#listingCorners').isVisible(),true);
+ const warnings=await page.locator('.corner-quality.needs-review').count();
+ assert.ok(warnings>=1,'At least one dark corner must be flagged for photo review');
+ assert.match(await page.locator('#listingQuality').innerText(),/corner photos need a closer look/);
+
 
  for(const id of ['TL','TR','BL','BR']){
   const pixels=await page.locator('#listingCorner'+id).evaluate(canvas=>Array.from(canvas.getContext('2d').getImageData(120,120,1,1).data));
