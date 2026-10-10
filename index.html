@@ -33,32 +33,38 @@ function previewSerialImage() {
 }
 
 function compressImage(file) {
-  // Keep the original camera/photo workflow and JPEG compression.
-  // iOS can reject a FileReader data URL with "string did not match the
-  // expected pattern"; use a temporary local blob URL instead.
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
     const img = new Image();
-    const cleanup = () => URL.revokeObjectURL(url);
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
         const maxWidth = 1200;
         const scale = Math.min(1, maxWidth / img.width);
+
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Image processing unavailable.');
+
+        const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(blob => {
-          cleanup();
-          if (blob) resolve(blob);
-          else reject(new Error('Image compression failed.'));
-        }, 'image/jpeg', 0.75);
-      } catch (error) { cleanup(); reject(error); }
+
+        canvas.toBlob(
+          blob => {
+            if (blob) resolve(blob);
+            else reject(new Error("Image compression failed"));
+          },
+          "image/jpeg",
+          0.75
+        );
+      };
+
+      img.onerror = reject;
+      img.src = e.target.result;
     };
-    img.onerror = () => { cleanup(); reject(new Error('Could not read this photo. Try a JPEG image.')); };
-    img.src = url;
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
 }
 async function aiScan() {
