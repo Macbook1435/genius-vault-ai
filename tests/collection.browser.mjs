@@ -81,6 +81,44 @@ try{
  page.once('dialog',dialog=>dialog.accept());
  await page.evaluate(()=>saveCard());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
+ // Backup restore: MERGE preserves existing IDs; REPLACE requires explicit second confirmation.
+ const beforeRestore=await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')));
+ const imported=entry('backup-new','Jahmyr Gibbs','10/35');
+ const uploadBackup=async data=>{
+  await page.locator('#collectionRestoreFile').setInputFiles({
+   name:'genius-vault-collection.json',mimeType:'application/json',buffer:Buffer.from(data)
+  });
+ };
+ page.once('dialog',dialog=>dialog.accept('MERGE'));
+ await uploadBackup(JSON.stringify([beforeRestore[0],imported]));
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
+ assert.equal(await page.locator('.saved-card').count(),4);
+ const merged=await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')));
+ assert.ok(merged.some(x=>x.id==='backup-new'));
+ // A failed or malformed import must not destroy a valid collection.
+ await uploadBackup('{not json');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
+ await uploadBackup(JSON.stringify([{id:'invalid'}]));
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
+ // Canceling REPLACE at final confirmation must preserve everything.
+ page.once('dialog',dialog=>dialog.accept('REPLACE'));
+ page.once('dialog',dialog=>dialog.dismiss());
+ await uploadBackup(JSON.stringify([imported]));
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
+ // Full restore.
+ page.once('dialog',dialog=>dialog.accept('REPLACE'));
+ page.once('dialog',dialog=>dialog.accept());
+ await uploadBackup(JSON.stringify(beforeRestore));
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
+ assert.equal(await page.locator('.saved-card').count(),3);
+ // Corrupted local storage must not be overwritten on attempted save.
+ await page.evaluate(()=>localStorage.setItem('gv-collection-v3','{broken'));
+ await page.evaluate(()=>{window.gvLast={scan:{player:'Test card',year:2025}};saveCard();});
+ assert.equal(await page.evaluate(()=>localStorage.getItem('gv-collection-v3')),'{broken');
+ await page.evaluate(records=>localStorage.setItem('gv-collection-v3',JSON.stringify(records)),beforeRestore);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.locator('[data-view="collection"]').click();
+ assert.equal(await page.locator('.saved-card').count(),3);
  // Simulate narrow phone and tablet viewports in Chromium; test real touch-size controls.
  for(const width of [320,375,390,768]){
   await page.setViewportSize({width,height:812});
