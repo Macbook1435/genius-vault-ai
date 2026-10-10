@@ -137,6 +137,29 @@ function getFile(files, name) {
   return Array.isArray(file) ? file[0] : file;
 }
 
+// Validate the file signature, not just the claimed MIME type. An incorrect
+// extension or a non-image must never consume a customer's scan allowance.
+function supportedCardImage(file) {
+  if (!file?.filepath || !file.size || file.size > 25 * 1024 * 1024) return false;
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) return false;
+  const fd = fs.openSync(file.filepath, "r");
+  try {
+    const bytes = Buffer.alloc(16);
+    const count = fs.readSync(fd, bytes, 0, bytes.length, 0);
+    if (count < 12) return false;
+    if (file.mimetype === "image/jpeg") {
+      return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    }
+    if (file.mimetype === "image/png") {
+      return bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
+    }
+    return bytes.toString("ascii",0,4) === "RIFF" &&
+      bytes.toString("ascii",8,12) === "WEBP";
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 function fileToDataUrl(file) {
   if (!file?.filepath) return "";
 
@@ -1428,11 +1451,21 @@ export default async function handler(req, res) {
       getFile(files, "card");
 
     const backFile = getFile(files, "back");
+    const serialFile = getFile(files, "serial");
+
+    if (!frontFile) {
+      return res.status(400).json({ error: "Please add a front card photo." });
+    }
+    if (![frontFile, backFile, serialFile].filter(Boolean).every(supportedCardImage)) {
+      return res.status(415).json({
+        error: "Unsupported image. Please upload JPEG, PNG, or WebP card photos.",
+      });
+    }
 
     const frontImage = fileToDataUrl(frontFile);
     const backImage = fileToDataUrl(backFile);
     // Optional close-up photo of the serial number.
-    const serialImage = fileToDataUrl(getFile(files, "serial"));
+    const serialImage = fileToDataUrl(serialFile);
 
     if (!frontImage) {
       return res.status(400).json({
