@@ -1802,7 +1802,7 @@ Strict rules:
         if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
         } else {
-          catalogSold = await cardsightSoldComps(pricingCardId, { parallelId }).catch((e) => ({ error: e.message, count: 0 }));
+          catalogSold = await cardsightSoldComps(pricingCardId, { parallelId, parallels: Array.isArray(list) ? list : null }).catch((e) => ({ error: e.message, count: 0 }));
           if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
         }

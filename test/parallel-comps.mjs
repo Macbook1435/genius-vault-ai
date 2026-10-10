@@ -78,3 +78,28 @@ t("shortlist maps to catalog names; vague words and numbered-on-unnumbered skipp
   assert.deepEqual(suggestOptionIds(opts, ["Teal"], { unnumbered: false }), ["t249"]);
 });
 console.log("parallel-comps: shortlist checks passed");
+import { saleBucket } from "../api/cardsight.js";
+t("sales are sorted by listing title", () => {
+  const P = [{ id: "sp", name: "Rookie Teal Sparkle" }, { id: "h", name: "Holo" }, { id: "t", name: "Teal", numberedTo: 249 },
+    { id: "ah", name: "Rookie Autographs Holo", numberedTo: 199 }];
+  const b = (title, parallel_id = null) => saleBucket({ title, parallel_id }, P);
+  assert.equal(b("2030 Brandco Sam Example Rated Rookie #9"), "null");
+  assert.equal(b("2030 Brandco Sam Example Teal Sparkle Prizm #9"), "sp");     // untagged but titled -> that parallel
+  assert.equal(b("2030 Brandco Sam Example Holo Prizm #9", "sp"), "h");        // mis-tagged -> title wins
+  assert.equal(b("2030 Brandco Sam Example Teal /249 #9"), "t");
+  assert.equal(b("2030 Brandco Sam Example Teal #9"), "null");                 // numbered parallel needs its /249
+  assert.equal(b("2030 Brandco Sam Example Holo PSA 10"), "skip");             // graded never in raw comps
+  assert.equal(b("2030 Brandco Sam Example Auto Holo /199"), "ah");
+  assert.equal(b("2030 Brandco Sam Example Rookie Auto #9"), "skip");          // autograph with no auto parallel match
+  assert.equal(b("2030 Brandco Sam Example Holo #9", "h"), "h");
+});
+console.log("parallel-comps: title sorting checks passed");
+t("subset prefix ignored, finish words kept", () => {
+  const P = [{ id: "rh", name: "Rated Rookie Teal Hyper" }, { id: "r", name: "Refractor" }, { id: "br", name: "Teal Refractor" }];
+  assert.equal(pickParallel(P, { name: "Teal Hyper" }).parallel.id, "rh");
+  assert.equal(pickParallel(P, { name: "Refractor" }).parallel.id, "r");
+  assert.equal(saleBucket({ title: "2030 Chromey Sam Example Refractor #9" }, P), "r");
+  assert.equal(saleBucket({ title: "2030 Chromey Sam Example Teal Refractor #9" }, P), "br");
+  assert.equal(saleBucket({ title: "2030 Chromey Sam Example #9" }, P), "null");
+});
+console.log("parallel-comps: chrome-style checks passed");

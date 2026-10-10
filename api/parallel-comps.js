@@ -15,13 +15,13 @@ export default async function handler(req, res) {
     }
     // The parallel must belong to this card (never price a parallel from another card).
     let parallelName = "Base";
+    const list = await cardsightCardParallels(cardId);
     if (parallelId !== "null") {
-      const list = await cardsightCardParallels(cardId);
       const p = list.find((x) => x && x.id === parallelId);
       if (!p) return res.status(400).json({ error: "That parallel is not listed for this card." });
       parallelName = p.name;
     }
-    const sold = await cardsightSoldComps(cardId, { parallelId });
+    const sold = await cardsightSoldComps(cardId, { parallelId, parallels: list });
     return res.status(200).json({ cardId, parallelId, parallelName, count: sold.count, min: sold.min, median: sold.median,
       max: sold.max, items: sold.items, source: sold.source });
   } catch (e) {

@@ -4,9 +4,14 @@ const BASE = "https://api.cardsight.ai";
 function key() { return process.env.CARDSIGHT_API_KEY || ""; }
 export function cardsightConfigured() { return Boolean(key()); }
 
-async function call(path, options = {}) {
+async function call(path, options = {}, attempt = 0) {
   const response = await fetch(BASE + path, { ...options, headers: { "X-API-Key": key(), ...(options.headers || {}) },
     signal: AbortSignal.timeout(25000) });
+  // Rate limited: wait briefly and retry (twice at most).
+  if (response.status === 429 && attempt < 2) {
+    await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+    return call(path, options, attempt + 1);
+  }
   const text = await response.text();
   let body = null; try { body = JSON.parse(text); } catch { body = null; }
   if (!response.ok) { const err = new Error(`CardSight ${response.status}: ${body?.error?.message || body?.message || body?.error || "request failed"}`); err.status = response.status; throw err; }
@@ -39,14 +44,33 @@ export function resolveParallel(card) {
 function median(values) { const s = [...values].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
 
 // Completed AUCTION sales only (CardSight "bid" side). Buy It Now asks are excluded because they are not proof of a sale.
-export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId = "null" } = {}) {
+async function pricingRecords(cardId, parallelId, gradeId) {
   const qs = new URLSearchParams({ listing_type: "auction", period: "6m", limit: "100", parallel_id: parallelId, grade_id: gradeId });
   const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
   const groups = gradeId === "null" ? [body?.raw] : (body?.graded || []).flatMap(c => (c.grades || []).filter(g => g.grade_id === gradeId));
-  const records = groups.flatMap(g => g?.records || [])
-    .filter(r => r && r.listing_type === "auction" && Number.isFinite(r.price) && r.price > 0 && r.url)
-    .filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId)
-    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  return { body, records: groups.flatMap(g => g?.records || [])
+    .filter(r => r && r.listing_type === "auction" && Number.isFinite(r.price) && r.price > 0 && r.url) };
+}
+
+// CardSight does not always tag which parallel sold, so each sale is also sorted by its listing title.
+// Pass `parallels` (the card's catalog parallel list) to turn this on.
+export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId = "null", parallels = null } = {}) {
+  const tagged = await pricingRecords(cardId, parallelId, gradeId);
+  let body = tagged.body;
+  let records;
+  if (Array.isArray(parallels) && parallels.length) {
+    // For a parallel, also look through the untagged sales for titles that name it.
+    const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId).catch(() => ({ records: [] }))).records : [];
+    const seen = new Set();
+    records = [...tagged.records, ...extra].filter((r) => {
+      const k = r.url || `${r.title}|${r.date}|${r.price}`;
+      if (seen.has(k)) return false; seen.add(k);
+      return saleBucket(r, parallels, { raw: gradeId === "null" }) === parallelId;
+    });
+  } else {
+    records = tagged.records.filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId);
+  }
+  records.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   const prices = records.map(r => r.price);
   return {
     source: "cardsight_completed_auctions", currency: "USD", count: records.length,
@@ -55,6 +79,30 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
     items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url })),
     catalogCard: body?.card ? { name: body.card.name, number: body.card.number, set: body.card.set, parallel: body.card.parallel || null } : null
   };
+}
+
+// ---- Sorting a sale by its listing title ----
+const SUBSET_WORDS = new Set(["rated", "rookie", "rookies", "rc", "parallel", "base", "set"]);
+const titleWords = (t) => new Set(String(t || "").toLowerCase().replace(/\bauto(graph)?s?\b/g, "autographs").split(/[^a-z0-9]+/).filter(Boolean));
+const distinctWords = (name) => words(name).filter((w) => !SUBSET_WORDS.has(w)).map((w) => (/^auto(graph)?s?$/.test(w) ? "autographs" : w));
+
+// Which bucket a sale belongs to: a parallel id, "null" (base), or "skip" (graded in raw comps, autograph mismatch, unclear).
+export function saleBucket(record, parallels, { raw = true } = {}) {
+  const title = String(record?.title || "");
+  if (raw && /\b(psa|bgs|sgc|cgc|csg|hga|tag)\s*-?\s*(\d{1,2}(\.5)?|auth)/i.test(title)) return "skip";
+  const tw = titleWords(title);
+  const hits = [];
+  for (const p of parallels || []) {
+    const dw = distinctWords(p.name);
+    if (!dw.length || !dw.every((w) => tw.has(w))) continue;
+    if (p.numberedTo && !new RegExp(`/\\s*${Number(p.numberedTo)}\\b`).test(title)) continue;
+    hits.push({ id: p.id, size: dw.length + (p.numberedTo ? 1 : 0) });
+  }
+  if (tw.has("autographs") && !hits.some((h) => distinctWords((parallels || []).find((p) => p.id === h.id)?.name).includes("autographs"))) return "skip";
+  if (!hits.length) return record?.parallel_id || "null";
+  const best = Math.max(...hits.map((h) => h.size));
+  const top = hits.filter((h) => h.size === best);
+  return top.length === 1 ? top[0].id : "skip";
 }
 
 // ---- Lookup by verified details (fallback when the photo match is a different card) ----
@@ -105,7 +153,8 @@ export async function cardsightFindByDetails(details) {
 
 // ---- Parallel comps: map the confirmed parallel name to CardSight's parallel for this card ----
 const FINISH_WORDS = new Set(["refractor", "prizm", "parallel", "foil"]);
-const wordSet = (v) => new Set(words(v).filter((w) => w !== "parallel"));
+// Ignore subset words ("Rated Rookie Blue Glitter" = "Blue Glitter"); keep finish words like Refractor/Prizm.
+const wordSet = (v) => new Set(words(v).filter((w) => !["parallel", "rated", "rookie", "rookies", "rc"].includes(w)));
 const sameSet = (a, b) => a.size === b.size && [...a].every((w) => b.has(w));
 
 // Exactly one CardSight parallel must fit (same words, same print run when known); otherwise no match.
