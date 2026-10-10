@@ -1938,9 +1938,15 @@ Strict rules:
       const finalStamp = serialValue(scanResult.serialNumber);
       const fullA = serialValue(combinedCheck?.stampedSerial);
       const fullB = serialValue(strongCheck?.stampedSerial);
-      const fullAgree = finalStamp && fullA && fullB &&
-        fullA.num === finalStamp.num && fullA.den === finalStamp.den &&
-        fullB.num === finalStamp.num && fullB.den === finalStamp.den;
+      // Two distinct full-card readers may corroborate a stamp even when
+      // the third reader returns no serial. A conflicting valid read always
+      // blocks confirmation; the catalog print run never counts as a read.
+      const fullReads = [mainSerial, fullA, fullB].filter(Boolean);
+      const matchingFullReads = finalStamp && fullReads.filter((read) =>
+        read.num === finalStamp.num && read.den === finalStamp.den).length;
+      const conflictingFullRead = finalStamp && fullReads.some((read) =>
+        read.num !== finalStamp.num || read.den !== finalStamp.den);
+      const fullAgree = Boolean(finalStamp && matchingFullReads >= 2 && !conflictingFullRead);
       const noConflictingMain = !mainSerial ||
         (mainSerial.num === finalStamp?.num && mainSerial.den === finalStamp?.den);
       const noConflictingCloseup = (!serialPhotoRetry?.serial ||
