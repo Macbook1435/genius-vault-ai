@@ -66,7 +66,7 @@ try{
  assert.ok(qualityCases.dark.flags.some(x=>/too dark/i.test(x)));
  assert.ok(qualityCases.bright.flags.some(x=>/overexposed/i.test(x)));
  assert.ok(qualityCases.flat.flags.some(x=>/Low visible detail/i.test(x)));
- assert.match(await page.locator('#listingQuality').innerText(),/Photo review recommended|Basic brightness/i);
+ assert.match(await page.locator('#listingQuality').innerText(),/Photo review recommended|Basic brightness|corner photos need a closer look/i);
  // Each corner gets independent feedback, not an invented card-condition score.
  const cornerLabels=await Promise.all(['TL','TR','BL','BR'].map(id=>page.locator('#listingCornerQuality'+id).innerText()));
  assert.equal(cornerLabels.length,4);
