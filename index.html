@@ -470,7 +470,7 @@ async function memberRefresh(){
   if(!r.ok)throw Error('Membership status is temporarily unavailable.');
   const d=await r.json(),plan=d.plan||null;
   const used=Number(d.used),remaining=Number(d.remaining),limit=Number(plan?.scan_limit);
-  const validUsage=Number.isFinite(used)&&used>=0&&Number.isFinite(remaining)&&remaining>=0&&Number.isFinite(limit)&&limit>=0;
+  const validUsage=Boolean(d.allowanceActive)&&Number.isFinite(used)&&used>=0&&Number.isFinite(remaining)&&remaining>=0&&Number.isFinite(limit)&&limit>=0;
   document.getElementById('memberLogin').hidden=true;
   document.getElementById('memberActions').hidden=false;
   document.getElementById('memberStatus').textContent='Signed in. Plan and allowance information comes from your account, not estimates.';
@@ -479,7 +479,7 @@ async function memberRefresh(){
   const end=plan?.period_end?new Date(plan.period_end):null;
   document.getElementById('memberPeriod').textContent=end&&!Number.isNaN(end.getTime())?'Current period ends '+end.toLocaleDateString():'No billing period available';
   document.getElementById('memberRemaining').textContent=validUsage?String(remaining):'—';
-  document.getElementById('memberUsed').textContent=validUsage?used+' of '+limit+' scans used':'No verified allowance data available';
+  document.getElementById('memberUsed').textContent=validUsage?used+' of '+limit+' scans used':'No active scan allowance';
   const meter=document.getElementById('memberMeter');
   meter.hidden=!validUsage||limit===0;
   if(!meter.hidden){
