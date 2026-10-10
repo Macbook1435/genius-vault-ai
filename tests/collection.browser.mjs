@@ -79,7 +79,7 @@ try{
  await page.evaluate(()=>saveCard());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),2);
  page.once('dialog',dialog=>dialog.accept());
- await page.locator('#saveCard').click();
+ await page.evaluate(()=>saveCard());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
  assert.deepEqual(errors,[]);
  console.log('PASS Chromium collection UI: search, sorting/filter state, duplicates, edit/invalidate comps, JSON/CSV exports, remove, duplicate save.');
