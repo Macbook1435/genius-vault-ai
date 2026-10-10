@@ -349,7 +349,39 @@ async function fetchWithTimeout(url, timeoutMs = 9000) {
   }
 }
 
-async function fetchSoldComps(query, card = null) {
+async // Conservative title audit: never count a vaguely similar sale as an exact comp.
+// Marketplace titles are seller-authored, so even a pass is a candidate, not proof.
+function auditSoldTitle(item, card) {
+  const title = String(item.title || "");
+  const normalized = " " + title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ";
+  const hasWords = (value) => {
+    const words = String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    return !words || normalized.includes(" " + words + " ");
+  };
+  const reasons = [];
+  const player = cleanPart(card.player);
+  const number = cleanPart(card.cardNumber).replace(/^#/, "");
+  const year = Number(card.year);
+  if (player && !hasWords(player)) reasons.push("Player name does not match.");
+  if (year && !new RegExp("\\b" + year + "\\b").test(title)) reasons.push("Year not confirmed in sale title.");
+  const brand = cleanPart(card.brand);
+  if (brand && !hasWords(brand)) reasons.push("Manufacturer missing or different.");
+  const set = cleanPart(card.set).replace(new RegExp("^" + brand.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\function fetchSoldComps(query, card = null) {") + "\\s+", "i"), "");
+  if (set && !hasWords(set)) reasons.push("Set not confirmed in sale title.");
+  if (number && !new RegExp("(?:^|[^a-z0-9])#?" + number.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\function fetchSoldComps(query, card = null) {") + "(?![a-z0-9])", "i").test(title)) reasons.push("Card number not confirmed.");
+  const run = Number(card.numberedTo);
+  if (run && !new RegExp("/\\s*" + run + "\\b").test(title)) reasons.push("Different or missing serial print run.");
+  const parallel = cleanPart(card.parallel);
+  if (parallel && !/^(unknown|unconfirmed|base|none)$/i.test(parallel) && !hasWords(parallel)) reasons.push("Exact parallel name not confirmed.");
+  if (card.autograph === true && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) reasons.push("Autograph not confirmed.");
+  if (card.autograph === false && /\\b(auto|autograph|signed|signature)\\b/i.test(title)) reasons.push("Autograph version differs.");
+  if (card.memorabilia === false && /\\b(patch|relic|jersey|memorabilia)\\b/i.test(title)) reasons.push("Memorabilia version differs.");
+  if (card.grade && (!hasWords(card.gradingCompany) || !hasWords(String(card.grade)))) reasons.push("Grade/slab differs.");
+  if (!card.grade && /\\b(psa|bgs|sgc|cgc)\\s*(?:\\d+(?:\\.\\d+)?|gem|mint|authentic)\\b/i.test(title)) reasons.push("Graded card; raw price cannot be compared.");
+  return { matched: reasons.length === 0, reasons, note: reasons.length ? reasons.join(" ") : "Title includes required card details; confirm sale independently." };
+}
+
+function fetchSoldComps(query, card = null) {
   const sourceUrl = buildEbaySoldUrl(query);
   const searchUrl = build130PointUrl(query);
 
@@ -387,44 +419,25 @@ async function fetchSoldComps(query, card = null) {
     }
 
     const html = await response.text();
-    const items = parseEbaySoldItems(html).filter((item) => {
-      if (!card) return true;
-      const title = item.title.toLowerCase();
-      const player = cleanPart(card.player).toLowerCase();
-      const number = cleanPart(card.cardNumber).replace(/^#/, "");
-      const run = Number(card.numberedTo);
-      // Never value a numbered autograph using a different player's,
-      // different print-run, or non-autograph sold listing.
-      if (player && !title.includes(player)) return false;
-      if (number && !new RegExp(`(?:#|\\b)${number}\\b`, "i").test(title)) return false;
-      if (run && !new RegExp(`/\\s*${run}\\b`).test(title)) return false;
-      if (card.autograph && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) return false;
-      // Reject listings explicitly labeled as another parallel. A matching /print
-      // run is necessary but not sufficient: different parallels can share it.
-      // If the listing omits the parallel entirely, exclude it from the median
-      // rather than guessing which version sold.
-      const expectedParallel = cleanPart(card.parallel).toLowerCase();
-      if (expectedParallel && !/^(unknown|unconfirmed|base|none)$/.test(expectedParallel)) {
-        const normalizeParallel = (v) => v.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
-        const expected = normalizeParallel(expectedParallel);
-        const listing = normalizeParallel(title);
-        const aliases = expected === "black and white" ? ["black and white", "black white", "b w"] : [expected];
-        if (!aliases.some((alias) => (" " + listing + " ").includes(" " + alias + " "))) return false;
-      }
-      return true;
-    });
+    const candidates = parseEbaySoldItems(html);
+    const audited = candidates.map((item) => ({ ...item, match: auditSoldTitle(item, card || {}) }));
+    const items = audited.filter((item) => item.match.matched);
+    const excluded = audited.filter((item) => !item.match.matched).slice(0, 8)
+      .map((item) => ({ title: item.title, reasons: item.match.reasons }));
+
 
     return {
       ...calculateCompStats(items),
       currency: "USD",
       items,
+      matchAudit: { candidateCount: candidates.length, acceptedCount: items.length, excluded },
       source: "ebay_sold",
       sourceUrl,
       searchUrl,
       status: items.length ? "comps_found" : "no_comps_found",
       error: items.length
         ? null
-        : "No sold listings could be auto-parsed.",
+        : "No exact title-matched sold records found; insufficient verified sales.",
     };
   } catch (error) {
     return {
