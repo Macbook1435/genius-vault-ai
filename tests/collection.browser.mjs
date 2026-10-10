@@ -55,6 +55,19 @@ try{
  const frame=await page.evaluate(()=>listingFrame);
  assert.ok(frame.x>40 && frame.x<100 && frame.width>130 && frame.width<210,'Expected conservative interior crop');
  assert.equal(await page.locator('#listingCorners').isVisible(),true,'Corner previews should appear after framing');
+ const qualityCases=await page.evaluate(()=>{
+  const sample=color=>{
+   const c=document.createElement('canvas');c.width=100;c.height=140;
+   const ctx=c.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,100,140);
+   return listingPhotoQuality(c,{x:0,y:0,width:100,height:140});
+  };
+  return {dark:sample('#121212'),bright:sample('#fefefe'),flat:sample('#888888')};
+ });
+ assert.ok(qualityCases.dark.flags.some(x=>/too dark/i.test(x)));
+ assert.ok(qualityCases.bright.flags.some(x=>/overexposed/i.test(x)));
+ assert.ok(qualityCases.flat.flags.some(x=>/Low visible detail/i.test(x)));
+ assert.match(await page.locator('#listingQuality').innerText(),/Photo review recommended|Basic brightness/i);
+
  for(const id of ['TL','TR','BL','BR']){
   const pixels=await page.locator('#listingCorner'+id).evaluate(canvas=>Array.from(canvas.getContext('2d').getImageData(120,120,1,1).data));
   assert.ok(pixels[3]>0,'Corner '+id+' must contain visible pixels');
