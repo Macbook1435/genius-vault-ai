@@ -1,231 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Genius Vault AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0b0f19;
-      color: white;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-
-    h1 {
-      color: #00ff88;
-    }
-
-    .hero-img {
-      width: 100%;
-      max-width: 420px;
-      border-radius: 18px;
-      margin-bottom: 20px;
-    }
-
-    .box {
-      background: #151b2b;
-      padding: 18px;
-      border-radius: 14px;
-      margin: 15px 0;
-      text-align: left;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      background: #00c853;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    #preview {
-      max-width: 320px;
-      width: 100%;
-      display: none;
-      margin: 15px auto;
-      border-radius: 12px;
-    }
-
-    .result {
-      background: #101828;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 15px;
-      white-space: pre-wrap;
-    }
-.scanner-frame {
-  position: relative;
-  width: 280px;
-  height: 390px;
-  margin: 20px auto;
-  border-radius: 20px;
-}
-
-.scanner-frame span {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border: 4px solid white;
-}
-
-.scanner-frame span:nth-child(1) {
-  top: 0;
-  left: 0;
-  border-right: none;
-  border-bottom: none;
-}
-
-.scanner-frame span:nth-child(2) {
-  top: 0;
-  right: 0;
-  border-left: none;
-  border-bottom: none;
-}
-
-.scanner-frame span:nth-child(3) {
-  bottom: 0;
-  left: 0;
-  border-right: none;
-  border-top: none;
-}
-
-.scanner-frame span:nth-child(4) {
-  bottom: 0;
-  right: 0;
-  border-left: none;
-  border-top: none;
-}
-  .preview-container {
-  position: relative;
-  width: 280px;
-  height: 390px;
-  margin: 20px auto;
-}
-
-.preview-container #preview {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.05);
-  object-position: center;
-  display: block;
-  border-radius: 12px;
-  position: relative;
-  top: 0;
-  left: 0;
-  z-index: 5;
-}
- 
-.preview-container .scanner-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  z-index: 10;
-}
-.manual-search-button {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 16px;
-  padding: 18px 14px;
-  border-radius: 14px;
-  background: #00d95a;
-  color: #061019;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0.4px;
-  text-align: center;
-  text-decoration: none;
-}
-    
-  </style>
-</head>
-
-<body>
-  <div class="container">
-
-    <h1>Genius Vault AI</h1>
-    <p>AI Sports Card Scanner + Profit Generator</p>
-
-  <div class="box">
-  <h2>1. Upload Card Image</h2>
-
-  <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
-  
-<label style="display:block;margin-top:10px;">Upload Back of Card</label>
-<input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()">
-
-<label style="display:block;margin-top:10px;">Optional: Close-up of Serial Number (e.g. 06/10)</label>
-<input type="file" id="serialUpload" accept="image/*" onchange="previewSerialImage()">
-<img id="serialPreview" style="max-width:200px;width:100%;display:none;margin:10px auto;border-radius:12px;">
-
-<img id="backPreview" style="max-width:320px;width:100%;display:none;margin:15px auto;border-radius:12px;">
-  <div class="preview-container">
-    
-     <img id="preview">
-    
-     <div class="scanner-frame">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-     </div>
-        
-    
-    
-  </div>
-    
-  </div>
-
-  <button onclick="aiScan()">RUN AI SCAN</button>
-</div>
-    <div class="box">
-      <h2>4. TikTok Generator</h2>
-      <button onclick="generateTikTok()">GENERATE TIKTOK POST</button>
-      <div id="tiktokBox" class="result">TikTok post will appear here...</div>
-    </div>
-
-    <div class="box">
-      <h2>5. eBay Generator</h2>
-      <button onclick="generateEbay()">GENERATE EBAY LISTING</button>
-      <div id="ebayBox" class="result">eBay listing will appear here...</div>
-    </div>
-
-    <div class="box">
-      <h2>AI Scan Output</h2>
-      <div id="output" class="result">Upload a card and press RUN AI SCAN.</div>
-    </div>
-
-  </div>
-
-<script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101719"><meta name="description" content="Genius Vault: identify sports cards, check exact sold comps and organize your collection."><title>Genius Vault · Card intelligence</title><style>
+:root{--bg:#f3f5f2;--ink:#142725;--muted:#71807a;--lime:#d9f879;--line:#e1e7df}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}button,input,select{font:inherit}button,a,label.upload{touch-action:manipulation}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #608d1d;outline-offset:3px}[hidden]{display:none!important}header{background:#112a27;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center}.brand{display:flex;gap:11px;align-items:center;font-weight:750;font-size:21px;letter-spacing:-.7px}.logo{border:1px solid #9acb76;border-radius:11px;width:37px;height:37px;display:grid;place-items:center;color:var(--lime);font-size:15px}.brand small{display:block;font-size:10px;letter-spacing:2px;color:#a8c0b5}.private{font-size:12px;color:#b9c9c3}nav{display:flex;gap:8px;margin:0 auto;padding:20px 0;max-width:1180px;border-bottom:1px solid var(--line)}nav button{border:0;background:transparent;color:var(--muted);padding:10px 20px;border-radius:24px;font-weight:650}nav .selected{background:#142f2a;color:white}main{max-width:1180px;margin:auto;padding:30px 0 60px}.heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:28px}.eyebrow{font-size:11px;font-weight:750;letter-spacing:2px;color:#5c755e}h1{font-size:clamp(28px,4vw,42px);letter-spacing:-1.7px;line-height:1.15;margin:8px 0 12px}h2{font-size:21px;letter-spacing:-.5px;margin:0}h3{font-size:15px;margin:0 0 14px}.muted,small{color:var(--muted)}p{margin:8px 0}.workspace{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start}.panel{background:white;border:1px solid var(--line);border-radius:22px;padding:24px}.scanner{background:#142c28;color:white;border:0}.scanner .muted,.scanner small{color:#adc2b8}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.step{border-radius:50%;background:#2c473d;width:28px;height:28px;display:grid;place-items:center;color:var(--lime);font-size:12px}.photo-stage{height:340px;margin:18px 0;background:radial-gradient(ellipse at center,#314d3e,#1b352d);border-radius:18px;position:relative;display:grid;place-items:center;overflow:hidden}.photo-stage:before{content:'';position:absolute;inset:28px 49px;border:1px solid #a9c875;border-radius:12px;pointer-events:none}.photo-stage img{max-width:100%;max-height:320px;object-fit:contain;z-index:1}.placeholder{position:absolute;text-align:center;padding:60px;pointer-events:none}.card-symbol{width:63px;height:86px;border:1px solid #bad48c;border-radius:8px;display:grid;place-items:center;transform:rotate(-8deg);margin:0 auto 18px;color:#d9f879;font-weight:bold;font-size:21px;background:#294534}.photo-stage img[src]+.placeholder{display:none}input[type=file]{width:100%;font-size:12px;padding:10px 0;color:#d1dfd8}input[type=file]::file-selector-button{background:#29493c;border:1px solid #547463;border-radius:8px;color:white;padding:8px 12px;margin-right:9px;cursor:pointer}.primary,.secondary,.text-button{border:0;border-radius:11px;padding:12px 18px;font-weight:700}.primary{background:var(--lime);color:#173128}.wide{width:100%;margin-top:18px}.secondary{background:#eff3ed;color:#294238;border:1px solid #dee6d8}.text-button{background:transparent;color:#66786d;font-size:12px}.upload-row{border-top:1px solid #365044;padding-top:12px;margin-top:12px}.upload-row img{max-height:120px;object-fit:contain}details{margin-top:14px}summary{cursor:pointer;font-size:12px;color:#adc2b8}.badge{font-size:11px;border-radius:20px;background:#eef4e2;padding:6px 10px;white-space:nowrap;color:#5f7538}.empty{padding:65px 30px;text-align:center;background:#f6f8f3;border:1px dashed #d7dfd1;border-radius:16px;color:#71806a}.identity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.identity-field{border-bottom:1px solid var(--line);padding-bottom:15px}.identity-field small{display:block;font-size:10px;letter-spacing:1px}.identity-field strong{display:block;margin:5px 0;font-size:14px}.confirmed,.unconfirmed{font-size:10px}.confirmed{color:#377855}.unconfirmed{color:#a87726}.tags{display:flex;gap:6px;margin:15px 0}.tags span{font-size:11px;background:#eef4e8;border-radius:6px;padding:4px 8px}.values{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.value{border-radius:15px;background:#eef4e8;padding:18px}.value:nth-child(2){background:#f3f4f1}.value small{display:block;font-size:10px;letter-spacing:1px}.value strong{font-size:28px;letter-spacing:-1px;display:block;margin:7px 0}.value p{font-size:11px;color:#6b7c68}.sale{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}.sale strong{font-size:12px;display:block}.sale small{font-size:10px}.sale b{white-space:nowrap}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.links a{font-size:12px;text-decoration:none}input[type=text],input[type=number]{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0;color:var(--ink);background:#fafbf9}.review{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}pre,.result{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 inherit}pre{font-family:inherit;color:var(--muted);font-size:11px}.lower{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}.lower .panel{padding:22px}.result{padding:15px;background:#f6f8f3;border-radius:10px;margin-top:16px;min-height:70px}.saved-card{display:flex;gap:20px;align-items:center;padding:22px;border-bottom:1px solid var(--line)}.saved-card .card-symbol{width:40px;height:56px;min-width:40px;margin:0;font-size:13px}.saved-card div:nth-child(2){flex:1}.saved-card p,.saved-card small{font-size:12px}footer{color:#859487;text-align:center;font-size:11px;padding:20px}#notice{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#18392c;color:white;border-radius:12px;padding:12px 22px;z-index:10;box-shadow:0 10px 30px #0002}#notice:empty{display:none}@media(max-width:1240px){nav,main{margin-left:4%;margin-right:4%}}@media(max-width:780px){.workspace{grid-template-columns:1fr}.lower{grid-template-columns:1fr}.heading{display:block}.heading .text-button{padding-left:0}.photo-stage{height:300px}.identity-grid{grid-template-columns:repeat(2,1fr)}.panel{padding:19px}.saved-card{gap:12px;flex-wrap:wrap}.private{display:none}.values .value strong{font-size:23px}}
+</style></head><body><header><div class="brand"><span class="logo">GV</span><div>Genius Vault<small>BY KOOLLICKS VAULT</small></div></div><span class="private">Your cards. Your next move.</span></header><nav aria-label="Main"><button data-view="scanner" class="selected" onclick="switchView('scanner')">Scanner</button><button data-view="collection" onclick="switchView('collection')">My collection <span id="collectionCount">0</span></button></nav><main><section id="scanner" class="view"><div class="heading"><div><span class="eyebrow">CARD INTELLIGENCE</span><h1>Know what’s in your hands.</h1><p class="muted">Identify the card. Check the sales. Make your next move.</p></div><button class="text-button" onclick="resetScan()">＋ Start a new scan</button></div><div class="workspace"><aside class="panel scanner"><div class="panel-head"><h2>Scan your card</h2><span class="step">01</span></div><p class="muted">Clear photos make a better match.</p><div class="photo-stage"><img id="preview" alt="Front of your card" style="display:none"><div class="placeholder"><div class="card-symbol">GV</div><small>Add the front of your card<br>Keep all four corners visible.</small></div></div><label for="imageUpload">Front photo</label><input type="file" id="imageUpload" accept="image/*" onchange="previewImage()"><div class="upload-row"><label for="backImageUpload">Back photo <small> · Recommended</small></label><input type="file" id="backImageUpload" accept="image/*" onchange="previewBackImage()"><img id="backPreview" alt="Back of your card" style="display:none"></div><details id="serialDetails"><summary>Add a serial-number close-up</summary><input aria-label="Serial-number photo" type="file" id="serialUpload" accept="image/*" onchange="previewSerialImage()"><img id="serialPreview" alt="Serial number close-up" style="display:none"></details><button id="scanButton" class="primary wide" onclick="aiScan()">Identify card</button><small style="display:block;text-align:center;margin-top:12px">Year · Set · Parallel · Sold comps</small></aside><section class="panel"><div class="panel-head"><div><h2 id="resultTitle">Card intelligence</h2><p id="resultSubtitle" class="muted">One card. A clearer picture.</p></div><span class="badge" id="resultBadge">Ready to scan</span></div><div id="emptyResult" class="empty">Your card details and market snapshot will appear here.</div><div id="resultBody" hidden><div id="output"></div><div id="parallelSlot"></div><div class="values"><div class="value"><small>RAW SOLD MARKET</small><strong id="rawValue">—</strong><p id="rawDetail"></p></div><div class="value"><small>GRADE / SLAB</small><strong id="gradedValue">—</strong><p id="gradedDetail"></p></div></div><h3>Recent sold records</h3><div id="sales"></div><div class="links"><a id="ebaySold" class="primary" target="_blank" rel="noopener noreferrer">View eBay sold listings ↗</a><a id="pointSold" class="secondary" target="_blank" rel="noopener noreferrer">130Point sales ↗</a></div><details class="review"><summary style="color:#5e7662">Search phrase and asking prices</summary><input id="searchCopyBox" aria-label="Sold-search phrase" type="text" readonly><button class="secondary" onclick="copySearchText()">Copy phrase</button><p id="activeAsks" class="muted"></p></details><details class="review"><summary style="color:#5e7662">Identity checks and condition review</summary><pre id="verification"></pre><p class="muted">Inspect centering, corners, edges and surface under good light. A photo does not establish a PSA grade; grading and graded value stay unavailable unless supported data is returned.</p></details></div><button id="saveCard" class="secondary wide" disabled onclick="saveCard()">＋ Save to my collection</button><small style="display:block;margin-top:8px;text-align:center">Saved on this browser and device.</small></section></div><div class="lower"><section class="panel"><span class="eyebrow">SHARE YOUR FIND</span><h2 style="margin:8px 0 16px">TikTok post</h2><button class="secondary" onclick="generateTikTok()">Create post + first comment</button><button class="text-button" onclick="copyText(document.getElementById('tiktokBox').textContent)">Copy</button><div class="result" id="tiktokBox">Your post will appear here.</div></section><section class="panel"><span class="eyebrow">READY TO LIST</span><h2 style="margin:8px 0 16px">eBay listing</h2><button class="secondary" onclick="generateEbay()">Create listing draft</button><button class="text-button" onclick="copyText(document.getElementById('ebayBox').textContent)">Copy</button><div class="result" id="ebayBox">Your listing will appear here.</div></section></div></section><section id="collection" class="view" hidden><div class="heading"><div><span class="eyebrow">MY COLLECTION</span><h1>Your corner of the hobby.</h1><p class="muted">Saved identifications and market snapshots from this device.</p></div><button class="secondary" onclick="exportCollection()">Export collection</button></div><div id="collectionItems" class="panel"></div></section></main><footer>Genius Vault · Koollicks Vault · Prices reflect returned sale records, not guaranteed offers.</footer><div id="notice" role="status" aria-live="polite"></div><script>
 function previewImage() {
   const file = document.getElementById("imageUpload").files[0];
   const preview = document.getElementById("preview");
@@ -293,110 +68,50 @@ function compressImage(file) {
   });
 }
 async function aiScan() {
-  const fileInput = document.getElementById("imageUpload");
-  const backFileInput = document.getElementById("backImageUpload");
-  const file = fileInput.files[0];
-  const backFile = backFileInput.files[0];
-  const output = document.getElementById("output");
-
-  if (!file) {
-    alert("Upload a card photo first");
-    return;
-  }
-
-  output.innerHTML = "Scanning card with OpenAI AI Vision...";
-
-  const frontBlob = await compressImage(file);
-  const formData = new FormData();
-  formData.append("image", frontBlob, "front.jpg");
-
-  if (backFile) {
-    const backBlob = await compressImage(backFile);
-    formData.append("back", backBlob, "back.jpg");
-  }
-
-  const serialFile = document.getElementById("serialUpload").files[0];
-  if (serialFile) {
-    const serialBlob = await compressImage(serialFile);
-    formData.append("serial", serialBlob, "serial.jpg");
-  }
-
-  try {
-    const response = await fetch("/api/scan", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await response.json();
-    window.gvLast = data;
-    window.gvOrigParallel = data.scan?.parallel || "";
-    renderScan(data);
-
-  } catch (error) {
-    console.error(error);
-    output.innerHTML = error.message || "AI scan failed.";
-  }
+ const front=document.getElementById('imageUpload').files[0], back=document.getElementById('backImageUpload').files[0], serial=document.getElementById('serialUpload').files[0];
+ if(!front){notice('Add a front photo first.');return;}
+ const button=document.getElementById('scanButton'); button.disabled=true; button.textContent='Identifying your card…';
+ for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=true;
+ window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Reading card details and checking matching sales…';
+ try {
+ const form=new FormData();
+ for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file)form.append(key,await compressImage(file),key+'.jpg');
+ const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),180000);
+ let response;try{response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal});}finally{clearTimeout(timer);}
+ const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||'Scan failed. Please try again.');
+ if(!data.scan)throw new Error('No card identification returned. Try clear front and back photos.');
+ window.gvLast=data;window.gvOrigParallel=data.scan.parallel||'';renderScan(data);notice('Scan ready. Check any unconfirmed details.');
+ }catch(e){document.getElementById('emptyResult').textContent=e.name==='AbortError'?'Scan timed out. Please try again.':e.message;notice('The scan did not complete.');}
+ finally{button.disabled=false;button.textContent='Identify card';for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=false;}
 }
 // Renders the scan output. Called again when the user picks a parallel.
 function renderScan(data) {
-  const output = document.getElementById("output");
-    let results = data.results || "No scan result returned.";
-    const card = data.scan || {};
-const comps = data.comps || {};
-    if (data.scan) {
-  results = [
-    `Player: ${card.player || "Not identified"}`,
-    `Year: ${card.year || "Not identified"}`,
-    `Brand / Set: ${[card.brand, card.set].filter(Boolean).join(" ") || "Not identified"}`,
-    `Card Number: ${card.cardNumber || "Not identified"}`,
-    `Parallel / Insert: ${card.parallel || (data.pipeline?.fields?.parallel?.status === "confirmed" && data.pipeline.fields.parallel.value === "Base" ? "Base" : "Not identified")}`,
-    `Numbered: ${card.serialNumber && !data.pipeline?.fields?.serial?.printRunConfirmed ? card.serialNumber : card.numberedTo ? `/${card.numberedTo}` : "Not identified"}`,
-    `Autograph: ${card.autograph ? "Yes" : "No"}`,
-    `Rookie: ${card.rookie ? "Yes" : "No"}`,
-    `Listing Title: ${data.soldComps?.query || "Needs review — confirm card details first"}`,
-    `Estimated Value Range: ${comps.count ? `$${comps.min}–$${comps.max} (${comps.count} sold listings; verify matches)` : "No sold prices auto-loaded"}`,
-    `Sold comps status: ${comps.error || "No error reported"}`,
-    `Verification: ${data.verification?.status || "needs_review"}${data.verification?.warnings?.length ? " — " + data.verification.warnings.join(" ") : ""}`,
-  `Confidence: ${data.confidence || "Not available"}`,
-    `Notes: ${card.notes || "None"}`,
-    ...fieldCheckLines(data)
-  ].join("\n");
+ const card=data.scan||{}, comps=data.comps||{}, fields=data.pipeline?.fields||{};
+ const field=(key,label,value)=>`<div class="identity-field"><small>${label}</small><strong>${escHtml(value||'Unconfirmed')}</strong><span class="${fields[key]?.status==='confirmed'?'confirmed':'unconfirmed'}">${fields[key]?.status==='confirmed'?'Confirmed':'Unconfirmed'}</span></div>`;
+ const query=data.soldComps?.query||'';
+ document.getElementById('resultTitle').textContent=card.player||'Card needs review';
+ document.getElementById('resultSubtitle').textContent=[card.year,card.brand,card.set].filter(Boolean).join(' ')||'Review the identification below';
+ document.getElementById('resultBadge').textContent=data.verification?.status==='verified'?'Identity verified':'Review identity';
+ document.getElementById('emptyResult').hidden=true;
+ document.getElementById('resultBody').hidden=false;
+ document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}</div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}</div>`;
+ document.getElementById('rawValue').textContent=comps.count?money(comps.median,comps.currency):'No sales yet';
+ document.getElementById('rawDetail').textContent=comps.count?`${comps.count} sold records · ${money(comps.min,comps.currency)} – ${money(comps.max,comps.currency)}`:'Upload and verify the exact card to find matching sales.';
+ document.getElementById('gradedValue').textContent=card.grade?`${card.gradingCompany||'Graded'} ${card.grade}`:'Not available';
+ document.getElementById('gradedDetail').textContent=card.grade?'Visible slab grade; raw sale prices are separate.':'No supported grade estimate or graded comps returned.';
+ document.getElementById('sales').innerHTML=(comps.items||[]).slice(0,8).map(i=>`<a class="sale" href="${safeUrl(i.url)}" target="_blank" rel="noopener noreferrer"><div><strong>${escHtml(i.title||'Sold card')}</strong><small>${escHtml(i.date||'Date unavailable')} · ${escHtml(comps.source||'Sale record')}</small></div><b>${money(i.price,comps.currency)}</b></a>`).join('')||'<p class="muted">No matching sold records loaded. Use the sold searches below and check the year, set, parallel, serial and condition.</p>';
+ document.getElementById('parallelSlot').innerHTML=parallelPickerHtml(data);
+ const ebay='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(query)+'&LH_Sold=1&LH_Complete=1';
+ for(const [id,url] of [['ebaySold',ebay],['pointSold','https://130point.com/sales/?search='+encodeURIComponent(query)]]){const a=document.getElementById(id);a.href=url;a.hidden=!query;}
+ document.getElementById('searchCopyBox').value=query;
+ document.getElementById('verification').textContent=[...(data.verification?.warnings||[]),comps.error||'',...fieldCheckLines(data)].join('\n');
+ document.getElementById('serialDetails').open=Boolean(data.pipeline?.serialCloseup?.needed);
+ const active=data.market?.active;
+ document.getElementById('activeAsks').textContent=active?.count?`Active asking prices: ${money(active.low)} – ${money(active.high)} across ${active.count} listings. These are not sold prices.`:'Active asking prices: none loaded.';
+ document.getElementById('saveCard').disabled=false;
 }
-
-
-
-  const searchText = (data.soldComps?.query || "sports card").trim();
-
-    const pointUrl =
-      "https://130point.com/sales/?search=" + encodeURIComponent(searchText);
-
-    output.innerHTML =
-      results.replace(/\n/g, "<br>") +
-      `<br><br>
-      <div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
-        <b style="color:#00ff88;">COPY SEARCH PHRASE:</b><br><br>
-        <input
-          type="text"
-          value="${searchText.replace(/"/g, "&quot;")}"
-          id="searchCopyBox"
-          readonly
-          style="width:100%;padding:10px;border-radius:8px;border:none;font-size:16px;margin-bottom:10px;"
-        >
-        <button onclick="copySearchText()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">
-          COPY SEARCH PHRASE
-        </button>
-        <br><br>
-        <a href="${pointUrl}" target="_blank" style="color:#00ff88;font-weight:bold;text-decoration:none;">
-          Open 130Point Sold Comps
-        </a>
-      </div>`;
-
-  // Put the parallel menu right under the results, above the search-phrase box.
-  const pickerHtml = parallelPickerHtml(data);
-  const searchBox = output.querySelector("#searchCopyBox")?.closest("div");
-  if (searchBox) searchBox.insertAdjacentHTML("beforebegin", pickerHtml);
-  else output.insertAdjacentHTML("beforeend", pickerHtml);
-}
+function money(n,currency='USD'){return Number.isFinite(Number(n))&&n!==null?new Intl.NumberFormat('en-US',{style:'currency',currency:currency||'USD'}).format(Number(n)):'Unavailable';}
+function safeUrl(v){try{const u=new URL(v);return /^https?:$/.test(u.protocol)?escHtml(u.href):'#';}catch{return '#';}}
 
 const escHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -409,10 +124,9 @@ function parallelPickerHtml(data) {
   const top = (pk.suggestedIds || []).map((id) => pk.options.find((o) => o.id === id)).filter(Boolean);
   const rest = pk.options.filter((o) => !sugg.has(o.id));
   const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
-  const sales = (data.comps?.items || []).slice(0, 5).map((i) =>
-    `<div style="font-size:14px;margin:4px 0;">$${Number(i.price).toFixed(2)} | ${escHtml((i.date || "").slice(0, 10))} | <a href="${escHtml(i.url)}" target="_blank" style="color:#00ff88;">${escHtml((i.title || "sale").slice(0, 60))}</a></div>`).join("");
-  return `<div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
-    <b style="color:#00ff88;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
+  const sales = "";
+  return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#eef4e8;border-radius:12px;">
+    <b style="color:#326748;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
     ${pk.needsPick ? `<div style="margin:8px 0;">${escHtml(pk.reason || "The scanner is not sure which parallel this is.")} Pick the parallel on your card below.</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
       <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card...</option>
@@ -473,7 +187,7 @@ function fieldCheckLines(data) {
       const val = f.value === null || f.value === undefined ? "—" : f.value;
       lines.push(`${names[k] || k} check: ${f.status === "confirmed" ? "Confirmed" : "Unconfirmed"} (${val}) — ${f.basis}`);
     }
-    lines.push(`Unconfirmed: ${p.unconfirmed.length ? p.unconfirmed.map(k => names[k] || k).join(", ") : "None"}`);
+    lines.push(`Unconfirmed: ${(p.unconfirmed||[]).length ? p.unconfirmed.map(k => names[k] || k).join(", ") : "None"}`);
     if (p.serialCloseup?.needed) lines.push(`Serial close-up: Recommended — ${p.serialCloseup.reason}`);
     else if (p.serialCloseup?.optional) lines.push(`Serial close-up: ${p.serialCloseup.reason}`);
   }
@@ -492,9 +206,7 @@ function copySearchText() {
   copyInput.select();
   copyInput.setSelectionRange(0, 99999);
 
-  navigator.clipboard.writeText(copyInput.value);
-
-  alert("Search phrase copied!");
+  copyText(copyInput.value);
 }
  
 
@@ -512,9 +224,9 @@ Estimated Profit: $${profit.toFixed(2)}`;
 }
 
 function getScanText() {
-  return document.getElementById("output").innerText || "";
+ const d=window.gvLast;if(!d?.scan)return '';const c=d.scan;
+ return [`Player: ${c.player||'Not identified'}`,`Year: ${c.year||'Not identified'}`,`Brand / Set: ${[c.brand,c.set].filter(Boolean).join(' ')}`,`Card Number: ${c.cardNumber||'Not identified'}`,`Parallel / Insert: ${c.parallel||d.pipeline?.fields?.parallel?.value||'Not identified'}`,`Numbered: ${c.serialNumber||(c.numberedTo?'/'+c.numberedTo:'Not identified')}`,`Rookie: ${c.rookie?'Yes':'No'}`,`Autograph: ${c.autograph?'Yes':'No'}`,`Verification: ${d.verification?.status||'needs_review'}`,`Estimated Value Range: ${d.comps?.count?money(d.comps.min)+'–'+money(d.comps.max):'No sold prices auto-loaded'}`,...fieldCheckLines(d)].join('\n');
 }
-
 function getLine(label, scanText) {
   const line = scanText
     .split("\n")
@@ -525,36 +237,31 @@ function getLine(label, scanText) {
 }
 
 function generateTikTok() {
-  const scan = getScanText();
+ const d=window.gvLast;if(!d?.scan){notice('Scan a card first.');return;}
+ if(d.verification?.status==='rejected'||d.verification?.status==='needs_review'||(d.pipeline?.unconfirmed||[]).length){document.getElementById('tiktokBox').textContent='Confirm the card identity before generating a post.';return;}
+ const c=d.scan;const identity=[c.year,c.brand,c.set,c.player,c.cardNumber?'#'+c.cardNumber:'',c.parallel,c.serialNumber||(c.numberedTo?'/'+c.numberedTo:'')].filter(Boolean).join(' ');
+ const market=d.comps?.count?`Returned sold records range from ${money(d.comps.min)} to ${money(d.comps.max)}. Exact matches and condition still matter.`:'The exact sold market still needs a closer look.';
+ document.getElementById('tiktokBox').textContent=`Fresh from Koollicks Vault: ${identity}.
 
-  const player = getLine("Player", scan);
-  const year = getLine("Year", scan);
-  const brand = getLine("Brand / Set", scan);
-  const parallel = getLine("Parallel / Insert", scan);
-  const numbered = getLine("Numbered", scan);
-  const value = getLine("Estimated Value Range", scan);
-  const hashtags = getLine("Hashtags", scan);
+Taking a closer look at the details that make each card its own collectible — the set, finish, numbering and condition. ${market}
 
-  document.getElementById("tiktokBox").innerHTML =
-`🔥 Fresh scan from Genius Vault AI 🔥
-This is a ${year} ${brand} ${player} ${parallel} ${numbered} sports card, and this one has serious collector appeal. Cards like this are exactly why the hobby is fun — rookie heat, parallel shine, limited numbering, and a player collectors are watching closely.
+Would you keep this in your personal collection, send it for grading, or put it up for sale? Share what you look for when deciding your next move in the hobby.
 
-Estimated value range: ${value}
+Find more at @koollicksvault and koollicksvault.com.
 
-Would you grade this, sell it now, or hold it in the vault and wait for the market to move? Drop your opinion below because I want to know what the card community thinks.
+#KoollicksVault #SportsCards #CardCollector #TradingCards #TheHobby
 
 First comment:
-Would you list this card or keep it in the vault?
-
-${hashtags || "#sportscards #footballcards #thehobby #rookiecards #cardcollector"}`;
+Keep, grade, or sell — what would you do with this one?`;
 }
 
 function generateEbay() {
   const scan = getScanText();
+  if (!scan) { notice("Scan a card first."); return; }
 
   const verification = getLine("Verification", scan).toLowerCase();
-  if (verification.startsWith("rejected") || verification.startsWith("needs_review")) {
-    document.getElementById("ebayBox").innerHTML =
+  if (!window.gvLast?.scan || verification.startsWith("rejected") || verification.startsWith("needs_review") || (window.gvLast.pipeline?.unconfirmed||[]).length) {
+    document.getElementById("ebayBox").textContent =
 `Listing blocked: the scan details could not be verified.
 
 ${getLine("Verification", scan)}
@@ -589,7 +296,7 @@ Rescan the front and back straight-on in bright light, then try again.`;
     ? `CHECK BEFORE POSTING — unconfirmed: ${unconf}. Compare these against the card or a checklist.\n\n`
     : "";
 
-  document.getElementById("ebayBox").innerHTML = `${checkNote}Title:
+  document.getElementById("ebayBox").textContent = `${checkNote}Title:
 
 ${title}
 
@@ -612,7 +319,17 @@ ${priceLine}
 
 Ships protected with care.`;
 }
-</script>
 
-</body>
-</html>
+function notice(message){const el=document.getElementById('notice');el.textContent=message;clearTimeout(window.noticeTimer);window.noticeTimer=setTimeout(()=>el.textContent='',6000);}
+async function copyText(value){try{await navigator.clipboard.writeText(value);notice('Copied.');}catch{notice('Copy unavailable. Select the text and copy it.');}}
+function switchView(view){document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!==view);document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('selected',el.dataset.view===view));if(view==='collection')renderCollection();}
+function readCollection(){try{return JSON.parse(localStorage.getItem('gv-collection-v3')||'[]');}catch{return [];}}
+function saveCard(){if(!window.gvLast?.scan)return;try{const list=readCollection();list.unshift({id:crypto.randomUUID(),savedAt:new Date().toISOString(),data:window.gvLast});localStorage.setItem('gv-collection-v3',JSON.stringify(list));notice('Saved to your collection on this device.');updateCount();}catch{notice('Could not save. Device storage may be full.');}}
+function updateCount(){document.getElementById('collectionCount').textContent=readCollection().length;}
+function renderCollection(){const list=readCollection();document.getElementById('collectionItems').innerHTML=list.map(item=>`<article class="saved-card"><div class="card-symbol">GV</div><div><strong>${escHtml(item.data.scan.player||'Unidentified card')}</strong><p>${escHtml([item.data.scan.year,item.data.scan.set,item.data.scan.parallel].filter(Boolean).join(' · '))}</p><small>${new Date(item.savedAt).toLocaleDateString()} · ${escHtml(item.data.verification?.status||'needs_review')}</small></div><button class="secondary" data-load="${escHtml(item.id)}">Open</button><button class="text-button" data-delete="${escHtml(item.id)}" aria-label="Remove saved card">Remove</button></article>`).join('')||'<div class="empty">Your collection starts with your first scan.<br><small>Saved cards stay on this browser and device.</small></div>';}
+document.getElementById('collectionItems').addEventListener('click',e=>{const id=e.target.dataset.load||e.target.dataset.delete;if(!id)return;const list=readCollection();if(e.target.dataset.load){const item=list.find(x=>x.id===id);resetScan();window.gvLast=item.data;window.gvOrigParallel=item.data.scan?.parallel||'';renderScan(item.data);switchView('scanner');}else{try{localStorage.setItem('gv-collection-v3',JSON.stringify(list.filter(x=>x.id!==id)));renderCollection();updateCount();}catch{notice('Could not remove this card.');}}});
+function exportCollection(){const blob=new Blob([JSON.stringify(readCollection(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='genius-vault-collection.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function resetScan(){if(document.getElementById('scanButton').disabled){notice('Wait for the scan to finish.');return;}window.gvLast=null;for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).value='';for(const id of ['preview','backPreview','serialPreview']){const el=document.getElementById(id);el.removeAttribute('src');el.style.display='none';}document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Your card details and market snapshot will appear here.';document.getElementById('resultBody').hidden=true;document.getElementById('resultTitle').textContent='Card intelligence';document.getElementById('resultSubtitle').textContent='One card. A clearer picture.';document.getElementById('saveCard').disabled=true;document.getElementById('tiktokBox').textContent='Your post will appear here.';document.getElementById('ebayBox').textContent='Your listing will appear here.';}
+for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).addEventListener('change',()=>{window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Photos updated. Identify the card to refresh its details.';});
+updateCount();
+</script></body></html>
