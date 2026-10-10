@@ -82,7 +82,9 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.parallel = field(card.parallel, "confirmed",
       `Only checklist parallel that fits ${[pid.evidence?.numberedTo ? `/${pid.evidence.numberedTo}` : null, pid.evidence?.color, pid.evidence?.finish ? String(pid.evidence.finish).replace(/_/g, " ") : null].filter(present).join(" + ") || "the card"}${pid.status === "confirmed_by_tiebreak" ? " (closer look picked it)" : ""}.`);
   } else if (pid.status === "probable") {
-    fields.parallel = field(null, "unconfirmed", `Probably ${pid.probable} (checklist), but the serial/print run was not confirmed.`);
+    fields.parallel = field(null, "unconfirmed", pid.guessOnly
+      ? `Possibly ${pid.probable} (CardSight photo guess); no checklist to confirm it.`
+      : `Probably ${pid.probable} (checklist), but the serial/print run was not confirmed.`);
   } else if (pid.status === "base") {
     fields.parallel = field("Base", "confirmed", "No serial, parallel color, or special finish: base card.");
   } else if (pid.status === "ambiguous") {

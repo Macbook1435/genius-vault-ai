@@ -1187,8 +1187,11 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
     evidence.printRunFrom = printRunHint.numberedTo ? "both checks agree on the print run" : "print run unreadable";
   }
   const checklist = findChecklist(card);
-  const candidates = catalogCandidates?.length ? catalogCandidates : checklist?.parallels || null;
-  out.source = catalogCandidates?.length ? "catalog" : checklist ? checklist.id : null;
+  // The checklist always wins. CardSight's photo guesses are only a fallback and can never confirm a parallel alone.
+  const guessOnly = !checklist?.parallels && !!catalogCandidates?.length;
+  const candidates = checklist?.parallels || (guessOnly ? catalogCandidates : null);
+  out.source = checklist ? checklist.id : guessOnly ? "catalog_suggestions" : null;
+  out.guessOnly = guessOnly;
   out.evidence = evidence;
 
   if (!candidates) {
@@ -1205,6 +1208,12 @@ function applyParallelIdentification(card, combined, catalogCandidates, warnings
     out.status = "base";
     if (card.parallel) warnings.push(`Parallel "${card.parallel}" removed: the card looks like a base card (no serial, color, or special finish).`);
     card.parallel = null;
+    return out;
+  }
+  if (r.parallel && guessOnly) {
+    out.status = "probable";
+    out.probable = r.parallel.name;
+    warnings.push(`Parallel possibly "${r.parallel.name}" (CardSight photo guess, no checklist to confirm it).`);
     return out;
   }
   if (r.parallel && printRunUncertain) {
@@ -1624,7 +1633,11 @@ Strict rules:
 
     if (verification.parallelId.status === "ambiguous" && verification.parallelId.candidateObjects?.length <= 4) {
       const tb = await parallelTiebreak(frontImage, verification.parallelId.candidateObjects).catch(() => null);
-      if (tb && verification.parallelId.printRunUncertain) {
+      if (tb && verification.parallelId.guessOnly) {
+        verification.parallelId.status = "probable";
+        verification.parallelId.probable = tb.answer;
+        verification.warnings.push(`Parallel possibly "${tb.answer}" (closer look among CardSight photo guesses; no checklist to confirm it).`);
+      } else if (tb && verification.parallelId.printRunUncertain) {
         verification.parallelId.status = "probable";
         verification.parallelId.probable = tb.answer;
         verification.warnings.push(`Parallel probably "${tb.answer}" (closer look), but the serial was not confirmed. Add a serial close-up to confirm.`);
