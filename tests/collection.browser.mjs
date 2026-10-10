@@ -26,6 +26,20 @@ function entry(id,player,serial,autograph=true){
 }
 try{
  await page.goto(origin,{waitUntil:'domcontentloaded'});
+ // Local listing-photo editor: upload PNG, rotate, zoom and export JPG with no network AI requests.
+ const pngBase64='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Zk0AAAAASUVORK5CYII=';
+ await page.locator('#listingPhotoFile').setInputFiles({name:'test-card.png',mimeType:'image/png',buffer:Buffer.from(pngBase64,'base64')});
+ await page.waitForFunction(()=>!document.getElementById('listingDownload').disabled || document.getElementById('listingPhotoStatus').textContent.includes('Unable'));
+ assert.equal(await page.locator('#listingDownload').isDisabled(),false,'Valid image must become downloadable');
+ await page.locator('#listingZoom').fill('150');
+ await page.getByRole('button',{name:'Rotate 90°'}).click();
+ assert.match(await page.locator('#listingPhotoStatus').innerText(),/preview ready/i);
+ const [listingDownload]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export JPG'}).click()]);
+ assert.match(listingDownload.suggestedFilename(),/\.jpg$/);
+ const jpeg=readFileSync(await listingDownload.path());
+ assert.equal(jpeg[0],255);assert.equal(jpeg[1],216);
+ await page.getByRole('button',{name:'Reset crop'}).click();
+ assert.equal(await page.locator('#listingZoom').inputValue(),'100');
  // Scanner failures are tested with mocked responses, never calling the paid AI endpoint.
  let apiRequests=0;
  await page.route('**/api/scan',async route=>{
