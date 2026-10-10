@@ -54,10 +54,21 @@ try{
  assert.equal(await page.evaluate(()=>Boolean(listingFrame)),true,'Card on a plain contrasting surface should auto-frame');
  const frame=await page.evaluate(()=>listingFrame);
  assert.ok(frame.x>40 && frame.x<100 && frame.width>130 && frame.width<210,'Expected conservative interior crop');
+ assert.equal(await page.locator('#listingCorners').isVisible(),true,'Corner previews should appear after framing');
+ for(const id of ['TL','TR','BL','BR']){
+  const pixels=await page.locator('#listingCorner'+id).evaluate(canvas=>Array.from(canvas.getContext('2d').getImageData(120,120,1,1).data));
+  assert.ok(pixels[3]>0,'Corner '+id+' must contain visible pixels');
+ }
+ const [cornersDownload]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export corner collage JPG'}).click()]);
+ assert.match(cornersDownload.suggestedFilename(),/corners\.jpg$/);
+ const cornerBytes=readFileSync(await cornersDownload.path());
+ assert.equal(cornerBytes[0],255);assert.equal(cornerBytes[1],216);
+
  await page.locator('#listingFineRotate').fill('7');
  assert.equal(await page.locator('#listingAngleValue').innerText(),'7°');
  await page.getByRole('button',{name:'Reset crop'}).click();
  assert.equal(await page.evaluate(()=>listingFrame),null,'Reset should restore full original image');
+ assert.equal(await page.locator('#listingCorners').isVisible(),false,'Reset must hide stale corner crops');
  assert.equal(await page.locator('#listingFineRotate').inputValue(),'0','Reset also clears fine straightening');
  // Harder simulated photographs: a mild tilt with glare should still be a candidate,
  // while busy or cut-off scenes must NOT produce a confident crop.
