@@ -329,6 +329,7 @@ async function aiScan() {
 
     const data = await response.json();
     window.gvLast = data;
+    window.gvOrigParallel = data.scan?.parallel || "";
     renderScan(data);
 
   } catch (error) {
@@ -390,7 +391,11 @@ const comps = data.comps || {};
         </a>
       </div>`;
 
-  output.innerHTML += parallelPickerHtml(data);
+  // Put the parallel menu right under the results, above the search-phrase box.
+  const pickerHtml = parallelPickerHtml(data);
+  const searchBox = output.querySelector("#searchCopyBox")?.closest("div");
+  if (searchBox) searchBox.insertAdjacentHTML("beforebegin", pickerHtml);
+  else output.insertAdjacentHTML("beforeend", pickerHtml);
 }
 
 const escHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -405,12 +410,12 @@ function parallelPickerHtml(data) {
   const rest = pk.options.filter((o) => !sugg.has(o.id));
   const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
   const sales = (data.comps?.items || []).slice(0, 5).map((i) =>
-    `<div style="font-size:14px;margin:4px 0;">$${Number(i.price).toFixed(2)} · ${escHtml((i.date || "").slice(0, 10))} · <a href="${escHtml(i.url)}" target="_blank" style="color:#00ff88;">${escHtml((i.title || "sale").slice(0, 60))}</a></div>`).join("");
+    `<div style="font-size:14px;margin:4px 0;">$${Number(i.price).toFixed(2)} | ${escHtml((i.date || "").slice(0, 10))} | <a href="${escHtml(i.url)}" target="_blank" style="color:#00ff88;">${escHtml((i.title || "sale").slice(0, 60))}</a></div>`).join("");
   return `<div style="margin-top:15px;padding:12px;background:#151b2b;border-radius:10px;">
-    <b style="color:#00ff88;">PARALLEL${pk.needsPick ? " — PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
-    ${pk.needsPick && pk.reason ? `<div style="margin:8px 0;">${escHtml(pk.reason)}</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
+    <b style="color:#00ff88;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
+    ${pk.needsPick ? `<div style="margin:8px 0;">${escHtml(pk.reason || "The scanner is not sure which parallel this is.")} Pick the parallel on your card below.</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
-      <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card…</option>
+      <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card...</option>
       ${top.length ? `<optgroup label="Most likely">${top.map(opt).join("")}</optgroup><optgroup label="All parallels for this card">${rest.map(opt).join("")}</optgroup>` : pk.options.map(opt).join("")}
     </select>
     <button onclick="pickParallel()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">LOAD SOLD PRICES FOR THIS PARALLEL</button>
@@ -426,7 +431,7 @@ async function pickParallel() {
   if (!data?.parallelPicker || !sel?.value) { if (status) status.textContent = "Choose a parallel first."; return; }
   const pk = data.parallelPicker;
   const choice = pk.options.find((o) => o.id === sel.value);
-  status.textContent = "Loading sold prices…";
+  status.textContent = "Loading sold prices...";
   try {
     const r = await fetch(`/api/parallel-comps?cardId=${encodeURIComponent(pk.cardId)}&parallelId=${encodeURIComponent(sel.value)}`);
     const c = await r.json();
@@ -441,8 +446,14 @@ async function pickParallel() {
     data.comps = { ...(data.comps || {}), count: c.count, min: c.min, max: c.max, median: c.median, items: c.items, source: c.source,
       status: c.count ? "comps_found" : "no_sales", error: c.count ? null : `No sold sales found for the ${choice.name} parallel in the last 6 months.` };
     if (data.soldComps) {
-      const q = String(data.soldComps.query || "");
-      if (!isBase && !q.toLowerCase().includes(choice.name.toLowerCase())) data.soldComps.query = q.replace(/\s+RC\b/, "") + ` ${choice.name}${q.match(/\bRC\b/) ? " RC" : ""}`;
+      // Rebuild the title from the original: drop the scanner's parallel, add the picked one (without "Rated Rookie").
+      if (pk.origQuery === undefined) { pk.origQuery = String(data.soldComps.query || ""); pk.origParallel = pk.origParallel ?? (window.gvOrigParallel || ""); }
+      let q = pk.origQuery;
+      if (pk.origParallel) q = q.replace(new RegExp(`\\s*${pk.origParallel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i"), "");
+      const short = choice.name.replace(/^rated rookies?\s+/i, "");
+      const hasRc = /\bRC\b/.test(q);
+      q = q.replace(/\s+RC\b/, "").trim();
+      data.soldComps.query = `${q}${isBase ? "" : ` ${short}`}${hasRc ? " RC" : ""}`.replace(/\s+/g, " ").trim();
     }
     pk.selectedId = choice.id; pk.needsPick = false; pk.reason = null;
     renderScan(data);
