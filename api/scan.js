@@ -2155,6 +2155,7 @@ Strict rules:
         count: comps.count,
         currency: comps.currency,
         items: comps.items,
+        matchAudit: comps.source === "ebay_sold" ? comps.matchAudit || null : null,
         source: comps.source,
         url: comps.sourceUrl,
         searchUrl: comps.searchUrl,
