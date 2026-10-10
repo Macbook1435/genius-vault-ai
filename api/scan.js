@@ -1131,18 +1131,21 @@ function applyCatalogMatch(card, cs, warnings) {
   // Parallel: CardSight's photo guesses are suggestions only (they have been wrong, e.g. a blue jersey read as "Blue").
   // A guess can only be used when it is the only one numbered to the card's serial print run.
   const pr = resolveParallel(c);
-  let parallel = null;
-  if (card.numberedTo) {
-    const fits = (c.parallelSuggestions || []).filter((p) => Number(p.numberedTo) === Number(card.numberedTo));
-    if (fits.length === 1) parallel = fits[0];
-  }
-  out.rawParallels = c.parallelSuggestions || [];
-  if (parallel?.name) {
-    warnings.push(`Parallel "${parallel.name}" from catalog match.`);
-    card.parallel = parallel.name;
-    out.parallelConfirmed = true;
-  } else if (pr.candidates?.length) {
-    out.parallelCandidates = pr.candidates;
+  const suggestions = Array.isArray(c.parallelSuggestions) ? c.parallelSuggestions : [];
+  const fits = Number.isInteger(Number(card.numberedTo)) && Number(card.numberedTo) > 0
+    ? suggestions.filter(p => p?.name && Number(p.numberedTo) === Number(card.numberedTo)) : [];
+  out.rawParallels = suggestions;
+  // An AI candidate matching /250 is useful, but it is not proof of Aqua,
+  // an autograph, or the exact variant. Never elevate it to confirmed.
+  if (fits.length === 1) {
+    out.parallelSuggestion = {name: fits[0].name, numberedTo: fits[0].numberedTo, confidence: fits[0].confidence || 'not assessed'};
+    out.parallelCandidates = [{...out.parallelSuggestion, id: fits[0].id || null}];
+    warnings.push(`CardSight suggests "${fits[0].name}" for /${card.numberedTo}, but the parallel needs independent verification before pricing.`);
+  } else if (fits.length > 1) {
+    out.parallelCandidates = fits.slice(0,5).map(p=>({id:p.id||null,name:p.name,confidence:p.confidence||'not assessed',numberedTo:p.numberedTo}));
+    warnings.push('Multiple CardSight parallels share this print run. Exact parallel remains unconfirmed.');
+  } else if (pr.parallel?.name || pr.candidates?.length) {
+    out.parallelCandidates = pr.candidates?.length ? pr.candidates : [{name:pr.parallel.name,id:pr.parallel.id||null,confidence:pr.parallel.confidence||'not assessed',numberedTo:pr.parallel.numberedTo||null}];
   }
   return out;
 }
