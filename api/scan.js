@@ -240,6 +240,10 @@ function parseEbaySoldItems(html) {
       /<(?:div|span)\b[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([\s\S]*?)<\/(?:div|span)>/i,
     ).replace(/^New Listing\s*/i, "");
 
+    // eBay displays the original asking price for accepted best offers.
+    // Exclude these listings rather than reporting an unverified sale amount.
+    if (/best\s+offer\s+accepted/i.test(decodeHtml(block))) continue;
+
     const priceText = extractFirst(
       block,
       /<span\b[^>]*class="[^"]*s-item__price[^"]*"[^>]*>([\s\S]*?)<\/span>/i,
@@ -370,9 +374,6 @@ async function fetchSoldComps(query, card = null) {
       if (number && !new RegExp(`(?:#|\\b)${number}\\b`, "i").test(title)) return false;
       if (run && !new RegExp(`/\\s*${run}\\b`).test(title)) return false;
       if (card.autograph && !/\\b(auto|autograph|signed|signature)\\b/i.test(title)) return false;
-      // eBay may display the asking price for accepted best offers; that
-      // amount is not a verified sale price and must not enter the median.
-      if (/best offer accepted/i.test(item.title)) return false;
       return true;
     });
 
