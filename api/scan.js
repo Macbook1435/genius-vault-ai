@@ -1,7 +1,8 @@
 import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
-import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails } from "./cardsight.js";
+import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
+  cardsightCardParallels, pickParallel, parallelCompsPlan } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
@@ -1325,6 +1326,9 @@ function buildReadoutSummary(card, comps) {
   const traitText = traits.length ? ` (${traits.join(", ")})` : "";
 
   if (!comps.count) {
+    if (comps.status === "parallel_not_confirmed" && comps.error) {
+      return `${cardText}${traitText}. ${comps.error} Open the sold-comps search link to check manually.`;
+    }
     return `${cardText}${traitText}. No reliable sold prices were auto-loaded; open the sold-comps search link to verify manually.`;
   }
 
@@ -1333,6 +1337,8 @@ function buildReadoutSummary(card, comps) {
   }, prices range from ${formatMoney(comps.min)} to ${formatMoney(
     comps.max,
   )}, with a median of ${formatMoney(comps.median)}.${
+    comps.parallelName ? ` Sales are for the ${comps.parallelName} parallel only.` : ""
+  }${
     card.grade && comps.source === "cardsight_completed_auctions"
       ? " These are raw (ungraded) sales; graded prices can differ."
       : ""
@@ -1728,14 +1734,45 @@ Strict rules:
         if (found.status === "matched") pricingCardId = found.card.id;
       }
       if (identityTrusted && pricingCardId) {
-        catalogSold = await cardsightSoldComps(pricingCardId).catch((e) => ({ error: e.message, count: 0 }));
-        catalog.soldLookup = { cardId: pricingCardId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
+        // Comps must be for the same parallel as the card: base, one confirmed parallel, or none at all.
+        const effective = v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline;
+        const plan = parallelCompsPlan({
+          parallel: scanResult.parallel,
+          fieldStatus: effective?.fields?.parallel?.status,
+          pidStatus: v2Mode === "primary" && v2?.parallel ? v2.parallel.status : verification.parallelId?.status,
+        });
+        let parallelId = "null";
+        catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
+        if (plan.mode === "parallel") {
+          const list = await cardsightCardParallels(pricingCardId).catch((e) => ({ error: e.message }));
+          const pick = Array.isArray(list)
+            ? pickParallel(list, { name: plan.name, numberedTo: scanResult.numberedTo, cardId: pricingCardId })
+            : { status: "error", error: list?.error };
+          Object.assign(catalog.parallelComps, { status: pick.status, catalogParallel: pick.parallel ? { id: pick.parallel.id, name: pick.parallel.name, numberedTo: pick.parallel.numberedTo || null } : null,
+            candidates: pick.candidates || [], error: pick.error || null });
+          if (pick.status === "matched") parallelId = pick.parallel.id;
+          else {
+            plan.mode = "blocked";
+            catalog.parallelComps.reason = pick.status === "error"
+              ? "The catalog's parallel list could not be loaded, so sold prices are not shown. Try again shortly."
+              : pick.status === "ambiguous"
+              ? `More than one catalog parallel could be "${plan.name}" (${pick.candidates.join(", ")}), so sold prices are not shown.`
+              : `"${plan.name}" was not found in the catalog for this card, so sold prices are not shown.`;
+          }
+        }
+        if (plan.mode === "blocked") {
+          Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
+        } else {
+          catalogSold = await cardsightSoldComps(pricingCardId, { parallelId }).catch((e) => ({ error: e.message, count: 0 }));
+          if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
+          catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
+        }
       }
       market = buildMarket(comps, ebayMatches, catalogSold);
       // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
       if (catalogSold?.count) {
         Object.assign(comps, { min: catalogSold.min, max: catalogSold.max, median: catalogSold.median, count: catalogSold.count,
-          items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null });
+          items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null, parallelName: catalogSold.parallelName || null });
       }
     } catch (e) {
       console.error("market error:", e);

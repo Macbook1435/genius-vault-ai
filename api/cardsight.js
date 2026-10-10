@@ -103,6 +103,49 @@ export async function cardsightFindByDetails(details) {
   return pickCatalogCard(body?.cards, details);
 }
 
+// ---- Parallel comps: map the confirmed parallel name to CardSight's parallel for this card ----
+const FINISH_WORDS = new Set(["refractor", "prizm", "parallel", "foil"]);
+const wordSet = (v) => new Set(words(v).filter((w) => w !== "parallel"));
+const sameSet = (a, b) => a.size === b.size && [...a].every((w) => b.has(w));
+
+// Exactly one CardSight parallel must fit (same words, same print run when known); otherwise no match.
+export function pickParallel(parallels, { name, numberedTo, cardId } = {}) {
+  const want = wordSet(name);
+  if (!want.size) return { status: "no_name", parallel: null };
+  const list = (Array.isArray(parallels) ? parallels : []).filter((p) => p && p.id && p.name
+    && (!p.isPartial || !Array.isArray(p.cards) || !cardId || p.cards.includes(cardId))
+    && (!numberedTo || !p.numberedTo || Number(p.numberedTo) === Number(numberedTo)));
+  let fits = list.filter((p) => sameSet(wordSet(p.name), want));
+  if (!fits.length) {
+    // Allow only a dropped finish word (e.g. "Blue Refractor" vs "Blue"), never a different color or name.
+    const core = (s) => new Set([...s].filter((w) => !FINISH_WORDS.has(w)));
+    const wantCore = core(want);
+    if (wantCore.size) fits = list.filter((p) => sameSet(core(wordSet(p.name)), wantCore));
+  }
+  if (fits.length === 1) return { status: "matched", parallel: fits[0] };
+  return { status: fits.length ? "ambiguous" : "not_in_catalog", parallel: null,
+    candidates: fits.slice(0, 5).map((p) => p.name) };
+}
+
+// Decide which comps are allowed for the parallel: base, one confirmed parallel, or none.
+export function parallelCompsPlan({ parallel, fieldStatus, pidStatus } = {}) {
+  const name = String(parallel ?? "").trim();
+  const hasName = name && !/^(base|null|none|unknown)$/i.test(name);
+  if (hasName) {
+    return fieldStatus === "confirmed" ? { mode: "parallel", name }
+      : { mode: "blocked", reason: `Parallel "${name}" is not confirmed, so sold prices are not shown (base-card prices would be misleading).` };
+  }
+  if (["ambiguous", "probable", "no_match"].includes(pidStatus)) {
+    return { mode: "blocked", reason: "The parallel is not settled, so sold prices are not shown." };
+  }
+  return { mode: "base" };
+}
+
+export async function cardsightCardParallels(cardId) {
+  const body = await call(`/v1/catalog/cards/${encodeURIComponent(cardId)}`);
+  return Array.isArray(body?.parallels) ? body.parallels : [];
+}
+
 export function confidenceRank(c) { return RANK[c] || 0; }
 
 export default function handler(req, res) { return res.status(404).end(); }
