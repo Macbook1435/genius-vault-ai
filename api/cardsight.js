@@ -70,6 +70,7 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
   const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
     : isAutoCard({ setName: `${body?.card?.release || ""} ${body?.card?.set || ""}`, attributes: body?.card?.attributes || [] });
   let records;
+  const autoTitled = []; // sales filed under this non-auto card whose titles say auto (CardSight mis-files)
   let considered = tagged.records.length;
   if (Array.isArray(parallels) && parallels.length) {
     // For a parallel, also look through the untagged sales for titles that name it.
@@ -79,7 +80,9 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
     records = [...tagged.records, ...extra].filter((r) => {
       const k = r.url || `${r.title}|${r.date}|${r.price}`;
       if (seen.has(k)) return false; seen.add(k);
-      return saleBucket(r, parallels, { raw: gradeId === "null", cardIsAuto }) === parallelId;
+      const b = saleBucket(r, parallels, { raw: gradeId === "null", cardIsAuto });
+      if (!cardIsAuto && b === "skip" && /\bauto(graph)?s?\b|signature/i.test(r.title || "")) autoTitled.push(r);
+      return b === parallelId;
     });
   } else {
     records = tagged.records.filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId);
@@ -88,6 +91,7 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
   const prices = records.map(r => r.price);
   return {
     source: "cardsight_completed_auctions", currency: "USD", count: records.length, considered, period,
+    autoTitled: autoTitled.map(r => ({ title: r.title || null, price: r.price, date: r.date || null, url: r.url, parallel: r.parallel_name || null })),
     min: prices.length ? Math.min(...prices) : null, max: prices.length ? Math.max(...prices) : null,
     median: prices.length ? Math.round(median(prices) * 100) / 100 : null,
     items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url, image: r.image_url || null })),

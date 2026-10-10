@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
     const sold = await cardsightSoldComps(cardId, { parallelId, parallels: list, cardIsAuto: info.isAuto });
     return res.status(200).json({ cardId, parallelId, parallelName, count: sold.count, min: sold.min, median: sold.median,
-      max: sold.max, items: sold.items, source: sold.source, considered: sold.considered, period: sold.period, cardIsAuto: info.isAuto });
+      max: sold.max, items: sold.items, source: sold.source, considered: sold.considered, period: sold.period, autoTitledCount: (sold.autoTitled || []).length, autoTitled: (sold.autoTitled || []).slice(0, 15), cardIsAuto: info.isAuto });
   } catch (e) {
     console.error("parallel-comps error:", e);
     return res.status(502).json({ error: "Could not load sold prices right now. Try again shortly." });
