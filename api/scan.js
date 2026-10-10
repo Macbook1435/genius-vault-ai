@@ -1812,10 +1812,7 @@ Strict rules:
             // Do not select from color alone: the player's uniform can fool the color reader.
             const photoColor = String(combinedCheck?.parallelColor || "").trim().toLowerCase();
             const printedEvidence = String(scanResult.evidence?.parallelText || "").toLowerCase();
-            const colorCorroborated = photoColor && new RegExp(`\\b${photoColor.replace(/[.*+?^\x24{}()|[\\]\\\\]/g, "\\\\          } else if (runFits.length > 1) {
-            plan.mode = "blocked";
-            catalog.parallelComps = { mode: "blocked", name: null, reason: `More than one /${scanResult.numberedTo} parallel fits (${runFits.map((p) => p.name).join(", ")}). Pick the one on your card.` };
-          }")}\\b`, "i").test(printedEvidence);
+            const colorCorroborated = photoColor && printedEvidence.split(/[^a-z0-9]+/).includes(photoColor);
             const colorFits = colorCorroborated ? runFits.filter((p) =>
               String(p.name || "").toLowerCase().split(/[^a-z0-9]+/).includes(photoColor)) : [];
             if (colorFits.length === 1) {
