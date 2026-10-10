@@ -158,7 +158,7 @@ function renderScan(data) {
  const auditPanel=document.getElementById('soldAuditPanel');
  const summary=document.getElementById('soldMatchSummary');
  if(audit){
-  summary.textContent=audit.acceptedCount+' title-matched candidates out of '+audit.candidateCount+' returned records. Titles alone do not verify a completed sale or the physical card.';
+  summary.textContent=audit.acceptedCount+' accepted by title checks; '+(audit.candidateCount-audit.acceptedCount)+' excluded from '+audit.candidateCount+' returned records. The checks evaluate seller titles, not physical authenticity or final prices.';
   auditPanel.hidden=!audit.excluded?.length;
   document.getElementById('soldAuditReasons').innerHTML=(audit.excluded||[]).map(entry=>'<div class="accuracy-check" style="margin:8px 0"><strong>'+escHtml(entry.title||'Listing')+'</strong><p>'+escHtml((entry.reasons||[]).join(' '))+'</p></div>').join('');
  }else{
@@ -166,7 +166,7 @@ function renderScan(data) {
   auditPanel.hidden=true;
   document.getElementById('soldAuditReasons').textContent='';
  }
- document.getElementById('sales').innerHTML=(comps.items||[]).map(i=>`<a class="sale" href="${safeUrl(i.url)}" target="_blank" rel="noopener noreferrer"><div><strong>${escHtml(i.title||'Sold card')}</strong><small>${escHtml(i.date?i.date.slice(0,10):'Date unavailable')} · ${escHtml(i.source||'CardSight')} · Completed auction</small></div><b>${money(i.price,comps.currency)}</b></a>`).join('')||'<p class="muted">No matching sold records loaded. Use the sold searches below and check the year, set, parallel, serial and condition.</p>';
+ document.getElementById('sales').innerHTML=(comps.items||[]).map(i=>`<div><a class="sale" href="${safeUrl(i.url)}" target="_blank" rel="noopener noreferrer"><div><strong>${escHtml(i.title||'Sold card')}</strong><small>${escHtml(i.date?i.date.slice(0,10):i.soldDate||'Date unavailable')} · ${escHtml(i.source||comps.source||'Catalog')} · Returned sold record</small></div><b>${money(i.price,comps.currency)}</b></a><p class="muted" style="font-size:12px;margin:2px 0 12px 4px">${i.match?.matchedFields?.length?'Title checks passed: '+escHtml(i.match.matchedFields.join(', '))+'. Seller title only; not independently authenticated.':'Catalog or provider record; exact-card match and final transaction amount should be checked at source.'}</p></div>`).join('')||'<p class="muted">No matching sold records loaded. Use the sold searches below and check the year, set, parallel, serial and condition.</p>';
  document.getElementById('sales').innerHTML += `<p class="muted">${escHtml(comps.coverageNote||'Partial returned sample, not the complete market. Check eBay and 130Point for additional completed sales and actual accepted offers.')} ${escHtml((comps.warnings||[]).join(' '))}${comps.fetchedAt?' Updated '+escHtml(comps.fetchedAt.slice(0,16).replace('T',' '))+' UTC.':''}</p>`;
  document.getElementById('parallelSlot').innerHTML=parallelPickerHtml(data);
  const ebay='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(query)+'&LH_Sold=1&LH_Complete=1&_sop=13';
