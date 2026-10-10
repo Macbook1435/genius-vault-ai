@@ -131,9 +131,30 @@ function compressImage(file) {
     reader.readAsDataURL(file);
   });
 }
+function scannerFileError(file,label){
+ if(!file)return null;
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type))return label+' must be a JPEG, PNG or WebP image.';
+ if(file.size===0)return label+' is empty. Select another photo.';
+ if(file.size>25*1024*1024)return label+' is over 25 MB. Use a smaller photo.';
+ return null;
+}
+function scanFailureMessage(status,data){
+ const fromServer=typeof data?.error==='string'?data.error.trim():'';
+ if(status===401)return 'Sign in again before scanning.';
+ if(status===413)return 'Photo upload is too large. Try smaller images.';
+ if(status===429)return 'Too many requests right now. Wait briefly and try again.';
+ if(status===503)return 'Scanning is temporarily unavailable. Please try later.';
+ if(status>=500)return 'The scanner service had a problem. Please try again later.';
+ if(fromServer)return fromServer.slice(0,250);
+ return 'The scan could not be completed. Please try again.';
+}
 async function aiScan() {
  const front=document.getElementById('imageUpload').files[0], back=document.getElementById('backImageUpload').files[0], serial=document.getElementById('serialUpload').files[0];
  if(!front){notice('Add a front photo first.');return;}
+ for(const [file,label] of [[front,'Front photo'],[back,'Back photo'],[serial,'Serial close-up']]){
+  const error=scannerFileError(file,label);
+  if(error){notice(error);return;}
+ }
  const button=document.getElementById('scanButton'); button.disabled=true; button.textContent='Identifying your card…';
  for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=true;
  window.gvLast=null;document.getElementById('saveCard').disabled=true;document.getElementById('resultBody').hidden=true;document.getElementById('emptyResult').hidden=false;document.getElementById('emptyResult').textContent='Reading card details and checking matching sales…';
@@ -145,11 +166,13 @@ async function aiScan() {
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),180000);
  let response;try{response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal,headers:gvMemberToken?{Authorization:'Bearer '+gvMemberToken}:{}});}finally{clearTimeout(timer);}
  scanStage='reading scan response';
- const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||'Scan failed. Please try again.');
+ const raw=await response.text();let data;
+ try{data=JSON.parse(raw);}catch{throw new Error(response.ok?'The scanner returned an unreadable response. Please try again.':scanFailureMessage(response.status,null));}
+ if(!response.ok||data.error)throw new Error(scanFailureMessage(response.status,data));
  if(!data.scan)throw new Error('No card identification returned. Try clear front and back photos.');
  scanStage='displaying scan result';
  window.gvLast=data;window.gvOrigParallel=data.scan.parallel||'';renderScan(data);notice('Scan ready. Check any unconfirmed details.');
- }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'Scan timed out. Please try again.':('Scan failed while '+scanStage+': '+(e.message||String(e)));notice('The scan did not complete.');}
+ }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'The scanner took too long to respond. Its final processing status is unknown; please check before retrying.':e instanceof TypeError&&scanStage==='sending scan request'?'Network connection failed. Check your internet and try again.':('Scan failed while '+scanStage+': '+(e.message||'Please try again.'));notice('No completed scan result was received.');}
  finally{button.disabled=false;button.textContent='Identify card';for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=false;}
 }
 // Explain existing server evidence without spending credits or inventing certainty.
