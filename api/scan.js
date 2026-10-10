@@ -1895,12 +1895,15 @@ Strict rules:
       // displayed verification status (a stale earlier pipeline may say unconfirmed).
       if ((serialPhotoRetry?.serial || closeupSerial) && serialValue(scanResult.serialNumber)) {
         const verifiedStamp = serialPhotoRetry?.serial || closeupSerial;
+        // A conflicting full-card reading is a warning, not proof that two
+        // matching magnified AI reads are correct. Never show green confirmation.
+        const serialConflict = Boolean(mainSerial && (mainSerial.num !== verifiedStamp.num || mainSerial.den !== verifiedStamp.den));
         const parsedStamp = serialValue(scanResult.serialNumber);
         if (parsedStamp.num === verifiedStamp.num && parsedStamp.den === verifiedStamp.den) {
           for (const fields of [pipeline?.fields, v2?.pipeline?.fields]) {
             if (fields?.serial) fields.serial = { ...fields.serial, value: scanResult.serialNumber,
-              status: "confirmed", printRunConfirmed: true,
-              basis: "Two independent reads of enlarged card photo." };
+              status: serialConflict ? "unconfirmed" : "confirmed", printRunConfirmed: !serialConflict,
+              basis: serialConflict ? "Conflicting full-card and magnified serial reads; inspect digits." : "Two independent reads of enlarged card photo." };
           }
         }
       }
@@ -1917,7 +1920,7 @@ Strict rules:
           if (pipeline?.fields?.year) pipeline.fields.year = { value: year, status: "confirmed", basis: "Unique catalog card match." };
           if (v2?.pipeline?.fields?.year) v2.pipeline.fields.year = { value: year, status: "confirmed", basis: "Unique catalog card match." };
         }
-        const release = String(m.release || "").trim();
+        const release = String(m.release || "").trim().replace(/^(topps\s+){2,}/i, "Topps ");
         if (release && /[a-z]/i.test(release)) {
           scanResult.set = release.replace(/^topps\\s+/i, "");
           if (pipeline?.fields?.set) pipeline.fields.set = { value: release, status: "confirmed", basis: "Unique catalog card match." };
