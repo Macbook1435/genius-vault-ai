@@ -232,10 +232,10 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   const parBasis = {
     confirmed: () => C(par.parallel.name, par.source === "catalog" ? "Matches the catalog (CardSight)." : `Only ${sub.subset.label} parallel that fits ${par.steps.join(" + ")}${par.tiebreak ? " (closer look)" : ""}; listed by ${par.parallel.sources?.length || 2}+ sources.`),
     base: () => C("Base", "No serial, parallel color, or special finish: base card."),
-    probable: () => U(null, par.tiebreakAgreed === false
+    probable: () => U(par.parallel.name, par.tiebreakAgreed === false
       ? `Probably ${par.parallel.name}; the two closer looks disagreed (other: ${par.tiebreakSecond || "unsure"}). Could be: ${par.candidates.map((c) => c.name).join(", ")}.`
       : `Probably ${par.parallel.name}, but the serial/print run was not confirmed.`),
-    single_source: () => U(null, `Probably ${par.parallel.name}, but only one source lists it with that print run.`),
+    single_source: () => U(par.parallel.name, `Probably ${par.parallel.name}, but only one source lists it with that print run.`),
     ambiguous: () => U(null, `Could be: ${par.candidates.map((c) => c.name + (c.numberedTo ? ` /${c.numberedTo}` : "")).join(", ")}.`),
     no_match: () => U(null, `Nothing in the ${sub?.subset.label || ""} checklist matches what the card shows.`),
     no_checklist: () => U(card.parallel, "No checklist for this product yet."),
