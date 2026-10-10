@@ -161,14 +161,17 @@ function cleanPart(value) {
 function buildSoldCompQuery(card) {
   const parts = [
     cleanPart(card.year),
-    cleanPart(card.brand),
-    cleanPart(card.set),
+    // Avoid duplicate "Topps Topps Resurgence" in sold searches.
+    cleanPart(card.set).toLowerCase().startsWith(cleanPart(card.brand).toLowerCase() + " ")
+      ? cleanPart(card.set)
+      : [cleanPart(card.brand), cleanPart(card.set)].filter(Boolean).join(" "),
     cleanPart(card.player),
     card.cardNumber
       ? `#${cleanPart(card.cardNumber).replace(/^#/, "")}`
       : "",
-    cleanPart(card.parallel),
-    card.numberedTo ? `/${card.numberedTo}` : "",
+    // Parallel names are often omitted in actual eBay titles; the exact
+    // print run and autograph are more reliable search terms.
+    card.numberedTo ? `/${card.numberedTo}` : cleanPart(card.parallel),
     card.rookie ? "RC" : "",
     card.autograph ? "auto" : "",
     cleanPart(card.gradingCompany),
