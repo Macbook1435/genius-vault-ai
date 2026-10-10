@@ -19,6 +19,11 @@ export async function reserveScan(userId,requestId){
   const data=await supabaseRequest('/rest/v1/rpc/gv_reserve_scan',{method:'POST',admin:true,body:{p_user_id:userId,p_request_id:requestId}});
   return data===true;
 }
+// Release a reserved scan when processing fails before a result is delivered.
+export async function releaseScan(userId,requestId){
+  if(!userId||!requestId)return;
+  await supabaseRequest('/rest/v1/gv_scan_usage?user_id=eq.'+encodeURIComponent(userId)+'&request_id=eq.'+encodeURIComponent(requestId),{method:'DELETE',admin:true});
+}
 export async function entitlement(userId){
   const rows=await supabaseRequest('/rest/v1/gv_entitlements?user_id=eq.'+encodeURIComponent(userId)+'&select=status,period_start,period_end,scan_limit',{admin:true});
   return rows?.[0]||null;
