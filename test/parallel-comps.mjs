@@ -111,3 +111,14 @@ t("auto card: 'Auto' titles count; non-auto card: they don't", () => {
   assert.equal(saleBucket({ title: "2030 Brandco Sam Example Rookie Auto #9" }, P, { cardIsAuto: true }), "null");
 });
 console.log("parallel-comps: auto-card checks passed");
+import { siblingAutoBucket } from "../api/cardsight.js";
+t("auto sales filed under the regular card are sorted by title only", () => {
+  const P = [{ id: "ss", name: "Silver Static" }, { id: "aq", name: "Teal Surge", numberedTo: 250 }, { id: "bs", name: "Blue Surge", numberedTo: 99 }];
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example #9 Teal Surge Refractor Rookie RC Auto /250", parallel_id: "other-card-id" }, P), "aq");
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example Rookie RC Auto Autograph #9" }, P), "null");
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example Auto Silver Rookie #9" }, P), "skip"); // "Silver" alone: not sure it's Silver Static
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example Rookie Teal Surge /250 #9" }, P), "skip"); // not an auto
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example Auto /99 #9" }, P), "skip"); // numbered but parallel not named
+  assert.equal(siblingAutoBucket({ title: "2030 Brandco Sam Example Auto RC #9 PSA 10" }, P), "skip"); // graded in raw comps
+});
+console.log("parallel-comps: sibling auto checks passed");

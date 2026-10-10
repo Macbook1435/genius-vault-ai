@@ -45,7 +45,8 @@ function median(values) { const s = [...values].sort((a, b) => a - b); const m =
 
 // Completed AUCTION sales only (CardSight "bid" side). Buy It Now asks are excluded because they are not proof of a sale.
 async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
-  const qs = new URLSearchParams({ listing_type: "auction", period, limit: "200", parallel_id: parallelId, grade_id: gradeId });
+  const qs = new URLSearchParams({ listing_type: "auction", period, limit: "200", grade_id: gradeId });
+  if (parallelId !== undefined) qs.set("parallel_id", parallelId); // undefined = every variant
   const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
   const groups = gradeId === "null" ? [body?.raw] : (body?.graded || []).flatMap(c => (c.grades || []).filter(g => g.grade_id === gradeId));
   return { body, records: groups.flatMap(g => g?.records || [])
@@ -57,14 +58,41 @@ async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
 // Newest auction window first; widen to 1 year, then all time, when fewer than 3 sales match (thin markets like low-numbered autos).
 export async function cardsightSoldComps(cardId, opts = {}) {
   let out = null;
+  const ctx = {};
   for (const period of ["6m", "1y", "all"]) {
-    out = await soldCompsFor(cardId, { ...opts, period });
+    out = await soldCompsFor(cardId, { ...opts, period }, ctx);
     if (out.count >= 3) break;
   }
   return out;
 }
 
-async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null, period = "6m" } = {}) {
+// CardSight often files autograph sales under the regular (non-auto) card with the same number.
+// For an auto card, find those sibling cards so their "Auto" titled sales can be counted.
+async function autoSiblings(cardId, card) {
+  const last = words(card?.name).pop();
+  if (!last || !card?.number) return [];
+  const qs = new URLSearchParams({ name: last, number: String(card.number), take: "50" });
+  if (card.set?.year) qs.set("year", String(card.set.year));
+  const body = await call(`/v1/catalog/cards?${qs}`).catch(() => null);
+  return (body?.cards || []).filter((c) => c?.id && c.id !== cardId && !isAutoCard(c)
+    && String(c.number) === String(card.number) && words(c.name).join(" ") === words(card.name).join(" ")
+    && (!card.set?.release || String(c.releaseName || "") === String(card.set.release))).map((c) => c.id);
+}
+
+// Sibling sales have no trustworthy tag for this card: they count only when the title is clear.
+export function siblingAutoBucket(record, parallels, { raw = true } = {}) {
+  const title = String(record?.title || "");
+  if (!/\bauto(graph)?s?\b|\bsigned\b|signature/i.test(title)) return "skip";
+  const b = saleBucket({ ...record, parallel_id: null }, parallels, { cardIsAuto: true, raw });
+  if (b !== "null") return b;
+  // Base only when no parallel word (color/finish) shows up in the title at all.
+  const tw = titleWords(title);
+  const anyWord = (parallels || []).some((p) => distinctWords(p.name).filter((w) => w !== "autographs" && !FINISH_WORDS.has(w)).some((w) => tw.has(w)));
+  if (anyWord || /\/\s*\d+\b/.test(title)) return "skip";
+  return "null";
+}
+
+async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null, period = "6m" } = {}, ctx = {}) {
   const tagged = await pricingRecords(cardId, parallelId, gradeId, period);
   let body = tagged.body;
   const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
@@ -77,6 +105,15 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
     const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId, period).catch(() => ({ records: [] }))).records : [];
     const seen = new Set();
     considered += extra.length;
+    let fromSiblings = [];
+    if (cardIsAuto) {
+      if (!ctx.siblings) ctx.siblings = await autoSiblings(cardId, body?.card).catch(() => []);
+      for (const sib of ctx.siblings.slice(0, 3)) {
+        const rs = (await pricingRecords(sib, undefined, gradeId, period).catch(() => ({ records: [] }))).records;
+        considered += rs.length;
+        fromSiblings.push(...rs.filter((r) => siblingAutoBucket(r, parallels, { raw: gradeId === "null" }) === parallelId));
+      }
+    }
     records = [...tagged.records, ...extra].filter((r) => {
       const k = r.url || `${r.title}|${r.date}|${r.price}`;
       if (seen.has(k)) return false; seen.add(k);
@@ -84,6 +121,10 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
       if (!cardIsAuto && b === "skip" && /\bauto(graph)?s?\b|signature/i.test(r.title || "")) autoTitled.push(r);
       return b === parallelId;
     });
+    for (const r of fromSiblings) {
+      const k = r.url || `${r.title}|${r.date}|${r.price}`;
+      if (!seen.has(k)) { seen.add(k); records.push(r); }
+    }
   } else {
     records = tagged.records.filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId);
   }
