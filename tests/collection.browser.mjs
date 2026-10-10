@@ -54,9 +54,9 @@ try{
  assert.equal(await page.evaluate(()=>Boolean(listingFrame)),true,'Card on a plain contrasting surface should auto-frame');
  const frame=await page.evaluate(()=>listingFrame);
  assert.ok(frame.x>40 && frame.x<100 && frame.width>130 && frame.width<210,'Expected conservative interior crop');
- await page.getByRole('button',{name:'Reset crop'}).click();
  await page.locator('#listingFineRotate').fill('7');
  assert.equal(await page.locator('#listingAngleValue').innerText(),'7°');
+ await page.getByRole('button',{name:'Reset crop'}).click();
  assert.equal(await page.evaluate(()=>listingFrame),null,'Reset should restore full original image');
  assert.equal(await page.locator('#listingFineRotate').inputValue(),'0','Reset also clears fine straightening');
  // Scanner failures are tested with mocked responses, never calling the paid AI endpoint.
