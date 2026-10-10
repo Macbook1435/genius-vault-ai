@@ -2020,15 +2020,18 @@ Strict rules:
           mean: catalogSold.mean, coverageNote: catalogSold.coverageNote, warnings: catalogSold.warnings, fetchedAt: catalogSold.fetchedAt, latestSaleDate: catalogSold.latestSaleDate,
           items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null, parallelName: catalogSold.parallelName || null });
       }
-      // Do not price an unverified numbered autograph using a broad auction sample.
+      // Trust rule: NEVER value any serial-numbered card from a broad
+      // sample unless the serial evidence AND the exact print-run parallel match.
+      // This applies to non-autographs as well as autographs.
       const serialField = (v2Mode === "primary" ? v2?.pipeline?.fields?.serial : pipeline?.fields?.serial);
       const parallelMatch = catalog.parallelComps?.status === "matched" &&
+        Number.isInteger(Number(scanResult.numberedTo)) &&
         Number(catalog.parallelComps?.catalogParallel?.numberedTo) === Number(scanResult.numberedTo);
-      if (scanResult.autograph === true && scanResult.numberedTo &&
+      if (scanResult.numberedTo &&
           (serialField?.status !== "confirmed" || !parallelMatch)) {
         Object.assign(comps, { ...calculateCompStats([]), items: [], count: 0,
           status: "exact_match_unverified",
-          error: "Exact serial and parallel not verified; generic auction prices excluded." });
+          error: "Numbered card: stamped serial and exact parallel must both be verified before showing sold-price statistics." });
         catalogSold = null;
       }
       market = buildMarket(comps, ebayMatches, catalogSold);
