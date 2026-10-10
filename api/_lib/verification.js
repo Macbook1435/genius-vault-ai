@@ -129,7 +129,8 @@ export function buildFieldVerification(card, v, ctx = {}) {
 
 // Both independent checks must have seen a stamped serial for it to count as a hint.
 function serialHinted(v, strongCheck) {
-  return present(v?.detailCheck?.stampedSerial) && present(strongCheck?.stampedSerial);
+  return present(v?.detailCheck?.stampedSerial) || present(strongCheck?.stampedSerial)
+    || (v?.serialPhotoRetry?.reads || []).some(r => present(r?.stampedSerial));
 }
 
 // Ask for a serial close-up only when it would actually settle something.

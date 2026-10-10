@@ -11,3 +11,12 @@ result.comps={count:0,items:[]};ctx.renderScan(result);assert.equal(elements.raw
 console.log('Frontend checks passed: sold display, unavailable prices, escaping, safe URLs, collection storage, and listing verification gates.');
 
 result.scan.autograph=true;result.pipeline.fields.parallel={value:'Aqua Surge',status:'unconfirmed'};result.scan.parallel=null;ctx.renderScan(result);assert.ok(elements.output.innerHTML.includes('Aqua Surge'));assert.ok(elements.output.innerHTML.includes('Yes — autograph detected'));assert.equal(elements.resultBadge.textContent,'Review card details');
+
+assert.ok(ctx.parallelPickerHtml({parallelPicker:{selectedId:'a',needsPick:false,options:[{id:'a',name:'Aqua Surge',numberedTo:250}]}}).includes('Change parallel (optional)'));
+assert.ok(!ctx.parallelPickerHtml({parallelPicker:{needsPick:true,options:[{id:'a',name:'Aqua Surge',numberedTo:250}]}}).includes('<details>'));
+ctx.fetch=async()=>({ok:true,json:async()=>({count:0,items:[]})});
+result.scan.serialNumber=null;result.scan.numberedTo=null;result.pipeline.fields.serial={value:null,status:'unconfirmed'};
+result.parallelPicker={options:[{id:'a',name:'Aqua Surge',numberedTo:250}],cardId:'test'};
+elements.parallelPick={value:'a'};elements.parallelPickStatus={textContent:''};
+ctx.window.gvLast=result;
+(async()=>{await ctx.pickParallel();assert.equal(result.scan.numberedTo,null);assert.equal(result.scan.serialNumber,null);assert.equal(result.pipeline.fields.serial.status,'unconfirmed');console.log('Catalog picker does not invent physical serial or print run.');})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -7,6 +7,7 @@ import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldC
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
+import { readSerialFromPhotos, serialValue } from "./_lib/serial-photo.js";
 import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
@@ -1544,25 +1545,34 @@ Strict rules:
       }
     }
 
-    // If the main identification missed a stamp, require a third focused read.
-    // The ordinary side/date/conflict checks below still apply before pricing.
-    if (!serialImage && !cleanPart(scanResult.serialNumber) && !scanResult.numberedTo) {
-      const a = parseSerial(combinedCheck?.stampedSerial);
-      const b = parseSerial(strongCheck?.stampedSerial);
-      const side = combinedCheck?.stampedSerialSide;
-      if (a && b && a.num === b.num && a.den === b.den && side && side === strongCheck?.stampedSerialSide) {
-        const photo = side === "back" ? backImage : side === "front" ? frontImage : null;
-        const focused = photo ? await safe("missed serial recheck", readSerialCloseup(photo, process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o", ex)) : null;
-        const c = focused && !focused.isDate ? parseSerial(focused.stampedSerial) : null;
-        if (c && c.num === a.num && c.den === a.den) {
-          scanResult.serialNumber = cleanPart(focused.stampedSerial);
-          scanResult.numberedTo = c.den;
-          if (scanResult.evidence) scanResult.evidence.serialNumberText = scanResult.serialNumber;
-          detailWarnings.push("Serial missed by the main identification was recovered by a third focused read.");
+    // Automatically enlarge both original photos when the full-card readers missed or disagree on a stamp.
+    // Two independent reads must agree; catalog print runs are never used as photo evidence.
+    let serialPhotoRetry = null;
+    const mainSerial = serialValue(scanResult.serialNumber);
+    const checkA = serialValue(combinedCheck?.stampedSerial);
+    const checkB = serialValue(strongCheck?.stampedSerial);
+    const sameSerial = (a, b) => a && b && a.num === b.num && a.den === b.den;
+    if (!serialImage && (!sameSerial(mainSerial, checkA) || !sameSerial(mainSerial, checkB))) {
+      serialPhotoRetry = await readSerialFromPhotos(frontImage, backImage, askVision, {
+        fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+        strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
+      });
+      if (serialPhotoRetry.serial) {
+        const stamp = serialPhotoRetry.serial;
+        scanResult.serialNumber = stamp.text;
+        scanResult.numberedTo = stamp.den;
+        if (scanResult.evidence) scanResult.evidence.serialNumberText = stamp.text;
+        for (const [i, check] of [combinedCheck, strongCheck].entries()) {
+          if (check) Object.assign(check, { stampedSerial: stamp.text, stampedSerialSide: stamp.side,
+            stampedSerialAppearance: serialPhotoRetry.reads[i]?.stampedSerialAppearance || "Enlarged original photo" });
         }
-      }
-      if (!scanResult.serialNumber && (combinedCheck?.stampedSerial || strongCheck?.stampedSerial)) {
-        detailWarnings.push("Possible stamped serial seen but not confirmed. Add a serial close-up to settle it.");
+        if (rawReads) {
+          for (const [key, check] of [["combined", combinedCheck], ["strong", strongCheck]]) {
+            if (rawReads[key] && check) Object.assign(rawReads[key], { stampedSerial: check.stampedSerial,
+              stampedSerialSide: check.stampedSerialSide, stampedSerialAppearance: check.stampedSerialAppearance });
+          }
+        }
+        detailWarnings.push("Physical serial recovered automatically from enlarged photos by two independent reads.");
       }
     }
 
@@ -1623,11 +1633,12 @@ Strict rules:
     verification.detailCheck = combinedCheck;
 
     if (serialImage) verification.serialCloseup = verification_closeup;
+    if (serialPhotoRetry) verification.serialPhotoRetry = serialPhotoRetry;
 
     // Serial: the two checks above double as the two independent serial reads.
     // (Skipped when a close-up photo already confirmed or ruled out the serial.)
     if (!serialImage && (cleanPart(scanResult.serialNumber) || scanResult.numberedTo)) {
-      const serialChecks = [combinedCheck, strongCheck];
+      const serialChecks = serialPhotoRetry?.serial ? serialPhotoRetry.reads : [combinedCheck, strongCheck];
       applySerialCheck(scanResult, serialChecks, verification.warnings);
       verification.serialCheck = serialChecks.map((c) =>
         c ? { stampedSerial: c.stampedSerial, side: c.stampedSerialSide, slashTexts: c.slashTexts } : null,

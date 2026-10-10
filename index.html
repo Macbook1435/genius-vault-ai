@@ -127,6 +127,7 @@ function parallelPickerHtml(data) {
   const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
   const sales = "";
   return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#eef4e8;border-radius:12px;">
+    ${!pk.needsPick ? '<details><summary>Change parallel (optional)</summary>' : ''}
     <b style="color:#326748;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
     ${pk.needsPick ? `<div style="margin:8px 0;">${escHtml(pk.reason || "The scanner is not sure which parallel this is.")} Pick the parallel on your card below.</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
@@ -136,6 +137,7 @@ function parallelPickerHtml(data) {
     <button onclick="pickParallel()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">LOAD SOLD PRICES FOR THIS PARALLEL</button>
     <div id="parallelPickStatus" style="margin-top:8px;"></div>
     ${sales ? `<div style="margin-top:10px;"><b>Recent sales:</b>${sales}</div>` : ""}
+    ${!pk.needsPick ? "</details>" : ""}
   </div>`;
 }
 
@@ -153,9 +155,9 @@ async function pickParallel() {
     if (!r.ok) throw new Error(c.error || "Could not load sold prices.");
     // The user confirmed the parallel: it now counts as confirmed for prices and listings.
     const isBase = choice.id === "null";
-    data.scan = { ...(data.scan || {}), parallel: isBase ? null : choice.name, numberedTo: choice.numberedTo || data.scan?.numberedTo || null };
+    data.scan = { ...(data.scan || {}), parallel: isBase ? null : choice.name };
     if (data.pipeline?.fields) {
-      data.pipeline.fields.parallel = { value: choice.name, status: "confirmed", basis: "Picked by you from the catalog list for this card." };
+      data.pipeline.fields.parallel = { value: choice.name, status: "confirmed", basis: "Chosen by you for sold-price matching; physical numbering is verified separately." };
       data.pipeline.unconfirmed = (data.pipeline.unconfirmed || []).filter((k) => k !== "parallel");
     }
     data.comps = { ...(data.comps || {}), count: c.count, min: c.min, max: c.max, median: c.median, mean: c.mean, coverageNote: c.coverageNote, warnings: c.warnings, fetchedAt: c.fetchedAt, latestSaleDate: c.latestSaleDate, items: c.items, source: c.source,
