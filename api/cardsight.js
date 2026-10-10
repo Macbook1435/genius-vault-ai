@@ -128,14 +128,16 @@ export function pickParallel(parallels, { name, numberedTo, cardId } = {}) {
 }
 
 // Decide which comps are allowed for the parallel: base, one confirmed parallel, or none.
-export function parallelCompsPlan({ parallel, fieldStatus, pidStatus } = {}) {
+export function parallelCompsPlan({ parallel, fieldStatus, pidStatus, pidStatuses } = {}) {
   const name = String(parallel ?? "").trim();
   const hasName = name && !/^(base|null|none|unknown)$/i.test(name);
   if (hasName) {
     return fieldStatus === "confirmed" ? { mode: "parallel", name }
       : { mode: "blocked", reason: `Parallel "${name}" is not confirmed, so sold prices are not shown (base-card prices would be misleading).` };
   }
-  if (["ambiguous", "probable", "no_match"].includes(pidStatus)) {
+  // Every verification step must agree the parallel is settled (any one saying "maybe" blocks comps).
+  const statuses = [pidStatus, ...(pidStatuses || [])].filter(Boolean);
+  if (statuses.some((st) => ["ambiguous", "probable", "no_match"].includes(st))) {
     return { mode: "blocked", reason: "The parallel is not settled, so sold prices are not shown." };
   }
   return { mode: "base" };

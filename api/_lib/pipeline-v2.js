@@ -88,7 +88,10 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
     raw.copyright = await copyrightCloseup();
     years = yearEvidence(main, A, B, raw.copyright);
   }
+  // An accepted catalog match (player + card number already agree) is the exact card: its year decides the product.
+  const catalogYear = catalogOk ? Number(catalog.match?.year) || null : null;
   const yearTest = (p) => {
+    if (catalogYear) return p.year === catalogYear;
     const { fit, against } = yearSupport(p, years);
     return fit > 0 ? fit > against : !years.valid.length && (!years.latestEvent || p.year >= years.latestEvent);
   };
@@ -117,7 +120,8 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   const product = prod.product;
   const ysup = product ? yearSupport(product, years) : null;
   // The product (and so its checklist) is only trusted when the year is backed by a copyright read.
-  const productYearConfirmed = Boolean(product && ysup.fit >= 1 && ysup.fit > ysup.against);
+  const productYearConfirmed = Boolean(product && (catalogYear ? product.year === catalogYear : ysup.fit >= 1 && ysup.fit > ysup.against));
+  if (product && catalogYear) notes.push(`Product: ${product.label} checklist used; year ${catalogYear} from the accepted catalog match.`);
   if (product && productYearConfirmed) card.year = product.year;
   const allFormats = product ? product.subsets.flatMap((s) => s.numberFormats) : [];
 

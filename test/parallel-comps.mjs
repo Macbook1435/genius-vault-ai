@@ -45,3 +45,9 @@ t("plan: checklist says it could be a parallel -> no comps", () => {
   for (const s of ["ambiguous", "probable", "no_match"]) assert.equal(parallelCompsPlan({ parallel: null, pidStatus: s }).mode, "blocked");
 });
 console.log(`parallel-comps: ${n} tests passed`);
+t("plan: any verification step unsure blocks comps", () => {
+  assert.equal(parallelCompsPlan({ parallel: null, pidStatuses: ["probable", "no_checklist"] }).mode, "blocked");
+  assert.equal(parallelCompsPlan({ parallel: null, pidStatuses: ["no_checklist", "ambiguous"] }).mode, "blocked");
+  assert.equal(parallelCompsPlan({ parallel: null, pidStatuses: ["no_checklist", "base"] }).mode, "base");
+});
+console.log("parallel-comps: multi-step check passed");

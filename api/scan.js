@@ -1752,7 +1752,7 @@ Strict rules:
         const plan = parallelCompsPlan({
           parallel: scanResult.parallel,
           fieldStatus: effective?.fields?.parallel?.status,
-          pidStatus: v2Mode === "primary" && v2?.parallel ? v2.parallel.status : verification.parallelId?.status,
+          pidStatuses: [verification.parallelId?.status, v2Mode === "primary" ? v2?.parallel?.status : null],
         });
         let parallelId = "null";
         catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
