@@ -1777,7 +1777,7 @@ Strict rules:
         const info = await cardsightCardInfo(pricingCardId).catch((e) => ({ error: e.message }));
         const list = info?.error ? info : info.parallels;
         // A confirmed serial print run (e.g. 13/250) rules out base: use the one parallel with that print run.
-        const serialOk = scanResult.numberedTo && effective?.fields?.serial?.status === "confirmed";
+        const serialOk = scanResult.numberedTo && (effective?.fields?.serial?.status === "confirmed" || effective?.fields?.serial?.printRunConfirmed === true);
         if (serialOk && plan.mode !== "parallel" && Array.isArray(list)) {
           const runFits = list.filter((p) => p && Number(p.numberedTo) === Number(scanResult.numberedTo)
             && (!p.isPartial || !Array.isArray(p.cards) || p.cards.includes(pricingCardId)));

@@ -60,10 +60,12 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
   const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
     : isAutoCard({ setName: `${body?.card?.release || ""} ${body?.card?.set || ""}`, attributes: body?.card?.attributes || [] });
   let records;
+  let considered = tagged.records.length;
   if (Array.isArray(parallels) && parallels.length) {
     // For a parallel, also look through the untagged sales for titles that name it.
     const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId).catch(() => ({ records: [] }))).records : [];
     const seen = new Set();
+    considered += extra.length;
     records = [...tagged.records, ...extra].filter((r) => {
       const k = r.url || `${r.title}|${r.date}|${r.price}`;
       if (seen.has(k)) return false; seen.add(k);
@@ -75,7 +77,7 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
   records.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   const prices = records.map(r => r.price);
   return {
-    source: "cardsight_completed_auctions", currency: "USD", count: records.length,
+    source: "cardsight_completed_auctions", currency: "USD", count: records.length, considered,
     min: prices.length ? Math.min(...prices) : null, max: prices.length ? Math.max(...prices) : null,
     median: prices.length ? Math.round(median(prices) * 100) / 100 : null,
     items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url })),
