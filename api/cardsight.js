@@ -45,7 +45,7 @@ function median(values) { const s = [...values].sort((a, b) => a - b); const m =
 
 // Completed AUCTION sales only (CardSight "bid" side). Buy It Now asks are excluded because they are not proof of a sale.
 async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
-  const qs = new URLSearchParams({ listing_type: "auction", period, limit: "200", grade_id: gradeId });
+  const qs = new URLSearchParams({ listing_type: "auction", period, limit: "500", grade_id: gradeId });
   if (parallelId !== undefined) qs.set("parallel_id", parallelId); // undefined = every variant
   const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
   const groups = gradeId === "null" ? [body?.raw] : (body?.graded || []).flatMap(c => (c.grades || []).filter(g => g.grade_id === gradeId));
@@ -108,8 +108,17 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
     let fromSiblings = [];
     if (cardIsAuto) {
       if (!ctx.siblings) ctx.siblings = await autoSiblings(cardId, body?.card).catch(() => []);
+      const wantName = parallelId !== "null" ? (parallels.find((p) => p.id === parallelId)?.name || "").toLowerCase() : null;
       for (const sib of ctx.siblings.slice(0, 3)) {
-        const rs = (await pricingRecords(sib, undefined, gradeId, period).catch(() => ({ records: [] }))).records;
+        // Same-named parallel on the regular card (e.g. its Aqua Surge) holds most of these sales; base auto sales sit under its base.
+        if (!ctx.sibPar) ctx.sibPar = {};
+        if (!(sib in ctx.sibPar)) {
+          const list = wantName ? await cardsightCardParallels(sib).catch(() => []) : [];
+          ctx.sibPar[sib] = wantName ? (list.find((p) => String(p.name || "").toLowerCase() === wantName)?.id || null) : "null";
+        }
+        const rs = [];
+        if (ctx.sibPar[sib]) rs.push(...(await pricingRecords(sib, ctx.sibPar[sib], gradeId, period).catch(() => ({ records: [] }))).records);
+        rs.push(...(await pricingRecords(sib, undefined, gradeId, period).catch(() => ({ records: [] }))).records);
         considered += rs.length;
         fromSiblings.push(...rs.filter((r) => siblingAutoBucket(r, parallels, { raw: gradeId === "null" }) === parallelId));
       }
