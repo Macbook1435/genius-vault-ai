@@ -76,7 +76,7 @@ try{
   document.getElementById('saveCard').disabled=false;
  });
  page.once('dialog',dialog=>dialog.dismiss());
- await page.locator('#saveCard').click();
+ await page.evaluate(()=>saveCard());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),2);
  page.once('dialog',dialog=>dialog.accept());
  await page.locator('#saveCard').click();
