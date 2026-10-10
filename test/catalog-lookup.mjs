@@ -50,3 +50,17 @@ t("autograph unknown keeps all (stays ambiguous)", () => {
   assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019 }).status, "ambiguous");
 });
 console.log(`catalog-lookup: extra autograph tests passed`);
+import { isAutoCard } from "../api/cardsight.js";
+t("same number, auto vs non-auto version picked by the scan", () => {
+  const cards = [{ ...base, id: "plain", setName: "Base Set" }, { ...base, id: "sig", setName: "Rookie Signatures", attributes: ["AUTO"] }];
+  assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).card.id, "sig");
+  assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: false }).card.id, "plain");
+  assert.equal(isAutoCard({ attributes: ["Autograph"] }), true);
+  assert.equal(isAutoCard({ setName: "Brandco Rookie Signatures" }), true);
+  assert.equal(isAutoCard({ setName: "Brandco Base Set", attributes: ["Rookie"] }), false);
+});
+t("patch card keeps only relic versions", () => {
+  const cards = [{ ...base, id: "plain" }, { ...base, id: "rel", setName: "Rookie Relic Signatures", attributes: ["AUTO"] }];
+  assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: true, memorabilia: true }).card.id, "rel");
+});
+console.log("catalog-lookup: version checks passed");

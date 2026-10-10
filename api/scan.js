@@ -2,7 +2,8 @@ import formidable from "formidable";
 import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
-  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions, suggestOptionIds } from "./cardsight.js";
+  cardsightCardParallels, pickParallel, parallelCompsPlan, baseLookalikes, parallelOptions, suggestOptionIds,
+  isAutoCard, isRelicCard } from "./cardsight.js";
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
@@ -1018,7 +1019,7 @@ function applyCatalogMatch(card, cs, warnings) {
   if (!cs || cs.error) { out.status = "error"; out.error = cs?.error || "no response"; return out; }
   const c = cs.detection?.card;
   if (!c?.name) { out.status = "no_match"; return out; }
-  out.match = { id: c.id || null, name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null };
+  out.match = { id: c.id || null, name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null, attributes: c.attributes || [] };
 
   const last = cleanPart(card.player).split(/\s+/).pop()?.toLowerCase();
   const playerOk = last && c.name.toLowerCase().includes(last);
@@ -1739,6 +1740,20 @@ Strict rules:
       let catalogSold = null;
       parallelPicker = null;
       let pricingCardId = catalog.status === "accepted" ? catalog.match?.id : null;
+      // Same number, different version: e.g. #163 base rookie vs. #163 Rookie Signatures auto.
+      // If the photo match disagrees with the scan on autograph / relic, price the version the scan saw instead.
+      if (pricingCardId) {
+        const m = { setName: `${catalog.match.release || ""} ${catalog.match.set || ""}`, attributes: catalog.match.attributes || [] };
+        const autoClash = typeof scanResult.autograph === "boolean" && isAutoCard(m) !== scanResult.autograph;
+        const relicClash = typeof scanResult.memorabilia === "boolean" && isRelicCard(m) !== scanResult.memorabilia;
+        if (autoClash || relicClash) {
+          catalog.versionClash = autoClash
+            ? `Photo match was the ${isAutoCard(m) ? "autograph" : "non-autograph"} version, but the scan saw ${scanResult.autograph ? "an autograph" : "no autograph"}; looked up the matching version instead.`
+            : `Photo match was the ${isRelicCard(m) ? "relic/patch" : "non-relic"} version, but the scan saw ${scanResult.memorabilia ? "a relic/patch" : "no relic/patch"}; looked up the matching version instead.`;
+          verification.warnings.push(catalog.versionClash);
+          pricingCardId = null;
+        }
+      }
       // Photo match was a different card: look the verified card up by player + number + year instead.
       if (identityTrusted && !pricingCardId && catalog.configured && scanResult.player && scanResult.cardNumber) {
         const found = await cardsightFindByDetails({ player: scanResult.player, number: scanResult.cardNumber,
