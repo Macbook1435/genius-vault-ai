@@ -2011,6 +2011,17 @@ Strict rules:
           mean: catalogSold.mean, coverageNote: catalogSold.coverageNote, warnings: catalogSold.warnings, fetchedAt: catalogSold.fetchedAt, latestSaleDate: catalogSold.latestSaleDate,
           items: catalogSold.items, source: catalogSold.source, status: "comps_found", error: null, parallelName: catalogSold.parallelName || null });
       }
+      // Do not price an unverified numbered autograph using a broad auction sample.
+      const serialField = (v2Mode === "primary" ? v2?.pipeline?.fields?.serial : pipeline?.fields?.serial);
+      const parallelMatch = catalog.parallelComps?.status === "matched" &&
+        Number(catalog.parallelComps?.catalogParallel?.numberedTo) === Number(scanResult.numberedTo);
+      if (scanResult.autograph === true && scanResult.numberedTo &&
+          (serialField?.status !== "confirmed" || !parallelMatch)) {
+        Object.assign(comps, { ...calculateCompStats([]), items: [], count: 0,
+          status: "exact_match_unverified",
+          error: "Exact serial and parallel not verified; generic auction prices excluded." });
+        catalogSold = null;
+      }
       market = buildMarket(comps, ebayMatches, catalogSold);
     } catch (e) {
       console.error("market error:", e);
