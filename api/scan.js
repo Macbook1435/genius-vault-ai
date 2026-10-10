@@ -1808,8 +1808,28 @@ Strict rules:
             if (!scanResult.parallel) scanResult.parallel = plan.name;
             verification.warnings.push(`Parallel "${plan.name}" set from the confirmed serial: it is the only /${scanResult.numberedTo} parallel for this card.`);
           } else if (runFits.length > 1) {
+            // Use *independent* visual evidence to disambiguate parallels sharing a print run.
+            // Do not select from color alone: the player's uniform can fool the color reader.
+            const photoColor = String(combinedCheck?.parallelColor || "").trim().toLowerCase();
+            const printedEvidence = String(scanResult.evidence?.parallelText || "").toLowerCase();
+            const colorCorroborated = photoColor && new RegExp(`\\b${photoColor.replace(/[.*+?^\x24{}()|[\\]\\\\]/g, "\\\\          } else if (runFits.length > 1) {
             plan.mode = "blocked";
             catalog.parallelComps = { mode: "blocked", name: null, reason: `More than one /${scanResult.numberedTo} parallel fits (${runFits.map((p) => p.name).join(", ")}). Pick the one on your card.` };
+          }")}\\b`, "i").test(printedEvidence);
+            const colorFits = colorCorroborated ? runFits.filter((p) =>
+              String(p.name || "").toLowerCase().split(/[^a-z0-9]+/).includes(photoColor)) : [];
+            if (colorFits.length === 1) {
+              plan.mode = "parallel";
+              plan.name = colorFits[0].name;
+              delete plan.reason;
+              catalog.parallelComps = { mode: "parallel", name: plan.name, reason: null,
+                from: `/${scanResult.numberedTo} serial + two agreeing color reads` };
+              if (!scanResult.parallel) scanResult.parallel = plan.name;
+            } else {
+              plan.mode = "blocked";
+              catalog.parallelComps = { mode: "blocked", name: null,
+                reason: `Multiple /${scanResult.numberedTo} parallels match (${runFits.map((p) => p.name).join(", ")}); independent color evidence did not identify exactly one.` };
+            }
           }
         }
         // Shiny base vs. Holo/Refractor cannot be told apart reliably from photos: the user picks.
