@@ -101,14 +101,16 @@ try{
  await uploadBackup(JSON.stringify([{id:'invalid'}]));
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
  // Canceling REPLACE at final confirmation must preserve everything.
- page.once('dialog',dialog=>dialog.accept('REPLACE'));
- page.once('dialog',dialog=>dialog.dismiss());
+ const declineReplace=dialog=>dialog.type()==='prompt'?dialog.accept('REPLACE'):dialog.dismiss();
+ page.on('dialog',declineReplace);
  await uploadBackup(JSON.stringify([imported]));
+ page.off('dialog',declineReplace);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
  // Full restore.
- page.once('dialog',dialog=>dialog.accept('REPLACE'));
- page.once('dialog',dialog=>dialog.accept());
+ const acceptReplace=dialog=>dialog.type()==='prompt'?dialog.accept('REPLACE'):dialog.accept();
+ page.on('dialog',acceptReplace);
  await uploadBackup(JSON.stringify(beforeRestore));
+ page.off('dialog',acceptReplace);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),3);
  assert.equal(await page.locator('.saved-card').count(),3);
  // Corrupted local storage must not be overwritten on attempted save.
