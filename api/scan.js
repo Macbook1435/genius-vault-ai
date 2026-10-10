@@ -1,5 +1,6 @@
-import { authenticatedUser, reserveScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
+import { authenticatedUser, reserveScan, releaseScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
 import formidable from "formidable";
+import { randomUUID } from "node:crypto";
 import fs from "fs";
 import OpenAI from "openai";
 import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldComps, cardsightFindByDetails,
@@ -1391,6 +1392,7 @@ function buildReadoutSummary(card, comps) {
 }
 
 export default async function handler(req, res) {
+  let scanReservation = null;
   try {
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
@@ -1408,12 +1410,10 @@ export default async function handler(req, res) {
       });
     }
 
-    if (subscriptionsEnabled()) {
-      const user = await authenticatedUser(req);
-      if (!user) return res.status(401).json({error:"Sign in to scan cards."});
-      const requestId = crypto.randomUUID();
-      const allowed = await reserveScan(user.id, requestId);
-      if (!allowed) return res.status(402).json({error:"No scans available on your current plan."});
+    // Authenticate up front; reserve allowance only after a usable photo arrives.
+    const member = subscriptionsEnabled() ? await authenticatedUser(req) : null;
+    if (subscriptionsEnabled() && !member) {
+      return res.status(401).json({ error: "Sign in to scan cards." });
     }
 
     const { files, fields: formFields } = await parseForm(req);
@@ -1438,6 +1438,13 @@ export default async function handler(req, res) {
       return res.status(400).json({
         results: "No front card image received.",
       });
+    }
+
+    if (member) {
+      const requestId = randomUUID();
+      const allowed = await reserveScan(member.id, requestId);
+      if (!allowed) return res.status(402).json({ error: "No scans available on your current plan." });
+      scanReservation = { userId: member.id, requestId };
     }
 
     const content = [
@@ -2074,6 +2081,7 @@ Strict rules:
         } sold`
       : "No prices auto-pulled. Use the sold-comps link below.";
 
+    scanReservation = null; // A completed result legitimately consumes one scan.
     return res.status(200).json({
       results: "Scan completed successfully.",
       scan: scanResult,
@@ -2108,10 +2116,20 @@ Strict rules:
     });
   } catch (err) {
     console.error("scan error:", err);
-
-    return res.status(500).json({
+    if (scanReservation) {
+      try {
+        await releaseScan(scanReservation.userId, scanReservation.requestId);
+      } catch (refundErr) {
+        console.error("Could not release failed scan reservation:", refundErr);
+      }
+    }
+    // Never expose provider billing, authentication, or internal stack details.
+    const rateLimited = err?.status === 429 || err?.code === "insufficient_quota";
+    return res.status(rateLimited ? 503 : 500).json({
       results: "Scan failed.",
-      error: err?.message || String(err),
+      error: rateLimited
+        ? "Scanning is temporarily unavailable. Please try again later; this failed attempt is not meant to use a scan."
+        : "The scan could not be completed. Please retry with clear front and back photos.",
     });
   }
 }
