@@ -1,0 +1,22 @@
+name: Offline regression tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse scanner JavaScript
+        run: node --check api/scan.js
+      - name: Parse subscription services
+        run: |
+          node --check api/_lib/subscriptions.js
+          node --check api/subscription-status.js
+          node --check api/stripe-webhook.js
+      - name: Run offline regression tests (no API keys)
+        run: node --test tests/offline.test.mjs
