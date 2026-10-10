@@ -444,7 +444,7 @@ async function pickParallel() {
       data.pipeline.unconfirmed = (data.pipeline.unconfirmed || []).filter((k) => k !== "parallel");
     }
     data.comps = { ...(data.comps || {}), count: c.count, min: c.min, max: c.max, median: c.median, items: c.items, source: c.source,
-      status: c.count ? "comps_found" : "no_sales", error: c.count ? null : `No sold sales found for the ${choice.name} parallel in the last 6 months.` };
+      status: c.count ? "comps_found" : "no_sales", error: c.count ? null : `No sold auction sales found for the ${choice.name} parallel in CardSight data (checked up to all time).` };
     if (data.soldComps) {
       // Rebuild the title from the original: drop the scanner's parallel, add the picked one (without "Rated Rookie").
       if (pk.origQuery === undefined) { pk.origQuery = String(data.soldComps.query || ""); pk.origParallel = pk.origParallel ?? (window.gvOrigParallel || ""); }

@@ -44,8 +44,8 @@ export function resolveParallel(card) {
 function median(values) { const s = [...values].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
 
 // Completed AUCTION sales only (CardSight "bid" side). Buy It Now asks are excluded because they are not proof of a sale.
-async function pricingRecords(cardId, parallelId, gradeId) {
-  const qs = new URLSearchParams({ listing_type: "auction", period: "6m", limit: "100", parallel_id: parallelId, grade_id: gradeId });
+async function pricingRecords(cardId, parallelId, gradeId, period = "6m") {
+  const qs = new URLSearchParams({ listing_type: "auction", period, limit: "200", parallel_id: parallelId, grade_id: gradeId });
   const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
   const groups = gradeId === "null" ? [body?.raw] : (body?.graded || []).flatMap(c => (c.grades || []).filter(g => g.grade_id === gradeId));
   return { body, records: groups.flatMap(g => g?.records || [])
@@ -54,8 +54,18 @@ async function pricingRecords(cardId, parallelId, gradeId) {
 
 // CardSight does not always tag which parallel sold, so each sale is also sorted by its listing title.
 // Pass `parallels` (the card's catalog parallel list) to turn this on.
-export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null } = {}) {
-  const tagged = await pricingRecords(cardId, parallelId, gradeId);
+// Newest auction window first; widen to 1 year, then all time, when fewer than 3 sales match (thin markets like low-numbered autos).
+export async function cardsightSoldComps(cardId, opts = {}) {
+  let out = null;
+  for (const period of ["6m", "1y", "all"]) {
+    out = await soldCompsFor(cardId, { ...opts, period });
+    if (out.count >= 3) break;
+  }
+  return out;
+}
+
+async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", parallels = null, cardIsAuto: knownAuto = null, period = "6m" } = {}) {
+  const tagged = await pricingRecords(cardId, parallelId, gradeId, period);
   let body = tagged.body;
   const cardIsAuto = typeof knownAuto === "boolean" ? knownAuto
     : isAutoCard({ setName: `${body?.card?.release || ""} ${body?.card?.set || ""}`, attributes: body?.card?.attributes || [] });
@@ -63,7 +73,7 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
   let considered = tagged.records.length;
   if (Array.isArray(parallels) && parallels.length) {
     // For a parallel, also look through the untagged sales for titles that name it.
-    const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId).catch(() => ({ records: [] }))).records : [];
+    const extra = parallelId !== "null" ? (await pricingRecords(cardId, "null", gradeId, period).catch(() => ({ records: [] }))).records : [];
     const seen = new Set();
     considered += extra.length;
     records = [...tagged.records, ...extra].filter((r) => {
@@ -77,10 +87,10 @@ export async function cardsightSoldComps(cardId, { parallelId = "null", gradeId 
   records.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   const prices = records.map(r => r.price);
   return {
-    source: "cardsight_completed_auctions", currency: "USD", count: records.length, considered,
+    source: "cardsight_completed_auctions", currency: "USD", count: records.length, considered, period,
     min: prices.length ? Math.min(...prices) : null, max: prices.length ? Math.max(...prices) : null,
     median: prices.length ? Math.round(median(prices) * 100) / 100 : null,
-    items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url })),
+    items: records.slice(0, 15).map(r => ({ title: r.title || null, price: r.price, date: r.date || null, source: r.source || null, url: r.url, image: r.image_url || null })),
     catalogCard: body?.card ? { name: body.card.name, number: body.card.number, set: body.card.set, parallel: body.card.parallel || null } : null
   };
 }
