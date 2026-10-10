@@ -1937,6 +1937,14 @@ Strict rules:
             f.parallel = { value: pname, status: "confirmed", basis: "Matched catalog parallel and serial print run." };
         }
       }
+      // Recompute verification summaries after catalog promotions. The pipeline
+      // was built earlier, so its original unconfirmed list is otherwise stale.
+      for (const result of [pipeline, v2?.pipeline]) {
+        if (!result?.fields) continue;
+        const keys = ["player","year","set","cardNumber","parallel","serial"];
+        result.unconfirmed = keys.filter((key) => result.fields[key]?.status !== "confirmed");
+        result.allConfirmed = result.unconfirmed.length === 0;
+      }
       market = buildMarket(comps, ebayMatches, catalogSold);
       // Sold data from the catalog (completed auctions) replaces the blocked eBay sold search.
       if (catalogSold?.count) {
