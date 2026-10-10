@@ -1552,7 +1552,7 @@ Strict rules:
     const checkA = serialValue(combinedCheck?.stampedSerial);
     const checkB = serialValue(strongCheck?.stampedSerial);
     const sameSerial = (a, b) => a && b && a.num === b.num && a.den === b.den;
-    if (!serialImage && (!sameSerial(mainSerial, checkA) || !sameSerial(mainSerial, checkB))) {
+    if (!serialImage && (!mainSerial || !sameSerial(mainSerial, checkA) || !sameSerial(mainSerial, checkB))) {
       serialPhotoRetry = await readSerialFromPhotos(frontImage, backImage, askVision, {
         fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
         strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
@@ -1562,17 +1562,8 @@ Strict rules:
         scanResult.serialNumber = stamp.text;
         scanResult.numberedTo = stamp.den;
         if (scanResult.evidence) scanResult.evidence.serialNumberText = stamp.text;
-        // Keep original independent observations intact for conflict detection.
-        for (const [i, check] of [combinedCheck, strongCheck].entries()) {
-          if (check) Object.assign(check, { stampedSerial: stamp.text, stampedSerialSide: stamp.side,
-            stampedSerialAppearance: serialPhotoRetry.reads[i]?.stampedSerialAppearance || "Enlarged original photo" });
-        }
-        if (rawReads) {
-          for (const [key, check] of [["combined", combinedCheck], ["strong", strongCheck]]) {
-            if (rawReads[key] && check) Object.assign(rawReads[key], { stampedSerial: check.stampedSerial,
-              stampedSerialSide: check.stampedSerialSide, stampedSerialAppearance: check.stampedSerialAppearance });
-          }
-        }
+        // Preserve original full-card observations. Overwriting them would
+        // manufacture agreement and hide digit transpositions such as 037/375.
         detailWarnings.push("Physical serial recovered automatically from enlarged photos by two independent reads.");
       }
     }
@@ -1898,7 +1889,8 @@ Strict rules:
         const verifiedStamp = serialPhotoRetry?.serial || closeupSerial;
         // A conflicting full-card reading is a warning, not proof that two
         // matching magnified AI reads are correct. Never show green confirmation.
-        const serialConflict = Boolean(mainSerial && (mainSerial.num !== verifiedStamp.num || mainSerial.den !== verifiedStamp.den));
+        const serialConflict = [mainSerial, checkA, checkB].some((read) =>
+          read && (read.num !== verifiedStamp.num || read.den !== verifiedStamp.den));
         const parsedStamp = serialValue(scanResult.serialNumber);
         if (parsedStamp.num === verifiedStamp.num && parsedStamp.den === verifiedStamp.den) {
           for (const fields of [pipeline?.fields, v2?.pipeline?.fields]) {
