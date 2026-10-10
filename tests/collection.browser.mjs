@@ -112,6 +112,7 @@ try{
  };
  page.once('dialog',dialog=>dialog.accept('MERGE'));
  await uploadBackup(JSON.stringify([beforeRestore[0],imported]));
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length===4);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')).length),4);
  assert.equal(await page.locator('.saved-card').count(),4);
  const merged=await page.evaluate(()=>JSON.parse(localStorage.getItem('gv-collection-v3')));
