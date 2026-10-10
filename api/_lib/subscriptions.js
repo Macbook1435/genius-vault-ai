@@ -25,7 +25,7 @@ export async function releaseScan(userId,requestId){
   await supabaseRequest('/rest/v1/gv_scan_usage?user_id=eq.'+encodeURIComponent(userId)+'&request_id=eq.'+encodeURIComponent(requestId),{method:'DELETE',admin:true});
 }
 export async function entitlement(userId){
-  const rows=await supabaseRequest('/rest/v1/gv_entitlements?user_id=eq.'+encodeURIComponent(userId)+'&select=status,period_start,period_end,scan_limit',{admin:true});
+  const rows=await supabaseRequest('/rest/v1/gv_entitlements?user_id=eq.'+encodeURIComponent(userId)+'&select=status,period_start,period_end,scan_limit,unlimited_scans',{admin:true});
   return rows?.[0]||null;
 }
 export async function usageCount(userId,periodStart){
