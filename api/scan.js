@@ -1562,6 +1562,7 @@ Strict rules:
         scanResult.serialNumber = stamp.text;
         scanResult.numberedTo = stamp.den;
         if (scanResult.evidence) scanResult.evidence.serialNumberText = stamp.text;
+        // Keep original independent observations intact for conflict detection.
         for (const [i, check] of [combinedCheck, strongCheck].entries()) {
           if (check) Object.assign(check, { stampedSerial: stamp.text, stampedSerialSide: stamp.side,
             stampedSerialAppearance: serialPhotoRetry.reads[i]?.stampedSerialAppearance || "Enlarged original photo" });
@@ -1922,7 +1923,7 @@ Strict rules:
         }
         const release = String(m.release || "").trim().replace(/^(topps\s+){2,}/i, "Topps ");
         if (release && /[a-z]/i.test(release)) {
-          scanResult.set = release.replace(/^topps\\s+/i, "");
+          scanResult.set = release.replace(/^topps\s+/i, "");
           if (pipeline?.fields?.set) pipeline.fields.set = { value: release, status: "confirmed", basis: "Unique catalog card match." };
           if (v2?.pipeline?.fields?.set) v2.pipeline.fields.set = { value: release, status: "confirmed", basis: "Unique catalog card match." };
         }
