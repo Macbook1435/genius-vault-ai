@@ -40,6 +40,22 @@ try{
  assert.equal(jpeg[0],255);assert.equal(jpeg[1],216);
  await page.getByRole('button',{name:'Reset crop'}).click();
  assert.equal(await page.locator('#listingZoom').inputValue(),'100');
+ // Synthetic card against a plain background: auto-frame must find interior edges.
+ const synthetic=await page.evaluate(()=>{
+  const c=document.createElement('canvas');c.width=320;c.height=400;
+  const g=c.getContext('2d');
+  g.fillStyle='#eaeaea';g.fillRect(0,0,320,400);
+  g.fillStyle='#173252';g.fillRect(80,55,160,260);
+  return c.toDataURL('image/png').split(',')[1];
+ });
+ await page.locator('#listingPhotoFile').setInputFiles({name:'framing-test.png',mimeType:'image/png',buffer:Buffer.from(synthetic,'base64')});
+ await page.waitForFunction(()=>!document.getElementById('listingAutoFrame').disabled);
+ await page.getByRole('button',{name:'Auto-frame card'}).click();
+ assert.equal(await page.evaluate(()=>Boolean(listingFrame)),true,'Card on a plain contrasting surface should auto-frame');
+ const frame=await page.evaluate(()=>listingFrame);
+ assert.ok(frame.x>40 && frame.x<100 && frame.width>130 && frame.width<210,'Expected conservative interior crop');
+ await page.getByRole('button',{name:'Reset crop'}).click();
+ assert.equal(await page.evaluate(()=>listingFrame),null,'Reset should restore full original image');
  // Scanner failures are tested with mocked responses, never calling the paid AI endpoint.
  let apiRequests=0;
  await page.route('**/api/scan',async route=>{
