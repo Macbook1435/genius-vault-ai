@@ -33,3 +33,17 @@ test('catalog and card identity must both be available',()=>{
  assert.equal(exactPricingGate({...base,catalogAvailable:false}).allowed,false);
  assert.equal(exactPricingGate({...base,identityTrusted:false}).allowed,false);
 });
+
+test('Bhayshul Tuten /50 autograph without catalog variant never requests sales',async()=>{
+ const observed={identityTrusted:true,mode:'parallel',parallelId:null,numberedTo:50,
+  serialNumber:'33/50',serialVerified:true,parallelMatched:false,catalogAvailable:false};
+ let calls=0;
+ for(const attempt of [observed,{...observed,catalogAvailable:true},
+   {...observed,parallelId:'unverified-variant',parallelMatched:false},
+   {...observed,mode:'base',parallelId:'null',catalogAvailable:true}]){
+  const r=await requestExactSales(attempt,()=>{calls++;return {price:500};});
+  assert.equal(r.called,false);
+  assert.equal(r.result,null);
+ }
+ assert.equal(calls,0);
+});
