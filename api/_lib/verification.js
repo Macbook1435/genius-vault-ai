@@ -101,14 +101,28 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.serial = field(null, ctx.serialImage ? "unconfirmed" : "confirmed",
       ctx.serialImage ? "Close-up could not be confirmed." : "No serial number found (not numbered).");
   } else if (ctx.serialImage) {
-    fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "confirmed", "Two separate reads of the close-up agree.");
+    // A close-up existing is not evidence that its two reads agreed.
+    const confirmed = ctx.closeupVerified === true && present(card.serialNumber);
+    fields.serial = field(card.serialNumber || (card.numberedTo ? `/${card.numberedTo}` : null),
+      confirmed ? "confirmed" : "unconfirmed",
+      confirmed ? "Two independent close-up reads agreed on the exact stamped serial." : "Close-up serial has not been independently confirmed. Retake it with less glare.");
   } else {
-    // Full-card photo: the print run is reliable when reads agree, but a glare-hidden
-    // digit can make every read agree on the wrong number (e.g. "15/99" for 151/99).
-    fields.serial = field(card.serialNumber || `/${card.numberedTo}`, "unconfirmed",
-      `Read from the full photo; the exact number is not close-up verified. Print run /${card.numberedTo} is confirmed.`);
-    fields.serial.printRun = card.numberedTo;
-    fields.serial.printRunConfirmed = true;
+    // Never label the print run verified solely because one scan returned /250.
+    const checks = [v?.detailCheck?.stampedSerial, ctx.strongCheck?.stampedSerial]
+      .map((text) => typeof text === "string" ? text.trim().match(/\b(\d{1,6})\s*\/\s*(\d{1,6})(?!\d)/) : null);
+    const agrees = checks.length === 2 && checks.every(Boolean)
+      && checks[0][1] === checks[1][1] && checks[0][2] === checks[1][2]
+      && Number(checks[0][2]) === Number(card.numberedTo)
+      && (!present(card.serialNumber) || (() => {
+        const own = String(card.serialNumber).match(/\b(\d{1,6})\s*\/\s*(\d{1,6})(?!\d)/);
+        return Boolean(own && Number(own[1]) === Number(checks[0][1]) && Number(own[2]) === Number(checks[0][2]));
+      })());
+    fields.serial = field(card.serialNumber || (card.numberedTo ? `/${card.numberedTo}` : null), "unconfirmed",
+      agrees ? "Two full-photo reads agree on the print run, but the exact stamp still needs a close-up." : "Stamped serial or print run not independently verified; check the physical card.");
+    if (agrees) {
+      fields.serial.printRun = card.numberedTo;
+      fields.serial.printRunConfirmed = true;
+    }
   }
   // "No serial" is only a safe call when nothing hinted at one.
   if (!present(card.serialNumber) && !ctx.serialImage && serialHinted(v, ctx.strongCheck)) {
