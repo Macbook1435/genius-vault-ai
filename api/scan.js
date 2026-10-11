@@ -1109,12 +1109,22 @@ function applyCatalogMatch(card, cs, warnings) {
   if (!c?.name) { out.status = "no_match"; return out; }
   out.match = { id: c.id || null, name: c.name, year: c.year, manufacturer: c.manufacturer, release: c.releaseName, set: c.setName, number: c.number, numberedTo: c.numberedTo || null, attributes: c.attributes || [] };
 
-  const last = cleanPart(card.player).split(/\s+/).pop()?.toLowerCase();
-  const playerOk = last && c.name.toLowerCase().includes(last);
+  // A matching surname/card number is not proof of the same release or subset.
+  // Never allow a photo-provider suggestion to override conflicting observed data.
+  const identityWords = (v) => String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  const playerOk = identityWords(card.player).length > 0
+    && identityWords(card.player).join(" ") === identityWords(c.name).join(" ");
   const numberOk = card.cardNumber && normalizeCode(c.number) === normalizeCode(card.cardNumber);
-  if (!playerOk || !numberOk) {
+  const yearOk = !card.year || !c.year || Number(card.year) === Number(c.year);
+  const expectedSet = identityWords(card.set).filter(w => !["base","set"].includes(w));
+  const reportedSet = new Set(identityWords(`${c.releaseName || ""} ${c.setName || ""}`));
+  const setOk = expectedSet.length === 0 || expectedSet.every(w => reportedSet.has(w));
+  if (!playerOk || !numberOk || !yearOk || !setOk) {
     out.status = "rejected";
-    out.reason = !playerOk ? "catalog player does not match the card" : "catalog card number does not match the card";
+    out.reason = !playerOk ? "catalog player does not match the card"
+      : !numberOk ? "catalog card number does not match the card"
+      : !yearOk ? "catalog release year conflicts with observed year"
+      : "catalog release or subset conflicts with observed card";
     warnings.push(`Catalog match "${c.name} #${c.number || "?"}" ignored: ${out.reason}.`);
     return out;
   }
