@@ -229,14 +229,16 @@ export function pickCatalogCard(cards, { player, number, year, set, brand, autog
   if (autograph === false) fits = fits.filter((c) => !isAutoCard(c));
   if (memorabilia === true) fits = fits.filter(isRelicCard);
   if (memorabilia === false) fits = fits.filter((c) => !isRelicCard(c));
-  if (fits.length > 1) {
-    // Narrow with the set words we read (e.g. "Update"), ignoring the brand name and generic words.
-    const skip = new Set([...words(brand), "base", "set", "series", "card", "cards"]);
-    const want = words(set).filter((w) => !skip.has(w) && !/^\d+$/.test(w));
-    if (want.length) {
-      const narrowed = fits.filter((c) => { const have = new Set(words(`${c.releaseName || ""} ${c.setName || ""}`)); return want.every((w) => have.has(w)); });
-      if (narrowed.length) fits = narrowed;
-    }
+  // A unique player + card number is not proof of the right product.
+  // Require observed product/subset words to match the catalog release even
+  // when the search returns just one result. Never fall back after a mismatch.
+  const skip = new Set([...words(brand), "base", "set", "series", "card", "cards"]);
+  const want = words(set).filter((w) => !skip.has(w) && !/^\\d+$/.test(w));
+  if (want.length) {
+    fits = fits.filter((c) => {
+      const have = new Set(words(`${c.releaseName || ""} ${c.setName || ""}`));
+      return want.every((w) => have.has(w));
+    });
   }
   if (fits.length === 1) return { status: "matched", card: fits[0], count: 1 };
   const candidates = fits.slice(0, 10).map((c) => ({ id: c.id, name: c.name, number: c.number, release: c.releaseName || null, set: c.setName || null,
