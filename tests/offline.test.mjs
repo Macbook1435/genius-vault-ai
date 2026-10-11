@@ -155,6 +155,20 @@ test('reference catalog uses release and subset scope and never fills in invente
  assert.ok(candidates.length>0);
  assert.ok(candidates.every(x=>x.verification==='vocabulary_only'&&x.numberedTo===null));
 });
+
+test('catalog reference filters rookie and autograph and excludes source conflicts from verified only',async()=>{
+ const {catalogCoverage,listReferenceVariants}=await import('../api/_lib/catalog-reference.js');
+ const coverage=catalogCoverage();
+ assert.ok(coverage.every(p=>Array.isArray(p.subsetCoverage)));
+ const product=coverage.find(p=>p.id==='2025-donruss-optic-football');
+ assert.ok(product.rookieSubsetCount>0 && product.autographSubsetCount>0);
+ const variants=listReferenceVariants({productId:product.id,autograph:true,verifiedOnly:true});
+ assert.equal(variants.status,'ok');
+ assert.ok(variants.variants.every(v=>v.autograph===true&&v.crossSourceVerified===true));
+ assert.ok(variants.variants.every(v=>v.status==='cross_checked_reference'));
+ const rookies=listReferenceVariants({productId:product.id,rookie:true,term:'rookie'});
+ assert.ok(rookies.variants.every(v=>v.rookie===true));
+});
 test('reference catalog narrows numbered variants only inside a selected release',async()=>{
  const {listReferenceVariants}=await import('../api/_lib/catalog-reference.js');
  const r=listReferenceVariants({productId:'2025-topps-resurgence-football',numberedTo:250});
