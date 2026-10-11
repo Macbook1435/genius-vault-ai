@@ -1957,6 +1957,19 @@ Strict rules:
             }
           }
         }
+        // Never fall through to BASE pricing for a stamped card if its exact
+        // variation could not be resolved from independently verified evidence.
+        if (scanResult.numberedTo && plan.mode !== "parallel") {
+          plan.mode = "blocked";
+          catalog.parallelComps = { mode: "blocked", name: null,
+            reason: "Numbered card: exact parallel remains unverified. Base-card sold prices are not applicable." };
+        }
+        // Missing catalogue data cannot establish a base card either.
+        if (plan.mode === "base" && !Array.isArray(list)) {
+          plan.mode = "blocked";
+          catalog.parallelComps = { mode: "blocked", name: null,
+            reason: "Catalog parallel list unavailable; base-card identity is not verified." };
+        }
         // Shiny base vs. Holo/Refractor cannot be told apart reliably from photos: the user picks.
         const shinyLookalikes = Array.isArray(list) ? baseLookalikes(list) : [];
         const lookalikes = plan.mode === "base" ? shinyLookalikes : [];
@@ -2123,12 +2136,25 @@ Strict rules:
     // Final response safety net: never let catalog pricing bypass an
     // unverified identity or a numbered-card exact-match failure.
     // Active listings remain visible strictly as asking prices, not value.
-    const soldBlocked = !identityTrusted || comps.status === "exact_match_unverified";
+    // Fail closed on unresolved variations, even if an earlier lookup populated
+    // a generic sold sample or the later catalogue lookup threw an exception.
+    const variationUnresolved = Boolean(scanResult.numberedTo || scanResult.serialNumber)
+      ? comps.status !== "comps_found"
+      : verification.parallelId?.status === "ambiguous" ||
+        verification.parallelId?.status === "probable" ||
+        catalog?.parallelComps?.mode === "blocked" ||
+        comps.status === "parallel_not_confirmed";
+    if (variationUnresolved) {
+      Object.assign(comps, { ...calculateCompStats([]), items: [], count: 0,
+        status: "exact_variation_unverified",
+        error: "Exact card variation unverified; sold-price statistics withheld." });
+    }
+    const soldBlocked = !identityTrusted || variationUnresolved || comps.status === "exact_match_unverified";
     if (soldBlocked && market?.sold) {
       market.sold = {
         kind: "sold",
         source: "verification_gate",
-        status: !identityTrusted ? "identity_unverified" : "exact_match_unverified",
+        status: !identityTrusted ? "identity_unverified" : "exact_variation_unverified",
         count: 0,
         min: null,
         median: null,
