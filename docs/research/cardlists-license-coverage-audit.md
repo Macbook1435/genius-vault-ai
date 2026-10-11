@@ -41,3 +41,13 @@ Source: https://github.com/robert-porter/CardLists
 - Audit-only branch, no production feature toggles.
 - Tests not executed by this document change.
 - No merge permitted on audit alone.
+
+## Verified file-tree inventory (follow-up)
+- Upstream recursive Git tree: `e4f86ed121e75510277a8ed908fefe6887aa798f`; `truncated=false`.
+- Exactly **62 checklist JSON files**, all under `baseball/`.
+- **0 football checklists** and **0 2025 checklists**.
+- Two 2024 baseball JSON checklist examples: `2024-Topps-Chrome.json` and `2024-Topps-Allen-&-Ginter.json`.
+- The repository's schema includes parallel names, numbering and insert odds, but file presence does not establish accurate, complete card-to-parallel coverage.
+- **Decision:** CardLists is unsuitable for expanding Genius Vault's current 2025 football coverage. Retain as a possible baseball-only research source; do not import into active scanner.
+- Branch files `tools/accuracy/cardlists-coverage-snapshot.json` and `tests/cardlists-coverage.test.mjs` record and guard this decision.
+- A three-test equivalent local Node test run passed; complete repo CI and scanner regression tests have **not** been run.
