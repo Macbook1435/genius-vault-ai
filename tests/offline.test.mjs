@@ -248,6 +248,15 @@ test('scanner prioritizes subset registry before any generic rainbow',()=>{
  assert.match(scanSource,/scannerChecklistReference\(card\)/);
  assert.match(scanSource,/if \(reference\.productId\) return null/);
 });
+test('jersey number patch vocabulary distinguishes patch type from serial print run',async()=>{
+ const {VARIANT_VOCABULARY,vocabularyCandidates}=await import('../api/_data/variant-vocabulary.js');
+ assert.ok(VARIANT_VOCABULARY.categories.includes('jersey_number_patch'));
+ assert.ok(VARIANT_VOCABULARY.categories.includes('autograph_number_patch'));
+ const patches=vocabularyCandidates('number patch');
+ assert.ok(patches.some(p=>p.name==='Number Patch'));
+ assert.ok(patches.some(p=>p.name==='Autograph Number Patch'));
+ assert.ok(patches.every(p=>p.numberedTo===null&&p.verification==='vocabulary_only'));
+});
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
