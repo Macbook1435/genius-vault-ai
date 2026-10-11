@@ -221,8 +221,8 @@ export function pickCatalogCard(cards, { player, number, year, set, brand, autog
   if (!last || !num) return { status: "not_enough_details", card: null, count: 0 };
   let fits = (Array.isArray(cards) ? cards : []).filter((c) => c && c.id
     && code(c.number) === num
-    && words(c.name).includes(last)
-    && (!year || !c.releaseYear || String(c.releaseYear).startsWith(String(year)))
+    && (words(player).length > 1 ? words(c.name).join(" ") === words(player).join(" ") : words(c.name).includes(last))
+    && (!year || !c.releaseYear || Number(c.releaseYear) === Number(year))
     && !c.variationOf && !c.isParallelOnly);
   // Autograph / relic must agree with what the scan saw (only when the scan said yes or no).
   if (autograph === true) fits = fits.filter(isAutoCard);
