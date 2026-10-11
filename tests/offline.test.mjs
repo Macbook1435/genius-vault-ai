@@ -83,6 +83,28 @@ const verificationScript=verificationSource.split('// Keep SOLD prices and ACTIV
 const verifyContext=vm.createContext({});
 vm.runInContext(verificationScript,verifyContext);
 const verify=(scan,v={},ctx={})=>verifyContext.buildFieldVerification(scan,v,ctx);
+test('high confidence photo parallel remains only a suggestion',()=>{
+ const source=fs.readFileSync(new URL('../api/cardsight.js',import.meta.url),'utf8');
+ const code=segment(source,'export function resolveParallel(card) {','\nfunction median(').replace('export function','function');
+ const context=vm.createContext({});vm.runInContext(code,context);
+ const result=context.resolveParallel({parallelSuggestions:[{id:10,name:'Aqua',confidence:'High',numberedTo:250}]});
+ assert.equal(result.status,'suggested');
+ assert.equal(result.parallel.name,'Aqua');
+ assert.notEqual(result.status,'confirmed');
+});
+test('autograph detections and absent signatures remain unconfirmed',()=>{
+ const signed=verify({autograph:true},{},{});
+ const unsigned=verify({autograph:false},{},{});
+ assert.equal(signed.fields.autograph.status,'unconfirmed');
+ assert.match(signed.fields.autograph.basis,/not been independently verified/i);
+ assert.equal(unsigned.fields.autograph.status,'unconfirmed');
+ assert.match(unsigned.fields.autograph.basis,/No signature was detected/i);
+});
+test('base card classification does not become verified through absent color alone',()=>{
+ const result=verify({autograph:false},{parallelId:{status:'base'}},{});
+ assert.equal(result.fields.parallel.status,'unconfirmed');
+});
+
 test('serial: uploading a close-up without two matching reads cannot confirm it',()=>{
  const scan={player:'Gunnar Helm',year:2025,cardNumber:'196',numberedTo:250,serialNumber:'127/250'};
  const result=verify(scan,{}, {serialImage:true,closeupVerified:false});
