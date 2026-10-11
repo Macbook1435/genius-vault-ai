@@ -31,6 +31,7 @@ begin
   select (email_confirmed_at is not null) into verified
   from auth.users where id=p_user_id;
   if not found then return false; end if;
+  if not verified then return false; end if;
   if exists (select 1 from public.gv_scan_usage
              where user_id=p_user_id and request_id=p_request_id) then return true; end if;
   select * into e from public.gv_entitlements
@@ -48,14 +49,12 @@ begin
   end if;
   select count(*) into used_count from public.gv_scan_usage
      where user_id=p_user_id and period_start=lifetime_start;
-  if used_count >= case when verified then 4 else 2 end then return false; end if;
+  if used_count >= 4 then return false; end if;
   insert into public.gv_scan_usage(user_id,period_start,request_id)
     values(p_user_id,lifetime_start,p_request_id);
   return true;
 end $$;
 revoke all on function public.gv_reserve_scan(uuid,uuid) from public,anon,authenticated;
 grant execute on function public.gv_reserve_scan(uuid,uuid) to service_role;
--- IMPORTANT: Supabase email-confirmation-required configuration may prevent
--- unverified users from acquiring a session. The 2-before-verification policy
--- needs an auth-flow test before this migration can be considered launch-ready.
--- Identity anti-abuse and paid-overlap billing rules also require review.
+-- Free trial is locked until email confirmation. Four scans total, once per account.
+-- Review paid-overlap and failed-scan accounting before applying in test DB.
