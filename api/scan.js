@@ -15,6 +15,7 @@ import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.mjs";
+import { exactPricingGate } from "./_lib/exact-pricing-gate.mjs";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 
 export const config = {
@@ -2008,6 +2009,28 @@ Strict rules:
           parallelPicker.needsPick = plan.mode === "blocked";
           parallelPicker.selectedId = plan.mode === "blocked" ? null : parallelId;
           parallelPicker.reason = plan.mode === "blocked" ? catalog.parallelComps.reason : null;
+        }
+        // Independent, request-free gate: a sale request requires a resolved
+        // catalog variation and independently validated serial evidence.
+        const stamp = serialValue(scanResult.serialNumber);
+        const serialField = effective?.fields?.serial;
+        const serialMatches = Boolean(stamp && scanResult.numberedTo &&
+          stamp.den === Number(scanResult.numberedTo) && stamp.num >= 1 &&
+          stamp.num <= stamp.den);
+        const verifiedSerial = serialMatches && serialField?.status === "confirmed" &&
+          serialField?.printRunConfirmed === true;
+        const pricedParallel = plan.mode === "parallel" && parallelId !== "null" &&
+          catalog.parallelComps?.status === "matched";
+        const pricingDecision = exactPricingGate({
+          identityTrusted, mode: plan.mode, parallelId,
+          numberedTo: scanResult.numberedTo, serialNumber: scanResult.serialNumber,
+          serialVerified: verifiedSerial,
+          parallelMatched: pricedParallel, catalogAvailable: Array.isArray(list),
+        });
+        if (!pricingDecision.allowed) {
+          plan.mode = "blocked";
+          catalog.parallelComps.mode = "blocked";
+          catalog.parallelComps.reason = `Exact sold pricing blocked: ${pricingDecision.reason}`;
         }
         if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
