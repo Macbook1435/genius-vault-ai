@@ -109,10 +109,14 @@ export function buildFieldVerification(card, v, ctx = {}) {
   } else {
     // Never label the print run verified solely because one scan returned /250.
     const checks = [v?.detailCheck?.stampedSerial, ctx.strongCheck?.stampedSerial]
-      .map((text) => typeof text === "string" ? text.trim().match(/(?:^|\\s)(\\d{1,6})\\s*\\/\\s*(\\d{1,6})(?!\\d)/) : null);
+      .map((text) => typeof text === "string" ? text.trim().match(/\b(\d{1,6})\s*\/\s*(\d{1,6})(?!\d)/) : null);
     const agrees = checks.length === 2 && checks.every(Boolean)
       && checks[0][1] === checks[1][1] && checks[0][2] === checks[1][2]
-      && Number(checks[0][2]) === Number(card.numberedTo);
+      && Number(checks[0][2]) === Number(card.numberedTo)
+      && (!present(card.serialNumber) || (() => {
+        const own = String(card.serialNumber).match(/\b(\d{1,6})\s*\/\s*(\d{1,6})(?!\d)/);
+        return Boolean(own && Number(own[1]) === Number(checks[0][1]) && Number(own[2]) === Number(checks[0][2]));
+      })());
     fields.serial = field(card.serialNumber || (card.numberedTo ? `/${card.numberedTo}` : null), "unconfirmed",
       agrees ? "Two full-photo reads agree on the print run, but the exact stamp still needs a close-up." : "Stamped serial or print run not independently verified; check the physical card.");
     if (agrees) {
