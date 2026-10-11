@@ -14,6 +14,7 @@ import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
+import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2157,6 +2158,7 @@ Strict rules:
     return res.status(200).json({
       results: "Scan completed successfully.",
       scan: scanResult,
+      memorabiliaEvidence: describeMemorabiliaEvidence(scanResult.notes, scanResult),
       confidence,
       verification,
       comps: {

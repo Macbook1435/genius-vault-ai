@@ -257,6 +257,23 @@ test('jersey number patch vocabulary distinguishes patch type from serial print 
  assert.ok(patches.some(p=>p.name==='Autograph Number Patch'));
  assert.ok(patches.every(p=>p.numberedTo===null&&p.verification==='vocabulary_only'));
 });
+test('memorabilia audit separates jersey number patch from serial stamp, logos and swatches',async()=>{
+ const {describeMemorabiliaEvidence:review}=await import('../api/_lib/memorabilia-evidence.js');
+ const number=review('Jersey number patch, autograph',{autograph:true});
+ assert.equal(number.type,'jersey_number_patch');
+ assert.equal(number.status,'description_only');
+ assert.equal(number.autograph,true);
+ assert.match(number.basis,/not manufacturer-authenticated/i);
+ assert.equal(review('Stamped 12/25, jersey number #7').type,null);
+ assert.equal(review('Team logo patch').type,'logo_patch');
+ assert.equal(review('Jersey swatch').type,'jersey_swatch');
+ assert.equal(review('No number patch on this card').type,null);
+ assert.equal(review('Logo patch and jersey swatch').status,'ambiguous');
+ assert.equal(review('Rookie patch autograph').type,null);
+});
+test('scanner response exposes memorabilia description only as uncertain evidence',()=>{
+ assert.match(scanSource,/memorabiliaEvidence: describeMemorabiliaEvidence\(scanResult\.notes, scanResult\)/);
+});
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
