@@ -9,6 +9,7 @@ export const VARIANT_VOCABULARY = Object.freeze({
   categories: [
     "base", "rookie", "insert", "rookie_insert", "parallel", "autograph",
     "rookie_autograph", "autograph_parallel", "relic", "autograph_relic",
+    "jersey_number_patch", "autograph_number_patch",
     "short_print", "super_short_print", "case_hit", "printing_plate", "one_of_one"
   ],
   finishTerms: [
@@ -36,7 +37,9 @@ export const VARIANT_VOCABULARY = Object.freeze({
   ],
   memorabiliaTerms: [
     "Patch", "Jersey", "Relic", "Laundry Tag", "Logo Patch", "Shield",
-    "Game-Worn", "Player-Worn", "Manufactured Relic"
+    "Game-Worn", "Player-Worn", "Manufactured Relic",
+    "Jersey Number Patch", "Number Patch", "Player Number Patch",
+    "Jersey Number Autograph Patch", "Autograph Number Patch", "Number Patch Autograph"
   ]
 });
 export const CATALOG_EVIDENCE_LEVELS = Object.freeze([
