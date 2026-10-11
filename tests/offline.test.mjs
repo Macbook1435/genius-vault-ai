@@ -177,6 +177,35 @@ test('reference catalog narrows numbered variants only inside a selected release
  assert.ok(r.variants.every(v=>v.productId==='2025-topps-resurgence-football'));
  assert.ok(r.variants.every(v=>typeof v.autograph==='boolean'&&typeof v.rookie==='boolean'));
 });
+
+test('scanner uses only independently cross-checked parallels from the exact subset',async()=>{
+ const {scannerChecklistReference}=await import('../api/_lib/checklist-registry.js');
+ const fake={id:'2025-fake-chrome',year:2025,brand:'Acme',product:'Chrome',sport:'football',
+  match:{include:['chrome'],exclude:[]},subsets:[
+   {id:'base',label:'Base',auto:false,rookie:false,numberFormats:[{range:[1,200]}],parallels:[
+    {key:'gold',name:'Gold Refractor',numberedTo:50,verified:true,sources:['source-a','source-b']},
+    {key:'unverified',name:'Mystery Refractor',numberedTo:75,verified:false,sources:['source-a']},
+    {key:'conflict',name:'Aqua Refractor',numberedTo:250,verified:true,sources:['a','b'],conflicts:[{numberedTo:199}]}
+   ]},
+   {id:'rookieauto',label:'Rookie Autographs',auto:true,rookie:true,numberFormats:[{range:[201,300]}],parallels:[
+    {key:'aqua',name:'Aqua Autograph',numberedTo:250,verified:true,sources:['a','b']}
+   ]}
+  ],sources:['https://example.com/a','https://example.com/b']};
+ const rookie=scannerChecklistReference({year:2025,brand:'Acme',set:'Chrome',sport:'football',cardNumber:'220',autograph:true,rookie:true},[fake]);
+ assert.equal(rookie.status,'matched');
+ assert.equal(rookie.checklist.subsetId,'rookieauto');
+ assert.deepEqual(Array.from(rookie.checklist.parallels.map(x=>x.name)),['Aqua Autograph']);
+ const base=scannerChecklistReference({year:2025,brand:'Acme',set:'Chrome',sport:'football',cardNumber:'120',autograph:false,rookie:false},[fake]);
+ assert.equal(base.status,'matched');
+ assert.deepEqual(Array.from(base.checklist.parallels.map(x=>x.name)),['Gold Refractor']);
+ const unsupported=scannerChecklistReference({year:2025,brand:'Acme',set:'Chrome',sport:'football',cardNumber:'400',autograph:true,rookie:true},[fake]);
+ assert.equal(unsupported.status,'subset_uncertain');
+ assert.equal(unsupported.checklist,null);
+});
+test('scanner prioritizes subset registry before any generic rainbow',()=>{
+ assert.match(scanSource,/scannerChecklistReference\(card\)/);
+ assert.match(scanSource,/if \(reference\.productId\) return null/);
+});
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
