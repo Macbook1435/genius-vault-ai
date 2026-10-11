@@ -265,7 +265,7 @@ export function pickParallel(parallels, { name, numberedTo, cardId, unnumbered =
   if (!want.size) return { status: "no_name", parallel: null };
   const list = (Array.isArray(parallels) ? parallels : []).filter((p) => p && p.id && p.name
     && (!p.isPartial || !Array.isArray(p.cards) || !cardId || p.cards.includes(cardId))
-    && (!numberedTo || !p.numberedTo || Number(p.numberedTo) === Number(numberedTo))
+    && (!numberedTo || (p.numberedTo != null && Number(p.numberedTo) === Number(numberedTo)))
     && !(unnumbered && p.numberedTo));
   let fits = list.filter((p) => sameSet(wordSet(p.name), want));
   if (!fits.length) {
