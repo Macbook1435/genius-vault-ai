@@ -12,7 +12,7 @@ export function describeMemorabiliaEvidence(notes,card={}) {
  const text=typeof notes==="string"?notes.slice(0,4000):"";
  // Explicit negations take priority over a keyword hit in the same short note.
  const positive=TYPES.filter(([name,re])=>re.test(text) && !(
-   name==="jersey_number_patch" && /\\b(?:no|without|not a|isn.t a)\\s+(?:jersey\\s+)?number\\s+patch\\b/i.test(text)
+   name==="jersey_number_patch" && /\b(?:no|without|not a|isn.t a)\s+(?:jersey\s+)?number\s+patch\b/i.test(text)
  )).map(([name])=>name);
  const kinds=[...new Set(positive)];
  const autographMention=AUTO.test(text);
