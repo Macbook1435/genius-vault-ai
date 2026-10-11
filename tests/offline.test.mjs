@@ -274,6 +274,17 @@ test('memorabilia audit separates jersey number patch from serial stamp, logos a
 test('scanner response exposes memorabilia description only as uncertain evidence',()=>{
  assert.match(scanSource,/memorabiliaEvidence: describeMemorabiliaEvidence\(scanResult\.notes, scanResult\)/);
 });
+test('real-card benchmark preserves Mason Graham Optic Preview identity and finish evidence',()=>{
+ const fixture=JSON.parse(fs.readFileSync(new URL('../tools/accuracy/fixtures/mason-graham-red-pandora.json',import.meta.url),'utf8'));
+ assert.equal(fixture.physicalCard.player,'Mason Graham');
+ assert.equal(fixture.physicalCard.cardNumber,'340');
+ assert.equal(fixture.physicalCard.subset,'Optic Rated Rookies Preview');
+ assert.equal(fixture.physicalCard.parallel,'Red Pandora');
+ assert.equal(fixture.regression.wrongCardNumber,'206');
+ assert.equal(fixture.regression.requireBackNumber,true);
+ assert.ok(fixture.evidence.back.some(x=>x.includes('PRIZM')));
+ assert.equal(fixture.physicalCard.printRun,null);
+});
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
