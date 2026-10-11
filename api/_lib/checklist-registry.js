@@ -73,10 +73,20 @@ export function findSubset(product, card) {
       steps.push(`card number ${num} fits no subset`);
     }
   }
-  const byAuto = list.filter((s) => Boolean(s.auto) === Boolean(card.autograph));
-  if (byAuto.length) { list = byAuto; steps.push(card.autograph ? "autograph" : "no autograph"); }
-  const byRookie = list.filter((s) => Boolean(s.rookie) === Boolean(card.rookie));
-  if (byRookie.length) { list = byRookie; steps.push(card.rookie ? "rookie" : "not rookie"); }
+  // Unknown detection is NOT the same as a negative detection. Only a real
+  // boolean observation may narrow autograph and rookie subsets. If that
+  // observation contradicts every numbered subset, keep all candidates and
+  // let the caller request a closer look instead of silently overriding it.
+  for (const [flag,label] of [["autograph","autograph"],["rookie","rookie"]]) {
+    if (typeof card[flag] !== "boolean") continue;
+    const compatible=list.filter(s=>typeof s[flag === "autograph" ? "auto" : "rookie"] === "boolean"
+      && s[flag === "autograph" ? "auto" : "rookie"] === card[flag]);
+    if (compatible.length) { list=compatible;steps.push(card[flag] ? label : "no "+label); }
+    else if (list.some(s=>typeof s[flag === "autograph" ? "auto" : "rookie"] === "boolean")) {
+      return {subset:null,status:"evidence_conflict",numberFits,steps,
+        reason:label+" detection conflicts with the numbered subset candidates"};
+    }
+  }
 
   const tag = (s) => s.parallels.map((par) => (s.finish ? { ...par, finish: s.finish } : par));
   if (list.length === 1) return { subset: { ...list[0], parallels: tag(list[0]) }, status: "matched", numberFits, steps };
@@ -108,7 +118,8 @@ export function scannerChecklistReference(card, products = PRODUCTS) {
  const product=match.product;
  const subset=findSubset(product,card);
  if(subset.status!=="matched" || subset.numberFits!==true)
-  return {status:"subset_uncertain",productId:product.id,checklist:null,
+  return {status:subset.status==="evidence_conflict"?"evidence_conflict":"subset_uncertain",
+   reason:subset.reason||null,productId:product.id,checklist:null,
    subsetCandidates:(subset.subset?.label||"").split(" / ").filter(Boolean)};
  const choices=(subset.subset.parallels||[]).filter(v=>v.verified===true
   &&Array.isArray(v.sources)&&v.sources.length>=2
