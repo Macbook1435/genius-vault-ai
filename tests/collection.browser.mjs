@@ -26,6 +26,35 @@ function entry(id,player,serial,autograph=true){
 }
 try{
  await page.goto(origin,{waitUntil:'domcontentloaded'});
+ // Checklist coverage UI uses mocked metadata; never exposes full third-party checklists.
+ let coverageCalls=0;
+ await page.route('**/api/catalog-coverage',async route=>{
+  coverageCalls++;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({products:[
+   {id:'optic',label:'2025 Donruss Optic Football',sport:'football',subsetCount:2,variantRows:12,crossCheckedRows:8,conflictRows:1,
+    subsets:[{id:'rookie',label:'Rated Rookies',rookie:true,autograph:false,rows:7,crossChecked:5},
+             {id:'auto',label:'Rookie Autographs',rookie:true,autograph:true,rows:5,crossChecked:3}]},
+   {id:'chrome',label:'2025 Topps Chrome Baseball',sport:'baseball',subsetCount:1,variantRows:5,crossCheckedRows:4,conflictRows:0,
+    subsets:[{id:'base',label:'Base',rookie:false,autograph:false,rows:5,crossChecked:4}]}
+  ]})});
+ });
+ await page.locator('[data-view="catalog"]').click();
+ await page.waitForFunction(()=>document.getElementById('catalogStatus').textContent.includes('2 of 2'));
+ assert.match(await page.locator('#catalogResults').innerText(),/Rated Rookies/);
+ assert.match(await page.locator('#catalogResults').innerText(),/Rookie Autographs/);
+ await page.locator('#catalogSearch').fill('Optic');
+ assert.equal(await page.locator('.catalog-product').count(),1);
+ await page.locator('#catalogType').selectOption('autograph');
+ assert.equal(await page.locator('.catalog-subset').count(),1);
+ assert.match(await page.locator('.catalog-subset').innerText(),/Rookie Autographs/);
+ await page.locator('#catalogSport').selectOption('baseball');
+ assert.match(await page.locator('#catalogResults').innerText(),/No covered releases/);
+ await page.locator('[data-view="scanner"]').click();
+ await page.locator('[data-view="catalog"]').click();
+ assert.equal(coverageCalls,1,'Coverage metadata should be cached per page');
+ await page.locator('[data-view="scanner"]').click();
+ await page.unroute('**/api/catalog-coverage');
+
  // Local listing-photo editor: upload PNG, rotate, zoom and export JPG with no network AI requests.
  const pngBase64='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Zk0AAAAASUVORK5CYII=';
  await page.locator('#listingPhotoFile').setInputFiles({name:'test-card.png',mimeType:'image/png',buffer:Buffer.from(pngBase64,'base64')});
