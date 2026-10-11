@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {evaluateParallelComps} from '../api/_lib/parallel-comps.mjs';
+const c={year:2024,brand:'Panini',set:'Prizm',player:'Caleb Williams',cardNumber:'201',autograph:false,memorabilia:false};
+const p={name:'Gold Prizm',numberedTo:10};
+const base={saleId:'sale-001',sourceUrl:'https://example.test/sale/001',transactionVerified:true,saleStatus:'sold',isGraded:false,year:2024,brand:'Panini',set:'Prizm',player:'Caleb Williams',cardNumber:'201',parallel:'Gold Prizm',numberedTo:10,autograph:false,memorabilia:false,finalSalePrice:100};
+test('only exact verified raw sale used',()=>{const r=evaluateParallelComps(c,p,[base]);assert.equal(r.status,'verified_sales');assert.equal(r.statistics.median,100)});
+test('exclude asking prices and unknown offers',()=>{const r=evaluateParallelComps(c,p,[{...base,saleStatus:'active'},{...base,acceptedOffer:true,finalPriceVerified:false}]);assert.equal(r.statistics,null);assert.equal(r.rejected.length,2)});
+test('reject wrong parallel, serial limit, graded, auto and player',()=>{const sales=[{...base,parallel:'Silver Prizm'},{...base,numberedTo:25},{...base,isGraded:true},{...base,autograph:true},{...base,player:'Other Player'}];const r=evaluateParallelComps(c,p,sales);assert.equal(r.comps.length,0);assert.equal(r.rejected.length,5)});
+test('do not fabricate zero valuation when no exact sales',()=>{const r=evaluateParallelComps(c,p,[]);assert.equal(r.status,'no_verified_exact_comps');assert.equal(r.statistics,null)});
+test('mean and median resist input ordering',()=>{const sales=[100,400,200].map((v,i)=>({...base,saleId:'id-'+i,finalSalePrice:v}));const r=evaluateParallelComps(c,p,sales);assert.equal(r.statistics.median,200);assert.equal(r.statistics.average,233.33)});
