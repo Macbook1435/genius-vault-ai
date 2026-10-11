@@ -48,3 +48,34 @@ test('report an AI parallel as suggestion only, not verified',()=>{
  assert.equal(x.outcome.parallelSuggestion.name,'Aqua');
  assert.equal(x.card.parallel,undefined);
 });
+
+const tuten=()=>({
+ player:'Bhayshul Tuten',team:'Jacksonville Jaguars',cardNumber:'164',
+ autograph:true,serialNumber:'33/50',numberedTo:50,
+ parallel:null,year:2025,set:null
+});
+test('Phase 3: catalog unrecognized does not erase Bhayshul Tuten evidence',()=>{
+ const card=tuten();
+ const x=apply(card,{detection:{card:null}});
+ assert.equal(x.outcome.status,'no_match');
+ assert.equal(x.card.player,'Bhayshul Tuten');
+ assert.equal(x.card.cardNumber,'164');
+ assert.equal(x.card.autograph,true);
+ assert.equal(x.card.serialNumber,'33/50');
+ assert.equal(x.card.numberedTo,50);
+ assert.equal(x.card.parallel,null);
+});
+test('Phase 3: catalog error does not erase identified autograph or serial',()=>{
+ const x=apply(tuten(),{error:'catalog unavailable'});
+ assert.equal(x.outcome.status,'error');
+ assert.equal(x.card.serialNumber,'33/50');
+ assert.equal(x.card.autograph,true);
+ assert.equal(x.card.parallel,null);
+});
+test('Phase 3: wrong catalog player is rejected without replacing Tuten',()=>{
+ const x=apply(tuten(),result('Tyler Shough'));
+ assert.equal(x.outcome.status,'rejected');
+ assert.equal(x.card.player,'Bhayshul Tuten');
+ assert.equal(x.card.serialNumber,'33/50');
+ assert.equal(x.card.autograph,true);
+});
