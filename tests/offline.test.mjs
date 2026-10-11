@@ -202,6 +202,48 @@ test('scanner uses only independently cross-checked parallels from the exact sub
  assert.equal(unsupported.status,'subset_uncertain');
  assert.equal(unsupported.checklist,null);
 });
+
+test('accuracy benchmark: unknown autograph and rookie flags do not assume non-autograph base',async()=>{
+ const {scannerChecklistReference,findSubset}=await import('../api/_lib/checklist-registry.js');
+ const product={id:'2025-demo-chrome',year:2025,sport:'football',brand:'Acme',product:'Chrome',
+  match:{include:['chrome'],exclude:[]},
+  subsets:[
+    {id:'base',label:'Base',auto:false,rookie:false,numberFormats:[{range:[1,100]}],parallels:[{name:'Gold',key:'gold',numberedTo:50,verified:true,sources:['a','b']}]},
+    {id:'auto',label:'Rookie Autograph',auto:true,rookie:true,numberFormats:[{range:[1,100]}],parallels:[{name:'Aqua Autograph',key:'aqua autograph',numberedTo:250,verified:true,sources:['a','b']}]}
+  ]};
+ const id={year:2025,brand:'Acme',set:'Chrome',sport:'football',cardNumber:'42'};
+ for(const scan of [
+  {...id}, {...id,rookie:true}, {...id,autograph:true},
+  {...id,rookie:null,autograph:null}
+ ]) {
+  const result=scannerChecklistReference(scan,[product]);
+  assert.equal(result.status,'subset_uncertain');
+  assert.equal(result.checklist,null);
+ }
+ const auto=scannerChecklistReference({...id,rookie:true,autograph:true},[product]);
+ assert.equal(auto.status,'matched');
+ assert.equal(auto.checklist.subsetId,'auto');
+ assert.deepEqual(Array.from(auto.checklist.parallels.map(x=>x.name)),['Aqua Autograph']);
+ const base=scannerChecklistReference({...id,rookie:false,autograph:false},[product]);
+ assert.equal(base.status,'matched');
+ assert.equal(base.checklist.subsetId,'base');
+ const contradictory= findSubset({...product,subsets:[product.subsets[1]]},{cardNumber:'42',autograph:false,rookie:true});
+ assert.equal(contradictory.status,'evidence_conflict');
+});
+test('accuracy benchmark: numbered variation never crosses subset or conflicting source',async()=>{
+ const {scannerChecklistReference}=await import('../api/_lib/checklist-registry.js');
+ const product={id:'2025-demo-optic',year:2025,sport:'football',brand:'Acme',product:'Optic',match:{include:['optic'],exclude:[]},
+  subsets:[
+   {id:'base',label:'Base',auto:false,rookie:false,numberFormats:[{range:[1,200]}],
+    parallels:[{name:'Blue',key:'blue',numberedTo:250,verified:true,sources:['a','b']}]},
+   {id:'rookieauto',label:'Rookie Autograph',auto:true,rookie:true,numberFormats:[{range:[201,300]}],
+    parallels:[{name:'Aqua Autograph',key:'aqua auto',numberedTo:250,verified:true,sources:['a','b']},
+     {name:'Gold Auto',key:'gold auto',numberedTo:50,verified:true,sources:['a','b'],conflicts:[{numberedTo:25}]}]}
+  ]};
+ const result=scannerChecklistReference({year:2025,brand:'Acme',set:'Optic',sport:'football',cardNumber:'220',rookie:true,autograph:true},[product]);
+ assert.equal(result.status,'matched');
+ assert.deepEqual(Array.from(result.checklist.parallels.map(p=>p.name)),['Aqua Autograph']);
+});
 test('scanner prioritizes subset registry before any generic rainbow',()=>{
  assert.match(scanSource,/scannerChecklistReference\(card\)/);
  assert.match(scanSource,/if \(reference\.productId\) return null/);
