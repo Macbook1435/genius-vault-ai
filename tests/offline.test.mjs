@@ -135,6 +135,34 @@ test('serial: two matching full-photo observations narrow print run but never ex
  assert.equal(ownConflict.fields.serial.printRunConfirmed,undefined);
 });
 
+
+test('reference catalog uses release and subset scope and never fills in invented print runs',async()=>{
+ const {catalogCoverage,listReferenceVariants,vocabularyCandidates}=await import('../api/_lib/catalog-reference.js');
+ const coverage=catalogCoverage();
+ assert.equal(coverage.length,7);
+ assert.ok(coverage.every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
+ assert.ok(coverage.every(p=>p.crossCheckedRows+p.singleSourceOrUnresolvedRows===p.variantRows));
+ const release=coverage.find(p=>p.id==='2025-donruss-optic-football');
+ assert.ok(release);
+ const optic=listReferenceVariants({productId:release.id,term:'Holo'});
+ assert.equal(optic.status,'ok');
+ assert.ok(optic.variants.length>0);
+ assert.ok(optic.variants.every(x=>x.productId===release.id));
+ assert.ok(optic.variants.every(x=>x.sourceUrls.length>=2));
+ assert.equal(listReferenceVariants({productId:'not-a-release'}).status,'unknown_product');
+ assert.equal(listReferenceVariants({productId:release.id,subsetId:'no-such-subset'}).status,'unknown_subset');
+ const candidates=vocabularyCandidates('gold');
+ assert.ok(candidates.length>0);
+ assert.ok(candidates.every(x=>x.verification==='vocabulary_only'&&x.numberedTo===null));
+});
+test('reference catalog narrows numbered variants only inside a selected release',async()=>{
+ const {listReferenceVariants}=await import('../api/_lib/catalog-reference.js');
+ const r=listReferenceVariants({productId:'2025-topps-resurgence-football',numberedTo:250});
+ assert.equal(r.status,'ok');
+ assert.ok(r.variants.every(v=>v.numberedTo===250));
+ assert.ok(r.variants.every(v=>v.productId==='2025-topps-resurgence-football'));
+ assert.ok(r.variants.every(v=>typeof v.autograph==='boolean'&&typeof v.rookie==='boolean'));
+});
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
