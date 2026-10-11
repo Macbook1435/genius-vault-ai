@@ -10,7 +10,10 @@ const AUTO=/\b(?:autograph(?:ed)?|signed|signature|on-card\s+auto|sticker\s+auto
 // A serial stamp ("12/25") or jersey number ("#7") is NOT a number patch.
 export function describeMemorabiliaEvidence(notes,card={}) {
  const text=typeof notes==="string"?notes.slice(0,4000):"";
- const positive=TYPES.filter(([,re])=>re.test(text)).map(([name])=>name);
+ // Explicit negations take priority over a keyword hit in the same short note.
+ const positive=TYPES.filter(([name,re])=>re.test(text) && !(
+   name==="jersey_number_patch" && /\\b(?:no|without|not a|isn.t a)\\s+(?:jersey\\s+)?number\\s+patch\\b/i.test(text)
+ )).map(([name])=>name);
  const kinds=[...new Set(positive)];
  const autographMention=AUTO.test(text);
  if(kinds.length>1) return {status:"ambiguous",type:null,candidates:kinds,
