@@ -30,8 +30,11 @@ alter table public.gv_accounts enable row level security;
 alter table public.gv_entitlements enable row level security;
 alter table public.gv_scan_usage enable row level security;
 -- Customers can view their own plan and usage; all writes must use trusted server code.
+drop policy if exists "gv_accounts_read_self" on public.gv_accounts;
 create policy "gv_accounts_read_self" on public.gv_accounts for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "gv_entitlements_read_self" on public.gv_entitlements;
 create policy "gv_entitlements_read_self" on public.gv_entitlements for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "gv_usage_read_self" on public.gv_scan_usage;
 create policy "gv_usage_read_self" on public.gv_scan_usage for select to authenticated using (auth.uid() = user_id);
 -- Atomic reservation function for server-side use ONLY (service_role).
 create or replace function public.gv_reserve_scan(p_user_id uuid, p_request_id uuid)
