@@ -94,3 +94,28 @@ export function findSubset(product, card) {
     steps,
   };
 }
+
+
+/**
+ * Scanner-facing candidate reference from a specific release and card subset.
+ * Cross-checked product entries are evidence that a VARIATION EXISTS, not proof
+ * that the photographed card has that variation.
+ * We never combine rookie autograph and non-auto rainbow lists into one answer.
+ */
+export function scannerChecklistReference(card, products = PRODUCTS) {
+ const match=findProduct(card,products);
+ if(match.status!=="matched") return {status:match.status,checklist:null};
+ const product=match.product;
+ const subset=findSubset(product,card);
+ if(subset.status!=="matched" || subset.numberFits!==true)
+  return {status:"subset_uncertain",productId:product.id,checklist:null,
+   subsetCandidates:(subset.subset?.label||"").split(" / ").filter(Boolean)};
+ const choices=(subset.subset.parallels||[]).filter(v=>v.verified===true
+  &&Array.isArray(v.sources)&&v.sources.length>=2
+  &&!(v.conflicts||[]).length);
+ if(!choices.length) return {status:"needs_source_review",productId:product.id,checklist:null};
+ return {status:"matched",productId:product.id,
+  checklist:{id:product.id,year:product.year,parallels:choices,
+    subsetId:subset.subset.id,subsetLabel:subset.subset.label,
+    sourceUrls:product.sources||[],source:"cross_checked_product_subset"}};
+}
