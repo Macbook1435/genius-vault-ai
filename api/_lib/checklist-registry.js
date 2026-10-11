@@ -73,6 +73,14 @@ export function findSubset(product, card) {
       steps.push(`card number ${num} fits no subset`);
     }
   }
+  // Before narrowing, every varying attribute needs an explicit read.
+  // Otherwise card #42 could silently resolve to a base or rookie autograph.
+  for (const [flag,subsetFlag] of [["autograph","auto"],["rookie","rookie"]]) {
+    const choices=new Set(list.map(s=>s[subsetFlag]).filter(v=>typeof v==="boolean"));
+    if (choices.size>1 && typeof card[flag]!=="boolean")
+      return {subset:null,status:"attribute_unknown",numberFits,steps,
+        reason:flag+" status is not established for this card number"};
+  }
   // Unknown detection is NOT the same as a negative detection. Only a real
   // boolean observation may narrow autograph and rookie subsets. If that
   // observation contradicts every numbered subset, keep all candidates and
