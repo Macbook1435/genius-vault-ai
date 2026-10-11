@@ -21,3 +21,13 @@ test('reference tables are read-only to clients by default',()=>{
  for(const table of ['gv_catalog_sources','gv_card_references','gv_reference_variants']) assert.match(sql,new RegExp('alter table public\\.'+table+' enable row level security','i'));
  assert.doesNotMatch(sql,/create policy .* on public\.gv_card_references/i);
 });
+
+test('binder variant must belong to the selected card reference',()=>{
+ assert.match(sql,/unique \(card_reference_id,id\)/);
+ assert.match(sql,/foreign key \(card_reference_id,variant_id\)\s+references public\.gv_reference_variants\(card_reference_id,id\)/);
+});
+test('serial must either be absent or a complete valid stamp',()=>{
+ assert.match(sql,/serial_sequence is null and serial_limit is null/);
+ assert.match(sql,/serial_sequence is not null and serial_limit is not null/);
+ assert.match(sql,/serial_limit >= serial_sequence/);
+});
