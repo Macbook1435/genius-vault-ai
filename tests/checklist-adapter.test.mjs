@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {normalizeChecklistResponse,matchCardToChecklist,assessParallelEvidence} from '../api/_lib/checklist-adapter.mjs';
+const sample={status:'success',data:{year:2024,sport:'Football',manufacturer:'Panini',brand:'Prizm',card_number:'201',player_name:'Caleb Williams',is_rookie_card:true,available_parallels:[{name:'Silver Prizm',serial_numbered:false,print_run:null},{name:'Gold Prizm',serial_numbered:true,print_run:10}],cross_referenced_inserts:[{set_name:'Downtown!',card_number:'DT-CW'}]}};
+const scan={year:2024,sport:'Football',brand:'Panini',set:'Prizm',cardNumber:'201',player:'Caleb Williams'};
+test('example remains unverified',()=>{const r=normalizeChecklistResponse(sample);assert.equal(r.status,'unverified_reference');assert.equal(r.relatedInserts[0].cardNumber,'DT-CW')});
+test('identity match does not automatically determine parallel',()=>{const r=matchCardToChecklist(scan,normalizeChecklistResponse(sample));assert.equal(r.status,'identity_match');assert.equal(r.parallelStatus,'unconfirmed')});
+test('wrong number or player rejected',()=>{for(const s of [{...scan,cardNumber:'206'},{...scan,player:'Mason Graham'}])assert.equal(matchCardToChecklist(s,normalizeChecklistResponse(sample)).status,'no_match')});
+test('numbered variant requires valid stamp and visual evidence',()=>{const r=matchCardToChecklist(scan,normalizeChecklistResponse(sample,{licensedForUse:true,verifiedChecklist:true}));assert.equal(assessParallelEvidence(r,{parallelName:'Gold Prizm',visualConfirmed:true}).status,'unconfirmed');assert.equal(assessParallelEvidence(r,{parallelName:'Gold Prizm',serialConfirmed:true,serialStamp:'11/10',visualConfirmed:true}).status,'unconfirmed');assert.equal(assessParallelEvidence(r,{parallelName:'Gold Prizm',serialConfirmed:true,serialStamp:'7/10',visualConfirmed:true}).status,'confirmed')});
+test('unlicensed sample cannot confirm parallel',()=>{const r=matchCardToChecklist(scan,normalizeChecklistResponse(sample));assert.equal(assessParallelEvidence(r,{parallelName:'Silver Prizm',visualConfirmed:true}).status,'suggested')});
+test('conflicting print run rejected',()=>{assert.throws(()=>normalizeChecklistResponse({...sample,data:{...sample.data,available_parallels:[{name:'bad',serial_numbered:false,print_run:25}]}}))});
