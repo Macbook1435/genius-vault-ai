@@ -1853,6 +1853,7 @@ Strict rules:
       pipeline = buildFieldVerification(scanResult, verification, {
         checklist: findChecklist(scanResult),
         serialImage: Boolean(serialImage),
+        closeupVerified: Boolean(closeupSerial && verification_closeup),
         identity: verification.identity,
         strongCheck,
       });
