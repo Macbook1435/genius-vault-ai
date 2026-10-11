@@ -41,11 +41,10 @@ begin
     and e.period_end > now() then
     select count(*) into used_count from public.gv_scan_usage
       where user_id=p_user_id and period_start=e.period_start;
-    if e.unlimited_scans or used_count < e.scan_limit then
-      insert into public.gv_scan_usage(user_id,period_start,request_id)
+    if not e.unlimited_scans and used_count >= e.scan_limit then return false; end if;
+    insert into public.gv_scan_usage(user_id,period_start,request_id)
       values(p_user_id,e.period_start,p_request_id);
-      return true;
-    end if;
+    return true;
   end if;
   select count(*) into used_count from public.gv_scan_usage
      where user_id=p_user_id and period_start=lifetime_start;
@@ -57,4 +56,5 @@ end $$;
 revoke all on function public.gv_reserve_scan(uuid,uuid) from public,anon,authenticated;
 grant execute on function public.gv_reserve_scan(uuid,uuid) to service_role;
 -- Free trial is locked until email confirmation. Four scans total, once per account.
--- Review paid-overlap and failed-scan accounting before applying in test DB.
+-- Active paid allowance takes precedence; exhausted paid plans cannot use free credits.
+-- Review failed-scan accounting and test concurrency in a test DB before deployment.
