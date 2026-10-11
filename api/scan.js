@@ -16,6 +16,7 @@ import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.mjs";
 import { exactPricingGate } from "./_lib/exact-pricing-gate.mjs";
+import { safeSoldResponse } from "./_lib/safe-sold-response.mjs";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 
 export const config = {
@@ -2199,6 +2200,12 @@ Strict rules:
         note: "No estimated value until the exact card is verified.",
       };
     }
+
+    // Final single-source-of-truth: both consumer-facing price objects must
+    // honor the same identity and exact-variation verification decision.
+    const sanitizedSales = safeSoldResponse({ identityTrusted, variationUnresolved, comps, market });
+    Object.assign(comps, sanitizedSales.comps);
+    market = sanitizedSales.market;
 
     const readoutSummary = identityTrusted
       ? buildReadoutSummary(scanResult, comps)
