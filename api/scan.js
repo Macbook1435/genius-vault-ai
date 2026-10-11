@@ -14,6 +14,7 @@ import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
+import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.mjs";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 
 export const config = {
@@ -1842,7 +1843,7 @@ Strict rules:
 
     // Unverified identities never reach pricing or listing titles.
     const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
-    const comps = identityTrusted
+    const comps = earlySoldCompsAllowed({ identityTrusted, card: scanResult, parallelStatus: verification.parallelId?.status })
       ? await fetchSoldComps(query, scanResult)
       : {
           ...calculateCompStats([]),
@@ -1852,7 +1853,7 @@ Strict rules:
           sourceUrl: null,
           searchUrl: null,
           status: "not_searched",
-          error: "Price estimate unavailable until the card identity is confirmed.",
+          error: "Early broad sold-comps lookup withheld until the exact variation is confirmed; catalog verification may provide exact sales.",
         };
 
     // Field-level verification + market data (additive; a failure here never breaks the scan).
