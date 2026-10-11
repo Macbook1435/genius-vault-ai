@@ -13,6 +13,7 @@ import { readSerialFromPhotos, serialValue } from "./_lib/serial-photo.js";
 import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
+import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -1206,6 +1207,14 @@ const COLOR_FAMILIES = [
 const COLOR_WORDS = ["pink", "blue", "gold", "green", "purple", "orange", "red", "black", "aqua", "teal", "yellow", "white", "silver", "bronze", "magenta", "sky"];
 
 function findChecklist(card) {
+  // Prefer a cross-checked exact product/subset reference. Do not mix different
+  // autograph or rookie rainbow lists and never use unverifiable entries.
+  const reference = scannerChecklistReference(card);
+  if (reference.status === "matched") return reference.checklist;
+  // If product is identified but subset is uncertain, do NOT downgrade to a
+  // product-wide rainbow: that could mistake a rookie auto for a base parallel.
+  if (reference.productId) return null;
+  // Legacy product checklists remain a fallback only when no new product matches.
   const text = `${cleanPart(card.brand)} ${cleanPart(card.set)}`.toLowerCase();
   return PARALLEL_CHECKLISTS.find((c) =>
     (!c.year || c.year === card.year) &&
