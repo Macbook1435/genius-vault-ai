@@ -33,12 +33,12 @@ export async function cardsightIdentify(buffer, mimetype) {
 
 const RANK = { High: 3, Medium: 2, Low: 1 };
 
-// Decide which parallel (if any) is supported. Only a single High-confidence suggestion counts as confirmed.
+// Photo suggestions are candidates, never independent catalog verification.
 export function resolveParallel(card) {
   const list = Array.isArray(card?.parallelSuggestions) ? card.parallelSuggestions : [];
   if (!list.length) return { status: "none_detected", parallel: null, candidates: [] };
   const high = list.filter(p => p.confidence === "High");
-  if (list.length === 1 && high.length === 1) return { status: "confirmed", parallel: high[0], candidates: [] };
+  if (list.length === 1 && high.length === 1) return { status: "suggested", parallel: high[0], candidates: [{ id: high[0].id, name: high[0].name, confidence: high[0].confidence, numberedTo: high[0].numberedTo || null }] };
   return { status: "uncertain", parallel: null,
     candidates: list.slice(0, 5).map(p => ({ id: p.id, name: p.name, confidence: p.confidence || "not assessed", numberedTo: p.numberedTo || null })) };
 }

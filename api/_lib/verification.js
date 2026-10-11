@@ -86,7 +86,7 @@ export function buildFieldVerification(card, v, ctx = {}) {
       ? `Possibly ${pid.probable} (CardSight photo guess); no checklist to confirm it.`
       : `Probably ${pid.probable} (checklist), but the serial/print run was not confirmed.`);
   } else if (pid.status === "base") {
-    fields.parallel = field("Base", "confirmed", "No serial, parallel color, or special finish: base card.");
+    fields.parallel = field("Base", "unconfirmed", "No obvious serial, color or special finish was detected; this alone cannot prove a base variation.");
   } else if (pid.status === "ambiguous") {
     fields.parallel = field(null, "unconfirmed", `Could be: ${(pid.candidates || []).join(", ")}.`);
   } else if (pid.status === "no_match") {
@@ -95,6 +95,15 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.parallel = field(card.parallel, "unconfirmed",
       present(card.parallel) ? "Read from the card; no checklist for this product yet." : "Not identified; no checklist for this product yet.");
   }
+
+  // --- Autograph ---
+  // Seeing ink in a photograph is not manufacturer authentication. An apparent
+  // absence is also not proof that a different autograph variation was excluded.
+  const scanAuto = card.autograph === true;
+  fields.autograph = field(scanAuto ? "Signature detected (unverified)" : "No signature detected", "unconfirmed",
+    scanAuto
+      ? "A signature may be present in the photo. Manufacturer-certified autograph status and exact autograph variation have not been independently verified."
+      : "No signature was detected. Check the card and manufacturer checklist before treating it as a non-autograph variant.");
 
   // --- Serial ---
   if (!present(card.serialNumber) && !card.numberedTo) {
