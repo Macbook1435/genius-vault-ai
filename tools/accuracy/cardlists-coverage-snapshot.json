@@ -1,0 +1,18 @@
+{
+  "source": "https://github.com/robert-porter/CardLists",
+  "upstreamTreeSha": "e4f86ed121e75510277a8ed908fefe6887aa798f",
+  "license": "MIT",
+  "licenseCopyright": "Copyright (c) 2025 JunkWaxData",
+  "checklistJsonFiles": 62,
+  "bySport": {
+    "baseball": 62
+  },
+  "footballFiles": 0,
+  "year2025Files": 0,
+  "sample2024Products": [
+    "baseball/2024/2024-Topps-Chrome.json",
+    "baseball/2024/2024-Topps-Allen-&-Ginter.json"
+  ],
+  "football2025ImportApproved": false,
+  "notes": "Metadata snapshot from GitHub recursive tree; numbers count JSON checklist files, not verified card rows or parallel counts. No external data imported."
+}
