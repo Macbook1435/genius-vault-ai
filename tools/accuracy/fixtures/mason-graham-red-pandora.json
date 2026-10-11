@@ -1,0 +1,36 @@
+{
+  "id": "2025-donruss-optic-preview-mason-graham-340-red-pandora",
+  "labelStatus": "owner_confirmed_visual_reference",
+  "physicalCard": {
+    "player": "Mason Graham",
+    "year": 2025,
+    "manufacturer": "Panini",
+    "product": "Donruss Football",
+    "subset": "Optic Rated Rookies Preview",
+    "cardNumber": "340",
+    "parallel": "Red Pandora",
+    "printRun": null,
+    "autograph": false
+  },
+  "evidence": {
+    "front": [
+      "Optic logo",
+      "Rated Rookie mark",
+      "red rectangular holographic border pattern"
+    ],
+    "back": [
+      "No. 340",
+      "2025 Panini — Donruss Football",
+      "PRIZM finish marking"
+    ],
+    "verificationNote": "PRIZM on the card back is a finish marking, not sufficient proof of a separate Panini Prizm product."
+  },
+  "regression": {
+    "wrongProduct": "2025 Donruss Optic",
+    "wrongCardNumber": "206",
+    "requireBackNumber": true,
+    "avoidInferringParallelFromColorOnly": true
+  },
+  "images": "User-provided front/back photographs remain in conversation; not published to GitHub.",
+  "important": "This is a labeled physical-card fixture, not a live AI image-scan test."
+}
