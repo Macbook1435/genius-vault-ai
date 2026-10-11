@@ -1,7 +1,7 @@
 name: Offline regression tests
 on:
   push:
-    branches: [main]
+    branches: [main, test/cardlists-license-coverage-audit-20261010]
   pull_request:
 jobs:
   offline:
@@ -19,7 +19,7 @@ jobs:
           node --check api/subscription-status.js
           node --check api/stripe-webhook.js
       - name: Run offline regression tests (no API keys)
-        run: node --test tests/offline.test.mjs
+        run: node --test tests/*.test.mjs
       - name: Install browser test runner and Chromium
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
