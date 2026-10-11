@@ -35,10 +35,13 @@ create table if not exists public.gv_reference_variants (
  source_url text,
  verification_status text not null default 'unconfirmed'
   check (verification_status in ('unconfirmed','cross_checked')),
- unique (card_reference_id,name,print_run)
+ unique (card_reference_id,name,print_run),
+ -- Composite key lets binder enforce that the selected variant belongs to its card.
+ unique (card_reference_id,id)
 );
 create index if not exists gv_reference_variants_card on public.gv_reference_variants(card_reference_id);
 -- Physical cards belong to a user, independent of external provider uptime.
+-- A known variant must belong to the referenced card; ambiguous scans can leave both NULL.
 create table if not exists public.gv_binder_cards (
  id uuid primary key default gen_random_uuid(),
  user_id uuid not null references auth.users(id) on delete cascade,
@@ -63,8 +66,12 @@ create table if not exists public.gv_binder_cards (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
  check ((serial_sequence is null and serial_limit is null) or
-        (serial_sequence >= 1 and serial_limit >= serial_sequence)),
- check (variant_id is null or card_reference_id is not null)
+        (serial_sequence is not null and serial_limit is not null
+         and serial_sequence >= 1 and serial_limit >= serial_sequence)),
+ check (variant_id is null or card_reference_id is not null),
+ constraint gv_binder_variant_belongs_to_card
+  foreign key (card_reference_id,variant_id)
+  references public.gv_reference_variants(card_reference_id,id)
 );
 create index if not exists gv_binder_owner_date
  on public.gv_binder_cards(user_id,created_at desc);
