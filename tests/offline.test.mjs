@@ -76,6 +76,43 @@ test('CSV export quotes embedded delimiters and neutralizes formula cells',()=>{
  assert.ok(captured.body.includes('"Resurgence, Special"'));
 });
 
+
+const verificationSource=fs.readFileSync(new URL('../api/_lib/verification.js',import.meta.url),'utf8');
+const verificationScript=verificationSource.split('// Keep SOLD prices and ACTIVE asking prices completely separate.')[0]
+ .replaceAll('export function ','function ');
+const verifyContext=vm.createContext({});
+vm.runInContext(verificationScript,verifyContext);
+const verify=(scan,v={},ctx={})=>verifyContext.buildFieldVerification(scan,v,ctx);
+test('serial: uploading a close-up without two matching reads cannot confirm it',()=>{
+ const scan={player:'Gunnar Helm',year:2025,cardNumber:'196',numberedTo:250,serialNumber:'127/250'};
+ const result=verify(scan,{}, {serialImage:true,closeupVerified:false});
+ assert.equal(result.fields.serial.status,'unconfirmed');
+ assert.equal(result.fields.serial.printRunConfirmed,undefined);
+});
+test('serial: verified close-up must have an actual stamped serial',()=>{
+ const scan={year:2025,cardNumber:'196',numberedTo:250,serialNumber:'127/250'};
+ assert.equal(verify(scan,{}, {serialImage:true,closeupVerified:true}).fields.serial.status,'confirmed');
+ assert.equal(verify({...scan,serialNumber:null},{},{serialImage:true,closeupVerified:true}).fields.serial.status,'unconfirmed');
+});
+test('serial: one unverified full-photo guess must not confirm a print run',()=>{
+ const scan={serialNumber:'127/250',numberedTo:250};
+ const r=verify(scan,{}, {});
+ assert.equal(r.fields.serial.status,'unconfirmed');
+ assert.equal(r.fields.serial.printRunConfirmed,undefined);
+ assert.equal(r.serialCloseup.needed,true);
+});
+test('serial: two matching full-photo observations narrow print run but never exact stamp',()=>{
+ const scan={serialNumber:'127/250',numberedTo:250};
+ const v={detailCheck:{stampedSerial:'127/250'}};
+ const r=verify(scan,v,{strongCheck:{stampedSerial:'127/250'}});
+ assert.equal(r.fields.serial.status,'unconfirmed');
+ assert.equal(r.fields.serial.printRunConfirmed,true);
+ const conflict=verify(scan,v,{strongCheck:{stampedSerial:'128/250'}});
+ assert.equal(conflict.fields.serial.printRunConfirmed,undefined);
+ const ownConflict=verify({...scan,serialNumber:'129/250'},v,{strongCheck:{stampedSerial:'127/250'}});
+ assert.equal(ownConflict.fields.serial.printRunConfirmed,undefined);
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
