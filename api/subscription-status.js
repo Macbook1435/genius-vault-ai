@@ -1,5 +1,5 @@
 import {authenticatedUser,entitlement,usageCount,subscriptionsEnabled} from './_lib/subscriptions.js';
-import {trialAllowance,TRIAL_PERIOD_START} from './_lib/trial-policy.mjs';
+import {trialAllowance,TRIAL_PERIOD_START} from './_lib/trial-policy.js';
 export default async function handler(req,res){
  if(req.method!=='GET')return res.status(405).json({error:'GET only'});
  res.setHeader('Cache-Control','no-store, private');
