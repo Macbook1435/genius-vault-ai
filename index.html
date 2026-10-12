@@ -347,6 +347,7 @@ async function aiScan() {
  if(!data.scan)throw new Error('No card identification returned. Try clear front and back photos.');
  scanStage='displaying scan result';
  window.gvLast=data;window.gvOrigParallel=data.scan.parallel||'';renderScan(data);notice('Scan ready. Check any unconfirmed details.');
+ if(gvMemberToken)void memberRefresh();
  }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'The scanner took too long to respond. Its final processing status is unknown; please check before retrying.':e instanceof TypeError&&scanStage==='sending scan request'?'Network connection failed. Check your internet and try again.':('Scan failed while '+scanStage+': '+(e.message||'Please try again.'));notice('No completed scan result was received.');}
  finally{button.disabled=false;button.textContent='Identify card';for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=false;}
 }
