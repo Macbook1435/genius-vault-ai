@@ -14,9 +14,9 @@ import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
-import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.mjs";
-import { exactPricingGate } from "./_lib/exact-pricing-gate.mjs";
-import { safeSoldResponse } from "./_lib/safe-sold-response.mjs";
+import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.js";
+import { exactPricingGate } from "./_lib/exact-pricing-gate.js";
+import { safeSoldResponse } from "./_lib/safe-sold-response.js";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 
 export const config = {
