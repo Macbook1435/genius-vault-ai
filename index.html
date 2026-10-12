@@ -889,25 +889,25 @@ async function memberRefresh(){
   if(r.status===401){memberLogout();notice('Session expired. Please sign in again.');return;}
   if(!r.ok)throw Error('Membership status is temporarily unavailable.');
   const d=await r.json(),plan=d.plan||null;
-  const used=Number(d.used),remaining=Number(d.remaining),limit=Number(plan?.scan_limit);
+  const used=Number(d.used),remaining=Number(d.remaining),limit=plan?Number(plan.scan_limit):Number(d.trial?.limit);
   const unlimited=Boolean(d.allowanceActive&&d.unlimitedScans);
-  const validUsage=Boolean(d.allowanceActive)&&Number.isFinite(used)&&used>=0&&Number.isFinite(remaining)&&remaining>=0&&Number.isFinite(limit)&&limit>=0;
+  const validUsage=Number.isFinite(used)&&used>=0&&Number.isFinite(remaining)&&remaining>=0&&Number.isFinite(limit)&&limit>=0;
   document.getElementById('memberLogin').hidden=true;
   document.getElementById('memberActions').hidden=false;
   document.getElementById('memberStatus').textContent='Signed in. Plan and allowance information comes from your account, not estimates.';
   document.getElementById('memberState').textContent='Signed in';
-  document.getElementById('memberPlan').textContent=plan?.status||'No active plan';
+  document.getElementById('memberPlan').textContent=plan?.status||'Lifetime free trial';
   const end=plan?.period_end?new Date(plan.period_end):null;
-  document.getElementById('memberPeriod').textContent=end&&!Number.isNaN(end.getTime())?'Current period ends '+end.toLocaleDateString():'No billing period available';
+  document.getElementById('memberPeriod').textContent=end&&!Number.isNaN(end.getTime())?'Current period ends '+end.toLocaleDateString():(d.trial?.emailVerified?'Four lifetime free scans':'Email verification required before scanning');
   document.getElementById('memberRemaining').textContent=unlimited?'Unlimited':validUsage?String(remaining):'Not active';
-  document.getElementById('memberUsed').textContent=unlimited?used+' scans completed this period · no monthly scan-count cap':validUsage?used+' of '+limit+' scans used':'No active scan allowance';
+  document.getElementById('memberUsed').textContent=unlimited?used+' scans completed this period · no monthly scan-count cap':validUsage?used+' of '+limit+(plan?' scans used':' lifetime free scans used'):'Usage unavailable';
   const meter=document.getElementById('memberMeter');
   meter.hidden=unlimited||!validUsage||limit===0;
   if(!meter.hidden){
    const pct=Math.min(100,Math.round(used/limit*100));
    document.getElementById('memberProgressFill').style.width=pct+'%';
    const progress=document.getElementById('memberProgress');progress.setAttribute('aria-valuenow',String(pct));
-   document.getElementById('memberMeterLabel').textContent=used+' used · '+remaining+' remaining this period';
+   document.getElementById('memberMeterLabel').textContent=used+' used · '+remaining+(plan?' remaining this period':' lifetime free scans remaining');
   }
   const checkout=Boolean(d.checkoutReady);
   document.getElementById('memberSubscribeButton').hidden=!checkout;
