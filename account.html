@@ -1,7 +1,9 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Account | Genius Vault</title><style>
-:root{font-family:system-ui,-apple-system,sans-serif;color:#152c4c;background:#f2f6fc}*{box-sizing:border-box}body{margin:0}header{background:#0b2c58;color:white;padding:22px max(20px,5vw);display:flex;justify-content:space-between;align-items:center;gap:12px}header a{color:white}main{max-width:930px;margin:30px auto;padding:0 16px 50px}h1{margin:0 0 7px}h2{margin:0 0 12px;font-size:19px}.muted{color:#60738d}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:20px}.card{background:white;padding:24px;border-radius:16px;border:1px solid #d7e3f4}.card p{font-size:14px;line-height:1.5}label{font-weight:600;font-size:14px;display:block;margin-top:14px}input{display:block;margin-top:5px;padding:12px;width:100%;border:1px solid #bdcde2;border-radius:9px;font:inherit}button,.button{display:inline-block;margin:15px 8px 0 0;padding:11px 16px;border:0;border-radius:9px;background:#125aaa;color:white;font-weight:700;cursor:pointer;text-decoration:none}button:disabled{background:#9faabe;cursor:not-allowed}.feedback{font-size:14px;font-weight:600;margin-top:12px;line-height:1.5}.feedback.error{color:#a11a25}.feedback.success{color:#196b38}#message{padding:10px 0;font-weight:600}#loginPanel{max-width:540px}#accountPanel[hidden],#loginPanel[hidden]{display:none}@media(max-width:650px){.cards{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}</style></head>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#152c4c;background:#f2f6fc}*{box-sizing:border-box}body{margin:0}header{background:#0b2c58;color:white;padding:22px max(20px,5vw);display:flex;justify-content:space-between;align-items:center;gap:12px}header a{color:white}main{max-width:930px;margin:30px auto;padding:0 16px 50px}h1{margin:0 0 7px}h2{margin:0 0 12px;font-size:19px}.muted{color:#60738d}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:20px}.card{background:white;padding:24px;border-radius:16px;border:1px solid #d7e3f4}.card p{font-size:14px;line-height:1.5}label{font-weight:600;font-size:14px;display:block;margin-top:14px}input{display:block;margin-top:5px;padding:12px;width:100%;border:1px solid #bdcde2;border-radius:9px;font:inherit}button,.button{display:inline-block;margin:15px 8px 0 0;padding:11px 16px;border:0;border-radius:9px;background:#125aaa;color:white;font-weight:700;cursor:pointer;text-decoration:none}button:disabled{background:#9faabe;cursor:not-allowed}.feedback{font-size:14px;font-weight:600;margin-top:12px;line-height:1.5}.feedback.error{color:#a11a25}.feedback.success{color:#196b38}#message{padding:10px 0;font-weight:600}#loginPanel{max-width:540px}#accountPanel[hidden],#loginPanel[hidden],#resetPanel[hidden],#recoveryPanel[hidden]{display:none}@media(max-width:650px){.cards{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}</style></head>
 <body><header><strong>GV · Genius Vault</strong><a href="/">← Back to scanner</a></header><main><h1>My Account &amp; Settings</h1><p class="muted">Manage your profile and password. Subscription payments are not active during testing.</p><p id="message" role="status" aria-live="polite"></p>
-<section id="loginPanel" class="card" hidden><h2>Sign in</h2><p>Use your existing Genius Vault account.</p><label>Email<input id="email" type="email" autocomplete="email"></label><label>Password<input id="password" type="password" autocomplete="current-password"></label><button id="signIn" onclick="signIn()">Sign in</button></section>
+<section id="loginPanel" class="card" hidden><h2>Sign in</h2><p>Use your existing Genius Vault account.</p><label>Email<input id="email" type="email" autocomplete="email"></label><label>Password<input id="password" type="password" autocomplete="current-password"></label><button id="signIn" onclick="signIn()">Sign in</button><button type="button" onclick="showReset()">Forgot password?</button></section>
+<section id="resetPanel" class="card" hidden><h2>Reset your password</h2><p>Enter your account email. If it exists, we will send a reset link.</p><label>Email<input id="resetEmail" type="email" autocomplete="email"></label><button id="sendReset" type="button" onclick="sendReset()">Send reset link</button><button type="button" onclick="backToLogin()">Back to sign in</button><p id="resetFeedback" class="feedback" role="status" aria-live="polite"></p></section>
+<section id="recoveryPanel" class="card" hidden><h2>Choose a new password</h2><label>New password<input id="recoveryPassword" type="password" minlength="12" autocomplete="new-password"></label><label>Confirm password<input id="recoveryConfirm" type="password" minlength="12" autocomplete="new-password"></label><button id="finishRecovery" onclick="finishRecovery()">Save new password</button><p id="recoveryFeedback" class="feedback" role="status" aria-live="polite"></p></section>
 <section id="accountPanel" hidden><div class="cards"><div class="card"><h2>Profile</h2><label>Email address<input id="profileEmail" readonly></label><p class="muted">Email changes aren't available yet.</p><label>Display name<input id="displayName" maxlength="80" autocomplete="nickname"></label><button onclick="saveProfile()">Save name</button></div>
 <div class="card"><h2>Password &amp; security</h2><p>Use a unique password with at least 12 characters. A password change may require recent authentication.</p><label>New password<input id="newPassword" type="password" minlength="12" autocomplete="new-password"></label><label>Confirm password<input id="confirmPassword" type="password" minlength="12" autocomplete="new-password"></label><button id="changePasswordButton" onclick="changePassword()">Change password</button><p id="passwordFeedback" class="feedback" role="status" aria-live="polite"></p></div>
 <div class="card"><h2>My membership</h2><p id="membershipStatus">Loading membership…</p><button onclick="loadMembership()">Refresh balance</button></div>
@@ -10,7 +12,16 @@
 </main><script>
 let cfg=null,token=sessionStorage.getItem('gv-member-token');const $=id=>document.getElementById(id);
 function status(s){$('message').textContent=s}
-async function init(){try{const r=await fetch('/api/public-config',{cache:'no-store'});cfg=await r.json();if(!cfg.enabled||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error('Account access is not configured.');if(token){try{await profile();return}catch{token=null;sessionStorage.removeItem('gv-member-token')}}$('loginPanel').hidden=false}catch(e){status(e.message)}}
+async function init(){try{const r=await fetch('/api/public-config',{cache:'no-store'});cfg=await r.json();if(!cfg.enabled||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error('Account access is not configured.');
+ const hash=new URLSearchParams(location.hash.slice(1));
+ if(hash.get('type')==='recovery'&&hash.get('access_token')){
+  token=hash.get('access_token');sessionStorage.removeItem('gv-member-token');
+  history.replaceState(null,'',location.pathname+location.search);
+  $('recoveryPanel').hidden=false;status('Reset link verified. Choose your new password.');return;
+ }
+ if(hash.get('error')){history.replaceState(null,'',location.pathname+location.search);status('Reset link expired or invalid. Request another link.');}
+ if(token){try{await profile();return}catch{token=null;sessionStorage.removeItem('gv-member-token')}}$('loginPanel').hidden=false
+ }catch(e){status(e.message)}}
 async function auth(path,method='GET',body){if(!cfg)throw Error('Account access is not configured.');const r=await fetch(cfg.supabaseUrl.replace(/\/$/,'')+'/auth/v1/'+path,{method,headers:{apikey:cfg.supabaseAnonKey,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.msg||data.error_description||data.message||'Request failed.');return data}
 async function signIn(){try{const email=$('email').value.trim(),password=$('password').value;if(!email||!password)throw Error('Enter your email and password.');const d=await auth('token?grant_type=password','POST',{email,password});if(!d.access_token)throw Error('Email verification may be required.');token=d.access_token;sessionStorage.setItem('gv-member-token',token);$('password').value='';await profile()}catch(e){status(e.message)}}
 async function profile(){const u=await auth('user');$('profileEmail').value=u.email||'';$('displayName').value=u.user_metadata?.display_name||'';$('loginPanel').hidden=true;$('accountPanel').hidden=false;status('Signed in');await loadMembership()}
@@ -33,6 +44,27 @@ async function changePassword(){
   status('Your password was updated.');
  }catch(e){passwordStatus(e.message||'Password change failed. Please try again.',true)}
  finally{btn.disabled=false;btn.textContent='Change password'}
+}
+function showReset(){$('loginPanel').hidden=true;$('resetPanel').hidden=false;$('resetEmail').value=$('email').value.trim();$('resetFeedback').textContent='';status('')}
+function backToLogin(){$('resetPanel').hidden=true;$('loginPanel').hidden=false;status('')}
+async function sendReset(){const b=$('sendReset'),email=$('resetEmail').value.trim(),out=$('resetFeedback');out.textContent='';
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){out.textContent='Enter a valid email address.';return}
+ b.disabled=true;
+ try{const redirect=location.origin+location.pathname;await auth('recover?redirect_to='+encodeURIComponent(redirect),'POST',{email});
+ out.textContent='If an account exists for this email, a reset link will be sent. Check your inbox and spam folder.'}
+ catch(e){out.textContent=e.message||'Unable to send reset request.'}
+ finally{b.disabled=false}
+}
+async function finishRecovery(){const b=$('finishRecovery'),out=$('recoveryFeedback');out.textContent='';
+ const p=$('recoveryPassword').value;
+ if(p.length<12){out.textContent='Use at least 12 characters.';return}
+ if(p!==$('recoveryConfirm').value){out.textContent='Passwords do not match.';return}
+ b.disabled=true;
+ try{await auth('user','PUT',{password:p});$('recoveryPassword').value='';$('recoveryConfirm').value='';
+ token=null;sessionStorage.removeItem('gv-member-token');$('recoveryPanel').hidden=true;$('loginPanel').hidden=false;
+ status('Password reset successfully. Sign in with your new password.')}
+ catch(e){out.textContent=e.message||'Unable to reset password.'}
+ finally{b.disabled=false}
 }
 async function loadMembership(){try{const r=await fetch('/api/subscription-status',{headers:{Authorization:'Bearer '+token},cache:'no-store'});if(r.status===401){signOut('Session expired. Sign in again.');return}if(!r.ok)throw Error('Membership temporarily unavailable.');const d=await r.json();$('membershipStatus').textContent=(d.plan?.status||'Lifetime free trial')+' · '+(d.unlimitedScans?'Unlimited':d.remaining+' scans remaining')+'.'}catch(e){$('membershipStatus').textContent=e.message}}
 function signOut(message='Signed out.'){token=null;sessionStorage.removeItem('gv-member-token');$('accountPanel').hidden=true;$('loginPanel').hidden=false;status(message)}
