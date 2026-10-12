@@ -53,7 +53,7 @@ async function sendReset(){const b=$('sendReset'),email=$('resetEmail').value.tr
  b.disabled=true;
  try{const redirect=location.origin+location.pathname;await auth('recover?redirect_to='+encodeURIComponent(redirect),'POST',{email});
  out.textContent='If an account exists for this email, a reset link will be sent. Check your inbox and spam folder.'}
- catch(e){out.textContent=e.message||'Unable to send reset request.'}
+ catch(e){const msg=String(e.message||'');out.textContent=/rate.limit|too.many.requests|429/i.test(msg)?'Too many reset emails have been requested. Wait about an hour before trying again. You do not need to create another account.':(msg||'Unable to send reset request.')}
  finally{b.disabled=false}
 }
 async function finishRecovery(){const b=$('finishRecovery'),out=$('recoveryFeedback');out.textContent='';
