@@ -14,12 +14,13 @@ let cfg=null,token=sessionStorage.getItem('gv-member-token');const $=id=>documen
 function status(s){$('message').textContent=s}
 async function init(){try{const r=await fetch('/api/public-config',{cache:'no-store'});cfg=await r.json();if(!cfg.enabled||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error('Account access is not configured.');
  const hash=new URLSearchParams(location.hash.slice(1));
- if(hash.get('type')==='recovery'&&hash.get('access_token')){
+ if(hash.get('access_token')&&(hash.get('type')==='recovery'||!hash.get('type'))){
   token=hash.get('access_token');sessionStorage.removeItem('gv-member-token');
   history.replaceState(null,'',location.pathname+location.search);
   $('recoveryPanel').hidden=false;status('Reset link verified. Choose your new password.');return;
  }
- if(hash.get('error')){history.replaceState(null,'',location.pathname+location.search);status('Reset link expired or invalid. Request another link.');}
+ if(hash.get('error')){history.replaceState(null,'',location.pathname);status('Reset link expired or invalid. Request another link.');}
+ if(new URLSearchParams(location.search).has('code')){status('This recovery link used a code-based sign-in flow that this preview does not yet support. No password was changed.');$('loginPanel').hidden=false;return;}
  if(token){try{await profile();return}catch{token=null;sessionStorage.removeItem('gv-member-token')}}$('loginPanel').hidden=false
  }catch(e){status(e.message)}}
 async function auth(path,method='GET',body){if(!cfg)throw Error('Account access is not configured.');const r=await fetch(cfg.supabaseUrl.replace(/\/$/,'')+'/auth/v1/'+path,{method,headers:{apikey:cfg.supabaseAnonKey,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.msg||data.error_description||data.message||'Request failed.');return data}
