@@ -1,5 +1,5 @@
 // Pure pricing decision and injectable offline harness. No external requests.
-export function exactPricingGate({identityTrusted,mode,parallelId,numberedTo,serialNumber,
+function exactPricingGate({identityTrusted,mode,parallelId,numberedTo,serialNumber,
  serialVerified=false,parallelMatched=false,catalogAvailable=false}={}) {
  if(!identityTrusted) return {allowed:false,reason:'identity_unverified'};
  if(!catalogAvailable) return {allowed:false,reason:'catalog_unavailable'};
@@ -21,9 +21,12 @@ export function exactPricingGate({identityTrusted,mode,parallelId,numberedTo,ser
  }
  return {allowed:true,reason:null};
 }
-export async function requestExactSales(input,request){
+async function requestExactSales(input,request){
  const decision=exactPricingGate(input);
  if(!decision.allowed)return {decision,called:false,result:null};
  if(typeof request!=='function')throw new TypeError('request must be a function');
  return {decision,called:true,result:await request()};
 }
+
+// CommonJS for Vercel's serverless runtime; the .mjs twin remains for offline tests.
+module.exports = { exactPricingGate, requestExactSales };
