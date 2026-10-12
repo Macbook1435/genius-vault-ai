@@ -4,7 +4,12 @@
    the fragment in the browser (never sending bearer tokens to our server). */
 (function(){
  const h=new URLSearchParams(location.hash.slice(1));
- if(h.get('type')==='recovery'||(h.get('error')&&h.get('error_description'))){
+ const q=new URLSearchParams(location.search);
+ // Handle hash tokens and authorization codes as well as explicit recovery callbacks.
+ const callback=h.get('type')==='recovery'||q.get('type')==='recovery'||
+   (h.has('access_token')&&h.has('refresh_token'))||q.has('code')||
+   h.has('error')||q.has('error');
+ if(callback){
   location.replace('/account.html'+location.search+location.hash);
  }
 })();
