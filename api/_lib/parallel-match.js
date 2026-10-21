@@ -98,7 +98,7 @@ export function matchParallel(candidates, ev) {
     const specialMatches = requiredSpecial &&
       (observedFinish.includes(requiredSpecial.replace(/-/g, " ")) ||
        requiredSpecial.replace(/-/g, " ").includes(observedFinish) && observedFinish.length > 2);
-    const patternMatches = requiredPattern &&
+    const patternMatches = !requiredSpecial && requiredPattern &&
       (observedFinish === requiredPattern[0].replace(/_/g, " ") ||
        requiredPattern[1].some((alias) => observedFinish === alias.replace(/-/g, " ")));
     if (!specialMatches && !patternMatches) {
