@@ -15,6 +15,8 @@ const FINISH_WORDS = {
   pulsar: ["pulsar"], raywave: ["raywave", "ray wave"], prism: ["prism"], shimmer: ["shimmer"], mojo: ["mojo"], cracked_ice: ["cracked ice", "ice"],
 };
 const SPECIAL_WORDS = ["neon pulse", "molten", "frozenfractor", "superfractor", "tie dye", "tie-dye", "speckle", "sparkle", "scope", "velocity", "hyper", "camo", "checker", "disco", "pandora", "snakeskin", "mini-diamond", "mini diamond"];
+// Match complete finish tokens: "wave" must not match "raywave".
+const finishNameHas = (name, alias) => alias === "wave" ? /(^|[^a-z])wave($|[^a-z])/.test(name) : name.includes(alias);
 const ALL_FINISH_WORDS = [...Object.values(FINISH_WORDS).flat(), ...SPECIAL_WORDS];
 
 export const COLOR_FAMILIES = [
@@ -62,7 +64,7 @@ export function matchParallel(candidates, ev) {
     const fw = FINISH_WORDS[finish];
     if (fw) {
       list = fw.length
-        ? list.filter((p) => fw.some((w) => p.name.toLowerCase().includes(w)))
+        ? list.filter((p) => fw.some((w) => finishNameHas(p.name.toLowerCase(), w)))
         : list.filter((p) => !ALL_FINISH_WORDS.some((w) => p.name.toLowerCase().includes(w)));
       steps.push(finish.replace(/_/g, " "));
     }
@@ -89,7 +91,7 @@ export function matchParallel(candidates, ev) {
   // must not become confirmed merely because their color is the only candidate.
   const requiredPattern = Object.entries(FINISH_WORDS).find(([kind, aliases]) =>
     !["plain_refractor", "prizm", "prism"].includes(kind) &&
-    aliases.some((alias) => onlyName.includes(alias))
+    aliases.some((alias) => finishNameHas(onlyName, alias))
   );
   const requiredFinish = requiredSpecial || (requiredPattern && requiredPattern[0].replace(/_/g, " "));
   if (requiredFinish) {
