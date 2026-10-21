@@ -396,6 +396,21 @@ test('provider adapter preserves card identity, parallel patterns, and provenanc
  assert.throws(()=>normalizeProviderCard({...raw,subsetId:null},'evaluation-provider'),/subset ID/i);
 });
 
+test('special-finish parallels reject a different observed pattern',async()=>{
+ const {matchParallel}=await import('../api/_lib/parallel-match.js');
+ for(const [name,color,correct,wrong] of [
+  ['Red Pandora','red','pandora','wave'],
+  ['Gold Cracked Ice','gold','cracked_ice','wave'],
+  ['Orange Wave','orange','wave','raywave'],
+  ['Green Velocity','green','velocity','wave']
+ ]){
+  const list=[{name,numberedTo:null,verified:true,sources:['a','b']}];
+  assert.equal(matchParallel(list,{numberedTo:null,color,finish:correct}).status,'confirmed',name+' correct pattern');
+  assert.notEqual(matchParallel(list,{numberedTo:null,color,finish:wrong}).status,'confirmed',name+' wrong pattern');
+  assert.notEqual(matchParallel(list,{numberedTo:null,color,finish:'unknown'}).status,'confirmed',name+' no pattern');
+ }
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
