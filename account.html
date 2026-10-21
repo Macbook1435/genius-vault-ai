@@ -19,7 +19,7 @@ function status(s){$('message').textContent=s}
 async function init(){try{const r=await fetch('/api/public-config',{cache:'no-store'});cfg=await r.json();if(!cfg.enabled||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error('Account access is not configured.');
  const hash=new URLSearchParams(location.hash.slice(1));
  if(hash.get('access_token')&&(hash.get('type')==='recovery'||!hash.get('type'))){
-  token=hash.get('access_token');sessionStorage.removeItem('gv-member-token');
+  token=hash.get('access_token');sessionStorage.removeItem('gv-member-token');gvBroadcastAuth();
   history.replaceState(null,'',location.pathname+location.search);
   $('recoveryPanel').hidden=false;status('Reset link verified. Choose your new password.');return;
  }
@@ -27,9 +27,11 @@ async function init(){try{const r=await fetch('/api/public-config',{cache:'no-st
  const params=new URLSearchParams(location.search);
  if(params.has('token_hash')&&params.get('type')==='recovery'){
   try{
-   const verified=await auth('verify','POST',{token_hash:params.get('token_hash'),type:'recovery'});
+   const recoveryHash=params.get('token_hash');
+   history.replaceState(null,'',location.pathname);
+   const verified=await auth('verify','POST',{token_hash:recoveryHash,type:'recovery'});
    if(!verified.access_token)throw Error('This reset link could not be verified.');
-   token=verified.access_token;sessionStorage.removeItem('gv-member-token');
+   token=verified.access_token;sessionStorage.removeItem('gv-member-token');gvBroadcastAuth();
    history.replaceState(null,'',location.pathname);
    $('recoveryPanel').hidden=false;status('Reset link verified. Choose your new password.');return;
   }catch(e){history.replaceState(null,'',location.pathname);status(e.message||'Reset link expired or invalid. Request another link.');$('loginPanel').hidden=false;return;}
@@ -76,7 +78,7 @@ async function finishRecovery(){const b=$('finishRecovery'),out=$('recoveryFeedb
  if(p!==$('recoveryConfirm').value){out.textContent='Passwords do not match.';return}
  b.disabled=true;
  try{await auth('user','PUT',{password:p});$('recoveryPassword').value='';$('recoveryConfirm').value='';
- token=null;sessionStorage.removeItem('gv-member-token');$('recoveryPanel').hidden=true;$('loginPanel').hidden=false;
+ token=null;sessionStorage.removeItem('gv-member-token');gvBroadcastAuth();$('recoveryPanel').hidden=true;$('loginPanel').hidden=false;
  status('Password reset successfully. Sign in with your new password.')}
  catch(e){out.textContent=e.message||'Unable to reset password.'}
  finally{b.disabled=false}
