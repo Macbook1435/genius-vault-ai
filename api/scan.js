@@ -904,7 +904,7 @@ const COMBINED_SCHEMA = {
     sponsorNames: { type: "array", items: { type: "string" } },
     eventYears: { type: "array", items: { type: "string" } },
     parallelColor: { type: ["string", "null"] },
-    parallelFinish: { type: "string", enum: ["plain_refractor", "wave", "lava", "geometric", "football_leather", "prizm", "xfractor", "pulsar", "raywave", "shimmer", "mojo", "cracked_ice", "no_shine", "other", "unknown"] },
+    parallelFinish: { type: "string", enum: ["plain_refractor", "wave", "lava", "geometric", "football_leather", "prizm", "xfractor", "pulsar", "raywave", "shimmer", "mojo", "cracked_ice", "pandora", "velocity", "no_shine", "other", "unknown"] },
   },
   required: [
     ...DETAIL_SCHEMA.required,
@@ -956,7 +956,7 @@ BRAND AND SPONSORS:
 
 PARALLEL APPEARANCE (describe what you SEE, do not name the parallel):
 - parallelColor: the main color of the card's colored border/background tint that marks the parallel, as one simple word (pink, blue, gold, green, purple, orange, red, black, aqua, teal, yellow, white, silver). Null if the card is the plain base color.
-- parallelFinish: the surface pattern. "plain_refractor" = smooth rainbow shine with no pattern; "wave" = wavy lines; "lava" = bubbly lava-lamp blobs; "geometric" = repeating shapes; "football_leather" = pebbled leather texture; "prizm" = cracked-glass/prizm lines; "xfractor" = grid of small squares; "pulsar" = dots; "raywave" = rays; "shimmer"; "mojo"; "cracked_ice"; "no_shine" = paper/matte; "other"; or "unknown".
+- parallelFinish: the surface pattern. "plain_refractor" = smooth rainbow shine with no pattern; "wave" = wavy lines; "lava" = bubbly lava-lamp blobs; "geometric" = repeating shapes; "football_leather" = pebbled leather texture; "prizm" = cracked-glass/prizm lines; "xfractor" = grid of small squares; "pulsar" = dots; "raywave" = rays; "shimmer"; "mojo"; "cracked_ice" = fractured ice pattern; "pandora" = distinct Pandora pattern; "velocity" = repeating Velocity pattern; "no_shine" = paper/matte; "other"; or "unknown".
 
 EVENT YEARS:
 - eventYears: every 4-digit year printed in the bio, draft line, stats, or write-up describing things that already happened (for example ${ex.draftLine}). Exclude birth dates and the copyright line. Empty list if none.
