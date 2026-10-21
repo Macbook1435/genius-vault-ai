@@ -80,6 +80,18 @@ export function matchParallel(candidates, ev) {
   if (!list.length) return out("no_match");
   if (list.length > 1) return out("ambiguous");
   const only = list[0];
+  // Never confirm a special-finish parallel from color/checklist narrowing alone.
+  // Example: Red Pandora requires observed Pandora surface evidence, not merely "red".
+  const onlyName = String(only.name || "").toLowerCase();
+  const requiredSpecial = SPECIAL_WORDS.find((w) => onlyName.includes(w));
+  if (requiredSpecial) {
+    const observedFinish = String(finish || "").toLowerCase().replace(/_/g, " ");
+    const finishMatches = observedFinish.includes(requiredSpecial) || requiredSpecial.includes(observedFinish);
+    if (!finishMatches) {
+      steps.push(`requires observed ${requiredSpecial} finish`);
+      return out("probable", only);
+    }
+  }
   if (ev.numberedTo === "any") return out("probable", only);
   return out(only.verified ? "confirmed" : "single_source", only);
 }
