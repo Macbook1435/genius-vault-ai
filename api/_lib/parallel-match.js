@@ -83,12 +83,24 @@ export function matchParallel(candidates, ev) {
   // Never confirm a special-finish parallel from color/checklist narrowing alone.
   // Example: Red Pandora requires observed Pandora surface evidence, not merely "red".
   const onlyName = String(only.name || "").toLowerCase();
+  const observedFinish = String(finish || "").toLowerCase().replace(/[_-]/g, " ");
   const requiredSpecial = SPECIAL_WORDS.find((w) => onlyName.includes(w));
-  if (requiredSpecial) {
-    const observedFinish = String(finish || "").toLowerCase().replace(/_/g, " ");
-    const finishMatches = observedFinish.includes(requiredSpecial) || requiredSpecial.includes(observedFinish);
-    if (!finishMatches) {
-      steps.push(`requires observed ${requiredSpecial} finish`);
+  // Include patterned finishes from FINISH_WORDS too: Wave and Cracked Ice
+  // must not become confirmed merely because their color is the only candidate.
+  const requiredPattern = Object.entries(FINISH_WORDS).find(([kind, aliases]) =>
+    !["plain_refractor", "prizm", "prism"].includes(kind) &&
+    aliases.some((alias) => onlyName.includes(alias))
+  );
+  const requiredFinish = requiredSpecial || (requiredPattern && requiredPattern[0].replace(/_/g, " "));
+  if (requiredFinish) {
+    const specialMatches = requiredSpecial &&
+      (observedFinish.includes(requiredSpecial.replace(/-/g, " ")) ||
+       requiredSpecial.replace(/-/g, " ").includes(observedFinish) && observedFinish.length > 2);
+    const patternMatches = requiredPattern &&
+      (observedFinish === requiredPattern[0].replace(/_/g, " ") ||
+       requiredPattern[1].some((alias) => observedFinish === alias.replace(/-/g, " ")));
+    if (!specialMatches && !patternMatches) {
+      steps.push(`requires observed ${requiredFinish} finish`);
       return out("probable", only);
     }
   }
