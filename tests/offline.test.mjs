@@ -322,6 +322,27 @@ test('special-finish parallels require their observed pattern, not color alone',
  }
 });
 
+
+test('gold color and cracked ice pattern are independent parallel attributes',async()=>{
+ const {matchParallel}=await import('../api/_lib/parallel-match.js');
+ const variants=[
+  {name:'Gold',numberedTo:null,verified:true,sources:['a','b']},
+  {name:'Cracked Ice',numberedTo:null,verified:true,sources:['a','b']},
+  {name:'Gold Cracked Ice',numberedTo:null,verified:true,sources:['a','b']}
+ ];
+ const gold=matchParallel(variants,{numberedTo:null,color:'gold',finish:'unknown'});
+ assert.notEqual(gold.status,'confirmed','Gold color cannot distinguish plain Gold from Gold Cracked Ice');
+ const ice=matchParallel(variants,{numberedTo:null,color:null,finish:'cracked_ice'});
+ assert.notEqual(ice.status,'confirmed','Cracked Ice pattern without color cannot resolve colored variants');
+ const goldIce=matchParallel(variants,{numberedTo:null,color:'gold',finish:'cracked_ice'});
+ assert.equal(goldIce.parallel?.name,'Gold Cracked Ice');
+ assert.equal(goldIce.status,'confirmed');
+ const plainGold=matchParallel([{name:'Gold',numberedTo:null,verified:true,sources:['a','b']}],{numberedTo:null,color:'gold',finish:'plain_refractor'});
+ assert.equal(plainGold.status,'confirmed','Plain Gold may confirm with sufficient subset and finish evidence');
+ const plainIce=matchParallel([{name:'Cracked Ice',numberedTo:null,verified:true,sources:['a','b']}],{numberedTo:null,color:null,finish:'cracked_ice'});
+ assert.equal(plainIce.status,'confirmed','Pattern-only Cracked Ice can be a valid parallel');
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
