@@ -358,6 +358,13 @@ test('gold color and cracked ice pattern are independent parallel attributes',as
  assert.equal(plainIce.status,'confirmed','Pattern-only Cracked Ice can be a valid parallel');
 });
 
+test('unresolved subset does not enter parallel matching or dereference null',()=>{
+ const source=fs.readFileSync(new URL('../api/_lib/pipeline-v2.js',import.meta.url),'utf8');
+ assert.match(source,/sub && sub\.status === "matched" && !sub\.subset\.parallels\.length/);
+ assert.match(source,/else if \(sub && sub\.status === "matched"\) \{/);
+ assert.doesNotMatch(source,/else if \(sub\) \{\s*let numberedTo/);
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
