@@ -933,6 +933,13 @@ function runCombinedCheck(frontImage, backImage, ex = promptExamples(false), v2 
     backImage,
     prompt: `Read these details from this sports card exactly as printed. Do not guess.
 
+FRONT/BACK EVIDENCE PRIORITY:
+- The BACK is the primary source for the printed card number, copyright/manufacturer, product identity, and subset/insert wording. Read these before deciding which checklist applies.
+- The FRONT is the primary source for visible parallel color and surface pattern. Use the back for stamped serial numbering or explicitly printed parallel text when present.
+- A front design or color must NEVER override a conflicting back card number or turn Donruss Football Optic Preview into the separate Donruss Optic product.
+- If the back is missing, unreadable, or conflicts with the front, report the uncertainty. Never invent the card number, product, or finish.
+- Treat color and pattern as separate observations: Red Pandora requires visible Pandora pattern; Orange Wave requires Wave; Green Velocity requires Velocity; Gold Cracked Ice requires Cracked Ice. Do not infer a pattern from color alone.
+
 ${cardNumberPrompt(ex)}
 Put it in cardNumberText and its location in cardNumberLocation.
 
