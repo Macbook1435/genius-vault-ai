@@ -1,0 +1,29 @@
+{
+  "id": "2025-donruss-football",
+  "sourcesDir": "donruss-fb",
+  "label": "2025 Donruss Football",
+  "year": 2025,
+  "sport": "football",
+  "brand": "Panini",
+  "brandAliases": ["Donruss"],
+  "product": "Donruss",
+  "match": {
+    "include": ["donruss"],
+    "includeAny": [["optic", "preview"], ["rated", "rookie", "preview"]],
+    "exclude": []
+  },
+  "headerRules": [
+    {"subset":"optic_preview_rookie","all":["optic","rated","rookie","preview"],"none":["auto"]}
+  ],
+  "subsets": [
+    {
+      "id": "optic_preview_rookie",
+      "label": "Optic Rated Rookies Preview",
+      "rookie": true,
+      "auto": false,
+      "numberFormats": [{"range":[301,400]}]
+    }
+  ],
+  "baseFinish": "prizm",
+  "copyrightYears": [2025, 2026]
+}
