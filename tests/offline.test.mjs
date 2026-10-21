@@ -305,6 +305,21 @@ test('Mason Graham #340 routes to Donruss Optic Preview and Pandora needs finish
  assert.equal(pandora.status,'confirmed');
 });
 
+
+test('separate set and subset text routes Optic Preview to Donruss Football',async()=>{
+ const {findProduct,findSubset}=await import('../api/_lib/checklist-registry.js');
+ const {PRODUCTS}=await import('../api/_data/checklists/index.js');
+ const base={year:2025,brand:'Panini',set:'Donruss Football',subset:'Optic Rated Rookies Preview',sport:'football',cardNumber:'340',rookie:true,autograph:false};
+ const found=findProduct(base,PRODUCTS);
+ assert.equal(found.status,'matched');
+ assert.equal(found.product.id,'2025-donruss-football');
+ assert.equal(findSubset(found.product,base).subset.id,'optic_preview_rookie');
+ const combined=findProduct({...base,set:'Donruss Optic Rated Rookies Preview',subset:null},PRODUCTS);
+ assert.equal(combined.product?.id,'2025-donruss-football');
+ const standalone=findProduct({...base,set:'Donruss Optic Football',subset:null,cardNumber:'206'},PRODUCTS);
+ assert.equal(standalone.product?.id,'2025-donruss-optic-football');
+});
+
 test('special-finish parallels require their observed pattern, not color alone',async()=>{
  const {matchParallel}=await import('../api/_lib/parallel-match.js');
  const cases=[
