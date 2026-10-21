@@ -365,6 +365,19 @@ test('unresolved subset does not enter parallel matching or dereference null',()
  assert.doesNotMatch(source,/else if \(sub\) \{\s*let numberedTo/);
 });
 
+test('Wave and Raywave are different surface patterns',async()=>{
+ const {matchParallel}=await import('../api/_lib/parallel-match.js');
+ const candidates=[{name:'Blue Wave',numberedTo:null,verified:true},{name:'Blue Raywave',numberedTo:null,verified:true}];
+ const wave=matchParallel(candidates,{numberedTo:null,color:'blue',finish:'wave'});
+ assert.equal(wave.status,'confirmed');
+ assert.equal(wave.parallel?.name,'Blue Wave');
+ const raywave=matchParallel(candidates,{numberedTo:null,color:'blue',finish:'raywave'});
+ assert.equal(raywave.status,'confirmed');
+ assert.equal(raywave.parallel?.name,'Blue Raywave');
+ const uncertain=matchParallel(candidates,{numberedTo:null,color:'blue',finish:'unknown'});
+ assert.notEqual(uncertain.status,'confirmed');
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
