@@ -411,6 +411,15 @@ test('special-finish parallels reject a different observed pattern',async()=>{
  }
 });
 
+test('combined vision prompt prioritizes back identity and front parallel appearance',()=>{
+ const source=fs.readFileSync(new URL('../api/scan.js',import.meta.url),'utf8');
+ const combined=segment(source,'function runCombinedCheck(', '// Check B (stronger model):');
+ assert.match(combined,/BACK is the primary source for the printed card number/);
+ assert.match(combined,/FRONT is the primary source for visible parallel color and surface pattern/);
+ assert.match(combined,/must NEVER override a conflicting back card number/);
+ assert.match(combined,/Do not infer a pattern from color alone/);
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
