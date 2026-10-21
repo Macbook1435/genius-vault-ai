@@ -25,7 +25,10 @@ export function listProducts() {
  * unknown), nothing is chosen.
  */
 export function findProduct(card, products = PRODUCTS, opts = {}) {
-  const text = ` ${norm(card.brand)} ${norm(card.set)} `;
+  // The scan can report the printed release in set and the insert family in subset.
+  // Use both for routing: Donruss Football + Optic Rated Rookies Preview is NOT
+  // the standalone Donruss Optic Football release.
+  const text = ` ${norm(card.brand)} ${norm(card.set)} ${norm(card.subset)} `;
   const brand = norm(card.brand);
   const sport = norm(card.sport);
   const scored = [];
