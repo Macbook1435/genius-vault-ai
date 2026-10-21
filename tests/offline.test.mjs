@@ -378,6 +378,24 @@ test('Wave and Raywave are different surface patterns',async()=>{
  assert.notEqual(uncertain.status,'confirmed');
 });
 
+test('provider adapter preserves card identity, parallel patterns, and provenance without guessing',async()=>{
+ const {normalizeProviderCard,evaluateProviderCard}=await import('../api/_lib/provider-adapter.js');
+ const expected={productId:'2025-donruss-football',subsetId:'optic_preview_rookie',cardNumber:'340',year:2025,player:'Mason Graham',parallel:'Red Pandora'};
+ const raw={id:'card-340',productId:expected.productId,subsetId:expected.subsetId,cardNumber:'340',year:2025,player:'Mason Graham',productName:'Donruss Football',variants:[{id:'red-pandora',name:'Red Pandora',color:'Red',pattern:'Pandora',numberedTo:null}],licenseVerified:false};
+ const candidate=normalizeProviderCard(raw,'evaluation-provider');
+ assert.equal(candidate.status,'candidate_unverified');
+ assert.equal(candidate.variants[0].color,'red');
+ assert.equal(candidate.variants[0].pattern,'pandora');
+ assert.equal(candidate.variants[0].numberedTo,null);
+ assert.equal(candidate.variants[0].numberingVerified,false);
+ assert.equal(evaluateProviderCard(candidate,expected).accepted,false,'Unlicensed provider must not pass');
+ const licensed=normalizeProviderCard({...raw,licenseVerified:true},'evaluation-provider');
+ assert.equal(evaluateProviderCard(licensed,expected).accepted,true);
+ assert.equal(evaluateProviderCard(licensed,{...expected,productId:'2025-donruss-optic-football'}).accepted,false,'Standalone Optic is not Donruss Preview');
+ assert.equal(evaluateProviderCard(licensed,{...expected,cardNumber:'206'}).accepted,false,'Wrong card number must fail');
+ assert.throws(()=>normalizeProviderCard({...raw,subsetId:null},'evaluation-provider'),/subset ID/i);
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
