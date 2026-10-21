@@ -141,10 +141,10 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   if (present(card.parallel) && isCardTypeNotParallel(card.parallel)) card.parallel = null;
   if (catalogOk && verification?.parallelId?.source === "catalog") {
     par = { status: "confirmed", source: "catalog", parallel: { name: card.parallel, verified: true }, candidates: [] };
-  } else if (sub && !sub.subset.parallels.length) {
+  } else if (sub && sub.status === "matched" && !sub.subset.parallels.length) {
     par = { status: "none_listed", parallel: null, candidates: [], steps: [] };
     card.parallel = null;
-  } else if (sub) {
+  } else if (sub && sub.status === "matched") {
     let numberedTo = card.numberedTo || null;
     if (!numberedTo) {
       const a = parseSerial(A.stampedSerial);
