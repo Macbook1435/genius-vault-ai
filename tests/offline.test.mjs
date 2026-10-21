@@ -305,6 +305,23 @@ test('Mason Graham #340 routes to Donruss Optic Preview and Pandora needs finish
  assert.equal(pandora.status,'confirmed');
 });
 
+test('special-finish parallels require their observed pattern, not color alone',async()=>{
+ const {matchParallel}=await import('../api/_lib/parallel-match.js');
+ const cases=[
+  ['Red Pandora','red','pandora'],
+  ['Gold Cracked Ice','gold','cracked_ice'],
+  ['Orange Wave','orange','wave'],
+  ['Green Velocity','green','velocity']
+ ];
+ for(const [name,color,finish] of cases){
+  const candidates=[{name,key:name.toLowerCase(),numberedTo:null,verified:true,sources:['a','b']}];
+  const colorOnly=matchParallel(candidates,{numberedTo:null,color,finish:'unknown',baseFinish:'prizm'});
+  assert.notEqual(colorOnly.status,'confirmed',name+' must not confirm from color alone');
+  const patterned=matchParallel(candidates,{numberedTo:null,color,finish,baseFinish:'prizm'});
+  assert.equal(patterned.status,'confirmed',name+' should confirm with matching finish evidence');
+ }
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
