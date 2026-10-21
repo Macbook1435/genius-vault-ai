@@ -874,6 +874,10 @@ updateCount();
 
 // Membership stays hidden until the business explicitly enables subscriptions.
 let gvMemberConfig=null,gvMemberToken=null;
+const gvAuthChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('gv-member-auth'):null;
+function gvBroadcastAuth(){if(gvAuthChannel)gvAuthChannel.postMessage({type:'session-changed'});}
+if(gvAuthChannel)gvAuthChannel.onmessage=e=>{if(e.data?.type==='session-changed'&&gvMemberToken){memberLogout(false);notice('Account changed in another tab. Sign in again.');}};
+
 async function memberInit(){
  try{
   const r=await fetch('/api/public-config');const c=await r.json();
@@ -894,7 +898,7 @@ async function memberAuth(mode){
   const d=await r.json();
   if(!r.ok)throw Error(d.msg||d.error_description||d.message||'Sign-in failed');
   if(!d.access_token){notice('Check your email to confirm your account, then sign in.');return;}
-  gvMemberToken=d.access_token;sessionStorage.setItem('gv-member-token',gvMemberToken);
+  gvMemberToken=d.access_token;sessionStorage.setItem('gv-member-token',gvMemberToken);gvBroadcastAuth();
   await memberRefresh();
  }catch(e){notice(e.message);}
 }
@@ -940,8 +944,8 @@ async function memberRefresh(){
   notice(e.message);
  }
 }
-function memberLogout(){
- gvMemberToken=null;sessionStorage.removeItem('gv-member-token');
+function memberLogout(broadcast=true){
+ gvMemberToken=null;sessionStorage.removeItem('gv-member-token');if(broadcast)gvBroadcastAuth();
  document.getElementById('memberLogin').hidden=false;document.getElementById('memberActions').hidden=true;
  document.getElementById('memberStatus').textContent='Sign in to view your unlimited membership status.';
  document.getElementById('memberState').textContent='Signed out';
