@@ -47,6 +47,10 @@ export function findProduct(card, products = PRODUCTS, opts = {}) {
     const anyGroup = (p.match.includeAny || []).find((g) => g.every(hasWord));
     if (p.match.includeAny?.length && !anyGroup) continue;
     if ((p.match.exclude || []).some(hasWord)) continue;
+    // Optic Rated Rookies Preview is an insert within Donruss Football,
+    // not the separate Donruss Optic Football release.
+    const preview = hasWord("preview") && (hasWord("optic") || (hasWord("rated") && hasWord("rookie")));
+    if (preview && p.id === "2025-donruss-optic-football") continue;
     scored.push({ p, score: (p.match.include || []).length + (anyGroup ? anyGroup.length : 0) + (sport === p.sport ? 2 : 0) + (brand === norm(p.brand) ? 1 : 0) });
   }
   scored.sort((a, b) => b.score - a.score);
