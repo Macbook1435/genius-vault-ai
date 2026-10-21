@@ -285,6 +285,26 @@ test('real-card benchmark preserves Mason Graham Optic Preview identity and fini
  assert.ok(fixture.evidence.back.some(x=>x.includes('PRIZM')));
  assert.equal(fixture.physicalCard.printRun,null);
 });
+test('Mason Graham #340 routes to Donruss Optic Preview and Pandora needs finish evidence',async()=>{
+ const {findProduct,findSubset}=await import('../api/_lib/checklist-registry.js');
+ const {PRODUCTS}=await import('../api/_data/checklists/index.js');
+ const {matchParallel}=await import('../api/_lib/parallel-match.js');
+ const card={player:'Mason Graham',year:2025,brand:'Panini',set:'Donruss Optic Rated Rookies Preview',sport:'football',cardNumber:'340',rookie:true,autograph:false};
+ const product=findProduct(card,PRODUCTS);
+ assert.equal(product.status,'matched');
+ assert.equal(product.product.id,'2025-donruss-football');
+ const subset=findSubset(product.product,card);
+ assert.equal(subset.status,'matched');
+ assert.equal(subset.subset.id,'optic_preview_rookie');
+ assert.equal(subset.numberFits,true);
+ assert.equal(findSubset(product.product,{...card,cardNumber:'206'}).numberFits,false);
+ const redOnly=matchParallel(subset.subset.parallels,{numberedTo:null,color:'red',finish:'unknown',baseFinish:'prizm'});
+ assert.notEqual(redOnly.status,'confirmed');
+ const pandora=matchParallel(subset.subset.parallels,{numberedTo:null,color:'red',finish:'pandora',baseFinish:'prizm'});
+ assert.equal(pandora.parallel?.name,'Red Pandora');
+ assert.equal(pandora.status,'confirmed');
+});
+
 test('unlimited membership SQL still checks active period and authenticated server service role',()=>{
  assert.match(sql,/unlimited_scans boolean not null default false/);
  assert.match(sql,/not e\.unlimited_scans and n >= e\.scan_limit/);
