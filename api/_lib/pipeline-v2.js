@@ -12,6 +12,7 @@ import { findProduct, findSubset, logoProducts, getProduct } from "./checklist-r
 import { fitsFormat } from "./card-number.js";
 import { matchParallel, isCardTypeNotParallel } from "./parallel-match.js";
 import { buildFieldVerification } from "./verification.js";
+import { findExactCardReference } from "../_data/exact-card-references.js";
 
 export function pipelineV2Mode(fields) {
   const f = fields?.pipeline;
@@ -197,6 +198,9 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   const C = (value, basis) => ({ value: present(value) ? value : null, status: "confirmed", basis });
   const U = (value, basis) => ({ value: present(value) ? value : null, status: "unconfirmed", basis });
 
+  // Exact-card references independently corroborate identity only, never parallel or serial.
+  const exactCard = findExactCardReference(card);
+
   // Player
   if (catalogOk) f.player = C(card.player, "Matches the catalog (CardSight).");
   else if (["agreed", "majority"].includes(player.status) && player.agreeing >= 2) f.player = C(card.player, `${player.agreeing} independent reads agree.`);
@@ -204,7 +208,8 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
 
   // Year (the product year; the copyright line may show the next year, e.g. a 2025 set released in 2026)
   const readList = years.reads.map((r) => `${r.year} (${r.by})`).join(", ") || "none";
-  if (catalogOk && Number(catalog.match?.year) === Number(card.year)) f.year = C(card.year, "Matches the catalog (CardSight).");
+  if (exactCard) f.year = C(card.year, "Matches the independently documented exact-card reference.");
+  else if (catalogOk && Number(catalog.match?.year) === Number(card.year)) f.year = C(card.year, "Matches the catalog (CardSight).");
   else if (product && productYearConfirmed) f.year = C(product.year, `${years.closeup ? "Zoomed-in copyright line read twice:" : `Copyright read${ysup.fit > 1 ? "s" : ""}`} ${ysup.fitYears.join(", ")} fit the ${product.label} (${product.copyrightYears.join(" or ")} copyright).`);
   else if (product) f.year = U(card.year, `Copyright year not confirmed (reads: ${readList}${years.ignored.length ? `; ignored ${years.ignored.join(", ")} as earlier than a year printed on the card` : ""}).`);
   else if (!present(card.year)) f.year = U(null, "Not readable on the card.");
@@ -212,7 +217,8 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
 
   // Set (product + subset)
   const setText = [card.brand, card.set].filter(present).join(" ");
-  if (catalogOk) f.set = C(setText, "Matches the catalog (CardSight).");
+  if (exactCard) f.set = C(setText, `Matches the documented ${exactCard.insert} insert in ${exactCard.year} ${exactCard.brand} ${exactCard.product}.`);
+  else if (catalogOk) f.set = C(setText, "Matches the catalog (CardSight).");
   else if (product && productYearConfirmed) f.set = C(`${product.label}${sub && sub.status === "matched" ? ` — ${sub.subset.label}` : ""}`, route === "logo"
     ? `No set name printed; 2+ of 3 checks matched the ${product.label} logo, the card number fits ${sub?.subset.label || "its numbering"}, and the copyright year fits (${product.sources.length} sources).`
     : `Matches the ${product.label} checklist (${product.sources.length} sources).`);
@@ -223,6 +229,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   // Card number
   const num = cleanCardNumber(card.cardNumber);
   if (!num) f.cardNumber = U(null, number.status === "no_agreement" ? "Reads disagree; left blank." : "Not readable.");
+  else if (exactCard) f.cardNumber = C(num, `Exact ${exactCard.player} ${exactCard.insert} #${exactCard.cardNumber} reference matched.`);
   else if (catalogOk && catalog.match?.number) f.cardNumber = C(num, "Matches the catalog (CardSight).");
   else if (sub && sub.numberFits === false) f.cardNumber = U(num, `Does not fit any ${product.label} card-number format.`);
   else if (sub) f.cardNumber = U(num, `${number.agreeing} reads agree and it fits the ${sub.subset.label} format; no card list to confirm the exact card.`);
