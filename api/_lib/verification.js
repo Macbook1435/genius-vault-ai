@@ -68,7 +68,9 @@ export function buildFieldVerification(card, v, ctx = {}) {
   } else if (catalogOk && catalog.match?.number) {
     fields.cardNumber = field(num, "confirmed", "Matches the catalog (CardSight).");
   } else if (patterns.length && patterns.some((re) => re.test(num))) {
-    fields.cardNumber = field(num, "confirmed", "Fits the checklist's card-number format and the card reads agree.");
+    // A matching number format does not establish that this exact player/card
+    // exists in the manufacturer checklist.
+    fields.cardNumber = field(num, "unconfirmed", "Card number fits the product format, but no exact player-and-number checklist entry has been verified.");
   } else if (patterns.length) {
     fields.cardNumber = field(num, "unconfirmed", "Does not fit this product's card-number format.");
   } else {
