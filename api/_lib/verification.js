@@ -1,3 +1,4 @@
+import { findExactCardReference } from "../_data/exact-card-references.js";
 // Genius Vault verification pipeline (field level).
 //
 // Runs AFTER the existing scanner checks and never changes the scan itself — it only
@@ -34,11 +35,14 @@ export function buildFieldVerification(card, v, ctx = {}) {
   const idn = ctx.identity || {};
   const pid = v?.parallelId || {};
   const fields = {};
+  const exactCard = findExactCardReference(card);
 
   // --- Year ---
   if (!present(card.year)) {
     fields.year = field(null, "unconfirmed",
       ebay.suggestedYear ? `Not read from the card. eBay listings suggest ${ebay.suggestedYear} (not proof).` : "Not readable on the card.");
+  } else if (exactCard) {
+    fields.year = field(card.year, "confirmed", "Matches two independently published exact-card references.");
   } else if (catalogOk && Number(catalog.match?.year) === Number(card.year)) {
     fields.year = field(card.year, "confirmed", "Matches the catalog (CardSight).");
   } else if (checklist && checklist.year === Number(card.year) && idn.yearOk) {
@@ -52,6 +56,8 @@ export function buildFieldVerification(card, v, ctx = {}) {
   const setText = [card.brand, card.set].filter(present).join(" ");
   if (!present(card.set)) {
     fields.set = field(setText || null, "unconfirmed", "Set name not identified.");
+  } else if (exactCard) {
+    fields.set = field(setText, "confirmed", `Matches the independently documented ${exactCard.insert} insert in ${exactCard.year} ${exactCard.brand} ${exactCard.product}.`);
   } else if (catalogOk) {
     fields.set = field(setText, "confirmed", "Matches the catalog (CardSight).");
   } else if (checklist) {
@@ -65,6 +71,8 @@ export function buildFieldVerification(card, v, ctx = {}) {
   const patterns = (checklist?.cardNumberPatterns || []).map((p) => new RegExp(p, "i"));
   if (!num) {
     fields.cardNumber = field(null, "unconfirmed", "Card number not readable or reads disagreed.");
+  } else if (exactCard) {
+    fields.cardNumber = field(num, "confirmed", `Exact ${exactCard.player} ${exactCard.insert} #${exactCard.cardNumber} checklist entry independently corroborated.`);
   } else if (catalogOk && catalog.match?.number) {
     fields.cardNumber = field(num, "confirmed", "Matches the catalog (CardSight).");
   } else if (patterns.length && patterns.some((re) => re.test(num))) {
