@@ -229,7 +229,14 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
 
   // Card number
   const num = cleanCardNumber(card.cardNumber);
-  if (!num) f.cardNumber = U(null, number.status === "no_agreement" ? "Reads disagree; left blank." : "Not readable.");
+  if (!num) {
+    const readings = (number.reads || []).filter(Boolean).map((v) => String(v).slice(0, 32));
+    f.cardNumber = U(null, number.status === "no_agreement"
+      ? `Independent reads disagree (${readings.length} reads: ${readings.join(" / ") || "unavailable"}); left blank. Retake a close-up of the printed card number on the back.`
+      : number.status === "single_read"
+        ? `Only one readable card-number result (${readings[0] || "unavailable"}); a second independent read is needed.`
+        : "Card number not readable; retake a close-up of the printed card number on the back.");
+  }
   else if (exactCard) f.cardNumber = C(num, `Exact ${exactCard.player} ${exactCard.insert} #${exactCard.cardNumber} reference matched.`);
   else if (catalogOk && catalog.match?.number) f.cardNumber = C(num, "Matches the catalog (CardSight).");
   else if (sub && sub.numberFits === false) f.cardNumber = U(num, `Does not fit any ${product.label} card-number format.`);
