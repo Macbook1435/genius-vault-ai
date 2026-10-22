@@ -219,9 +219,10 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   const setText = [card.brand, card.set].filter(present).join(" ");
   if (exactCard) f.set = C(setText, `Matches the documented ${exactCard.insert} insert in ${exactCard.year} ${exactCard.brand} ${exactCard.product}.`);
   else if (catalogOk) f.set = C(setText, "Matches the catalog (CardSight).");
-  else if (product && productYearConfirmed) f.set = C(`${product.label}${sub && sub.status === "matched" ? ` — ${sub.subset.label}` : ""}`, route === "logo"
-    ? `No set name printed; 2+ of 3 checks matched the ${product.label} logo, the card number fits ${sub?.subset.label || "its numbering"}, and the copyright year fits (${product.sources.length} sources).`
-    : `Matches the ${product.label} checklist (${product.sources.length} sources).`);
+  else if (product && productYearConfirmed && product.sources.length >= 1) f.set = C(`${product.label}${sub && sub.status === "matched" ? ` — ${sub.subset.label}` : ""}`, route === "logo"
+    ? `No set name printed; 2+ of 3 checks matched the ${product.label} logo, the card number fits ${sub?.subset.label || "its numbering"}, and the copyright year fits. Source-backed product reference available.`
+    : `Product and year fit the ${product.label} reference (${product.sources.length} cited source${product.sources.length === 1 ? "" : "s"}).`);
+  else if (product && productYearConfirmed) f.set = U(`${product.label}${sub && sub.status === "matched" ? ` — ${sub.subset.label}` : ""}`, "Product name and copyright year fit, but no independent product checklist sources have been recorded.");
   else if (product) f.set = U(card.set ? setText : null, `Probably ${product.label}${route === "logo" ? " (logo + card number)" : ""}, but the copyright year was not confirmed.`);
   else if (prod.status === "ambiguous") f.set = U(setText, `Could be ${prod.candidates.join(" or ")}; sport/set not clear enough.`);
   else f.set = U(setText, "No catalog/checklist for this product yet.");
@@ -246,7 +247,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
     ambiguous: () => U(null, `Could be: ${par.candidates.map((c) => c.name + (c.numberedTo ? ` /${c.numberedTo}` : "")).join(", ")}.`),
     no_match: () => U(null, `Nothing in the ${sub?.subset.label || ""} checklist matches what the card shows.`),
     no_checklist: () => U(card.parallel, "No checklist for this product yet."),
-    none_listed: () => U(null, `The sources list no parallels for ${sub?.subset.label}; check the card for a serial or color.`),
+    none_listed: () => U(null, `No verified parallel references are loaded for ${sub?.subset.label}; check the card for a serial or color.`),
   };
   f.parallel = (parBasis[par.status] || parBasis.no_checklist)();
 
