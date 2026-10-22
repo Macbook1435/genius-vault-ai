@@ -18,6 +18,7 @@ import { earlySoldCompsAllowed } from "./_lib/early-comps-gate.js";
 import { exactPricingGate } from "./_lib/exact-pricing-gate.js";
 import { safeSoldResponse } from "./_lib/safe-sold-response.js";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
+import { captureCatalogObservation } from "./_lib/catalog-observation.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2230,6 +2231,12 @@ Strict rules:
         } sold`
       : "No prices auto-pulled. Use the sold-comps link below.";
 
+    // Catalog capture is optional and must never fail an otherwise successful scan.
+    try {
+      await captureCatalogObservation(scanResult, verification, scanReservation?.requestId ?? randomUUID());
+    } catch (catalogError) {
+      console.error("Optional catalog observation capture failed:", catalogError?.message);
+    }
     scanReservation = null; // A completed result legitimately consumes one scan.
     return res.status(200).json({
       results: "Scan completed successfully.",
