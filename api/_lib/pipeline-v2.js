@@ -246,7 +246,7 @@ function buildFieldsV2({ card, raw, verification, catalogOk, catalog, prod, sub,
   // Parallel
   const parBasis = {
     confirmed: () => C(par.parallel.name, par.source === "catalog" ? "Matches the catalog (CardSight)." : `Only ${sub.subset.label} parallel that fits ${par.steps.join(" + ")}${par.tiebreak ? " (closer look)" : ""}; listed by ${par.parallel.sources?.length || 2}+ sources.`),
-    base: () => C("Base", "No serial, parallel color, or special finish: base card."),
+    base: () => U("Base", "Visual appearance is consistent with Base, but the absence of a visible serial, parallel color, or special finish does not independently verify the Base variation."),
     probable: () => U(par.parallel.name, par.tiebreakAgreed === false
       ? `Probably ${par.parallel.name}; the two closer looks disagreed (other: ${par.tiebreakSecond || "unsure"}). Could be: ${par.candidates.map((c) => c.name).join(", ")}.`
       : `Probably ${par.parallel.name}, but the serial/print run was not confirmed.`),
