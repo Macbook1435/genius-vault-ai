@@ -1554,7 +1554,9 @@ Strict rules:
 - Only list real, existing products as alternates.
 - A jersey/uniform number (for example "#32" next to the player's name or position) is NOT the card number.
 - Sponsor or advertiser names (for example ${ex.mainSponsor}) are NOT the brand or set.
-- "brand" must be a manufacturer name printed on the card or in the copyright line. If none is printed, use null; never guess from the design or era.`,
+- "brand" must be a manufacturer name printed on the card or in the copyright line. If none is printed, use null; never guess from the design or era.
+- "memorabilia": inspect the front for an embedded fabric/material window, swatch, jersey piece, or patch. If a material window is visibly present, set memorabilia=true, even if no printed "patch" or "relic" label appears. A printed photo, color panel, or ordinary graphic alone is not memorabilia. If no material is visibly confirmed, set false.
+- In "notes", describe visible memorabilia evidence conservatively (for example "visible fabric swatch window; exact relic type unverified"). Do not call a swatch a multi-color patch, jersey-number patch, game-worn item, or player-worn item without specific visible supporting evidence. Keep memorabilia separate from the parallel and card number.`,
       },
       {
         type: "image_url",
