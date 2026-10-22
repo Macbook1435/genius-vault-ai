@@ -1,2 +1,2 @@
-SOURCE: https://www.paniniamerica.net/
-# Placeholder: no parallel lines entered until product-specific sources are cross-checked.
+# Placeholder only. No product-specific sources or parallels verified yet.
+# Add actual cited source documents before assigning parallel print runs.
