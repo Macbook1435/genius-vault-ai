@@ -16,5 +16,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
+      - name: Rebuild checklists from source configurations
+        run: node tools/checklists/build.mjs
       - name: Verify Absolute subset
         run: node --test tests/absolute-rookie-force.test.mjs
