@@ -389,6 +389,13 @@ function renderAccuracyDashboard(data) {
   const note=hasEvidence?(f.basis||'No supporting explanation returned.'):'No field-level verification provided for this result.';
   return '<article class="accuracy-check"><header><b>'+escHtml(label)+'</b><span class="accuracy-state '+(isConfirmed?'is-confirmed':isMissing?'is-missing':'is-review')+'">'+state+'</span></header><strong>'+escHtml(value)+'</strong><p>'+escHtml(note)+'</p></article>';
  });
+ const memorabiliaEvidence=data.memorabiliaEvidence||{};
+ const memorabiliaDetected=card.memorabilia===true;
+ const memorabiliaLabel=memorabiliaDetected?'Memorabilia / relic detected':'Memorabilia not confirmed';
+ const memorabiliaNote=memorabiliaDetected
+  ?'Visual detection only. Check the physical card and manufacturer checklist to confirm patch, jersey swatch, or other relic type.'
+  :'The scanner has not confirmed a memorabilia feature. Review if a fabric window is visible.';
+ checks.push('<article class="accuracy-check"><header><b>Memorabilia / patch</b><span class="accuracy-state is-review">Needs review</span></header><strong>'+escHtml(memorabiliaLabel)+'</strong><p>'+escHtml(memorabiliaEvidence.basis||memorabiliaNote)+'</p></article>');
  const autographEvidence=data.pipeline?.fields?.autograph;
  const autoConfirmed=autographEvidence?.status==='confirmed';
  checks.push('<article class="accuracy-check"><header><b>Autograph</b><span class="accuracy-state '+(autoConfirmed?'is-confirmed':'is-review')+'">'+(autoConfirmed?'Confirmed':'Needs review')+'</span></header><strong>'+(card.autograph?'Detected':'Not detected')+'</strong><p>'+escHtml(autographEvidence?.basis||'Detection alone is not authentication. Confirm the signature type on the physical card or manufacturer checklist.')+'</p></article>');
@@ -410,7 +417,7 @@ function renderScan(data) {
  document.getElementById('resultBadge').textContent=data.verification?.status==='verified'&&data.pipeline?.allConfirmed===true?'Identity verified':'Review card details';
  document.getElementById('emptyResult').hidden=true;
  document.getElementById('resultBody').hidden=false;
- document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}<div class="identity-field"><small>AUTOGRAPH</small><strong>${card.autograph?'Yes — autograph detected':'Not detected'}</strong></div></div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}</div>`;
+ document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}<div class="identity-field"><small>AUTOGRAPH</small><strong>${card.autograph?'Yes — autograph detected':'Not detected'}</strong></div><div class="identity-field"><small>MEMORABILIA / PATCH</small><strong>${card.memorabilia?'Detected — verify type':'Not confirmed'}</strong><span class="unconfirmed">Visual detection requires review</span></div></div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}${card.memorabilia?'<span>Memorabilia / relic detected · verify type</span>':''}</div>`;
  document.getElementById('rawValue').textContent=comps.count?money(comps.median,comps.currency):(data.parallelPicker?.needsPick?'Confirm parallel':'No sales loaded');
  document.getElementById('rawDetail').textContent=comps.count?`${comps.count} returned auctions · Average ${money(comps.mean,comps.currency)} · ${money(comps.min,comps.currency)} – ${money(comps.max,comps.currency)}`:(comps.error||'Verify the exact card to find matching sales.');
  document.getElementById('gradedValue').textContent=card.grade?`${card.gradingCompany||'Graded'} ${card.grade}`:'Not available';
