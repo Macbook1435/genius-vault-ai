@@ -19,3 +19,6 @@ test('print run 1 equals numeric string 1, not boolean true',()=>{
  assert.equal(matchChecklistRecord({...input,parallel_name:'Gold',print_run:'1'},options([one])).status,'exact_duplicate');
  assert.equal(matchChecklistRecord({...input,parallel_name:'Gold',print_run:true},options([one])).status,'conflict');
 });
+
+// Include isolated scanner adapter checks in the existing read-only catalog test suite.
+import './catalog-scan-adapter.test.js';
