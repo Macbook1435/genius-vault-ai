@@ -1,3 +1,4 @@
+export const config = { api: { bodyParser: false } };
 import { timingSafeEqual } from 'node:crypto';
 import { prepareChecklistImport } from '../_lib/catalog-import-prepare.js';
 // Test-only dry run. No database calls, no persistence.
