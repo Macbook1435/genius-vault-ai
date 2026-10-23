@@ -4,10 +4,11 @@ const clean=v=>v===null||v===undefined?'':String(v).trim();
 const bad=v=>!v||/^(unknown|not verified|needs review|n\/a|null|undefined)$/i.test(v);
 export function scannerCatalogQuery(scan){
  if(!scan||typeof scan!=='object')return null;
- const manufacturer=clean(scan.brand),year=Number(scan.year),productName=clean(scan.productName);
+ const manufacturer=clean(scan.catalogManufacturer),year=Number(scan.year),productName=clean(scan.catalogProductName);
  const setName=clean(scan.set),cardNumber=clean(scan.cardNumber).replace(/^#/,'');
  const playerName=clean(scan.player);
- // brand and set alone cannot establish a distinct product name.
+ // Scanner brand/set are display labels, not authoritative manufacturer/product identity.
+ // Only independently established catalogManufacturer/catalogProductName may be queried.
  if([manufacturer,productName,setName,cardNumber,playerName].some(bad))return null;
  if(!Number.isInteger(year)||year<1880||year>2100)return null;
  return {manufacturer,year,productName,setName,cardNumber,playerName};
