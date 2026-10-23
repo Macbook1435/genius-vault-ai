@@ -135,7 +135,10 @@ export async function runPipelineV2({ scan, raw, verification, serialImage, tieb
   notes.push(...number.notes.map((n) => `Card number: ${n}`));
 
   // 4. Subset (base / rookies / rookie autographs / ...).
-  const sub = product ? findSubset(product, card) : null;
+  const subsetResult = product ? findSubset(product, card) : null;
+  // Never use a combined or uncertain subset rainbow as if it were an exact match.
+  const sub = subsetResult?.status === "matched" && subsetResult.numberFits === true ? subsetResult : null;
+  if (subsetResult && !sub) notes.push(`Subset: ${subsetResult.status}; parallel selection withheld until the card subset is established.`);
 
   // 5. Parallel.
   let par = { status: "no_checklist", parallel: null, candidates: [], steps: [] };
