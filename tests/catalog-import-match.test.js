@@ -13,3 +13,9 @@ test('print run without parallel name is ambiguous',()=>assert.equal(matchCheckl
 test('parallel name and print run must match',()=>assert.equal(matchChecklistRecord({...input,parallel_name:'Red Pandora',print_run:25},options([card])).status,'conflict'));
 test('unknown parallel cannot be verified',()=>assert.equal(matchChecklistRecord({...input,parallel_name:'Unknown'},options([card])).status,'ambiguous'));
 test('source declaration required',()=>assert.equal(matchChecklistRecord(input,{catalog:[],licenseStatus:'unverified'}).status,'ambiguous'));
+
+test('print run 1 equals numeric string 1, not boolean true',()=>{
+ const one={...card,parallels:[{parallel_name:'Gold',print_run:1}]};
+ assert.equal(matchChecklistRecord({...input,parallel_name:'Gold',print_run:'1'},options([one])).status,'exact_duplicate');
+ assert.equal(matchChecklistRecord({...input,parallel_name:'Gold',print_run:true},options([one])).status,'conflict');
+});
