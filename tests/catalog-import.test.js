@@ -47,3 +47,18 @@ test('two equal print runs are ambiguous',()=>{
  }]});
  assert.equal(r.candidates[0].parallel_status,'ambiguous_print_run');
 });
+
+test('missing license declaration blocks review',()=>{
+ const r=prepareChecklistImport(header+'\n'+row+'\n',{columnMapping:mapping,currentYear:2026});
+ assert.equal(r.summary.invalid,1);
+ assert.ok(r.rows[0].issues.some(i=>i.code==='MISSING_LICENSE_STATUS'));
+ assert.equal(r.safe_to_promote,false);
+});
+test('estimated print run cannot verify a parallel',()=>{
+ const r=evaluateCatalogCandidates({year:2025,cardNumber:'RF-KWS',serialTotal:99,cards:[{
+  id:7,release_year:2025,card_number:'RF-KWS',
+  parallels:[{id:11,parallel_name:'Red',print_run:99,print_run_basis:'estimated'}]
+ }]});
+ assert.equal(r.candidates[0].parallel_status,'not_verified');
+ assert.equal(r.candidates[0].verified_parallel_id,null);
+});
