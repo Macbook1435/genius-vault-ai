@@ -1842,7 +1842,11 @@ Strict rules:
 
     // Unverified identities never reach pricing or listing titles.
     const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
-    const comps = identityTrusted
+    // Prefer exact CardSight completed auctions below. Do not block the scan on
+    // an unauthenticated eBay HTML request when the catalog provider is available.
+    // The existing CardSight and parallel-verification gates run before response.
+    const deferEbaySold = identityTrusted && catalog.configured;
+    const comps = identityTrusted && !deferEbaySold
       ? await fetchSoldComps(query, scanResult)
       : {
           ...calculateCompStats([]),
@@ -1852,7 +1856,9 @@ Strict rules:
           sourceUrl: null,
           searchUrl: null,
           status: "not_searched",
-          error: "Price estimate unavailable until the card identity is confirmed.",
+          error: !identityTrusted
+            ? "Price estimate unavailable until the card identity is confirmed."
+            : "Checking exact completed-auction records from the catalog provider.",
         };
 
     // Field-level verification + market data (additive; a failure here never breaks the scan).
