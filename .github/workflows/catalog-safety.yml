@@ -7,6 +7,7 @@ on:
       - 'api/_lib/catalog-*.js'
       - 'api/import/**'
       - 'tests/catalog-import.test.js'
+      - 'tests/catalog-import-match.test.js'
       - 'tests/catalog-dry-run.test.js'
       - '.github/workflows/catalog-safety.yml'
   workflow_dispatch:
@@ -21,4 +22,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run read-only catalog tests
-        run: node --experimental-default-type=module --test tests/catalog-import.test.js tests/catalog-dry-run.test.js
+        run: node --experimental-default-type=module --test tests/catalog-import.test.js tests/catalog-import-match.test.js tests/catalog-dry-run.test.js
