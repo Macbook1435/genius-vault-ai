@@ -20,3 +20,17 @@ test('verified identity never implies verified parallel',()=>{
 test('scanner display labels alone cannot authorize a catalog lookup',()=>{
  assert.equal(scannerCatalogQuery({brand:'Panini',year:2025,productName:'Donruss',set:'Base',cardNumber:'340',player:'Example'}),null);
 });
+
+test('manufacturer must be independently established even when product is explicit',()=>{
+ assert.equal(scannerCatalogQuery({brand:'Panini',catalogProductName:'Donruss',year:2025,set:'Base',cardNumber:'340',player:'Example'}),null);
+});
+test('missing player or card number cannot produce a lookup',()=>{
+ const base={catalogManufacturer:'Panini',catalogProductName:'Donruss',year:2025,set:'Base',cardNumber:'340',player:'Example'};
+ assert.equal(scannerCatalogQuery({...base,player:null}),null);
+ assert.equal(scannerCatalogQuery({...base,cardNumber:'Not verified'}),null);
+});
+test('catalog evidence with no verified identity remains unverified even with source metadata',()=>{
+ const r=scannerCatalogEvidence({verifiedIdentity:false,sources:[{source_type:'manufacturer',source_title:'Checklist'}]});
+ assert.equal(r.identity_verified,false);
+ assert.equal(r.parallel_verified,false);
+});
