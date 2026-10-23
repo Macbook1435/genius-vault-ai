@@ -5,12 +5,23 @@ const eq=(a,b)=>normalizeKey(a)===normalizeKey(b);
 const identity=['manufacturer','release_year','product_name','set_name','card_number','player_name'];
 const cardFields=['team_name','is_rookie','is_autograph','is_memorabilia','card_type'];
 const parallelFields=['print_run','serial_numbered','color_signature','finish_signature'];
-function value(v){if(typeof v==='boolean')return v;if(/^(true|yes|y|1)$/i.test(String(v)))return true;if(/^(false|no|n|0)$/i.test(String(v)))return false;return normalizeKey(v);}
+function value(v,field){
+ if(field==='print_run'){
+  const s=String(v).trim();
+  return /^\d+$/.test(s)?Number(s):normalizeKey(v);
+ }
+ if(['is_rookie','is_autograph','is_memorabilia','serial_numbered'].includes(field)){
+  if(typeof v==='boolean')return v;
+  if(/^(true|yes|y|1)$/i.test(String(v).trim()))return true;
+  if(/^(false|no|n|0)$/i.test(String(v).trim()))return false;
+ }
+ return normalizeKey(v);
+}
 function compare(input,existing,fields){
  const conflicts=[],fills=[];
  for(const field of fields){if(!has(input[field]))continue;
   if(!has(existing[field]))fills.push({field,incoming:input[field]});
-  else if(value(input[field])!==value(existing[field]))conflicts.push({field,existing:existing[field],incoming:input[field]});
+  else if(value(input[field],field)!==value(existing[field],field))conflicts.push({field,existing:existing[field],incoming:input[field]});
  }
  return {conflicts,fills};
 }
