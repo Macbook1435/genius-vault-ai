@@ -21,3 +21,16 @@ test('without catalog snapshot match status remains null',()=>{
  const r=prepareChecklistImport(csv,base);
  assert.equal(r.rows[0].match_status,null);
 });
+
+test('invalid CSV row cannot receive a catalog classification',()=>{
+ const invalid='Maker,Year,Product,Set,Number,Player\nPanini,2025,Donruss,Base,340,\n';
+ const result=prepareChecklistImport(invalid,{...base,catalog:[],source:'manual_review'});
+ assert.equal(result.rows[0].eligible_for_review,false);
+ assert.equal(result.rows[0].match_status,null);
+ assert.equal(result.safe_to_promote,false);
+});
+test('missing source stays ambiguous even with a catalog snapshot',()=>{
+ const result=prepareChecklistImport(csv,{...base,catalog:[]});
+ assert.equal(result.rows[0].match_status,'ambiguous');
+ assert.equal(result.rows[0].matched_card_id,null);
+});
