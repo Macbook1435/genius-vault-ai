@@ -58,7 +58,7 @@ test('authorized test request returns a read-only review report',async()=>{
   process.env.SUPABASE_URL='https://upvklqpoekudqifydmwr.supabase.co';
   process.env.GV_ENABLE_IMPORT_DRY_RUN='1';
   process.env.GV_IMPORT_ADMIN_KEY='a'.repeat(40);
-  const csvText='Maker,Year,Product,Set,Number,Player\\nPanini,2025,Absolute,Rookie Force,RF-KWS,Kyle Williams\\n';
+  const csvText='Maker,Year,Product,Set,Number,Player\nPanini,2025,Absolute,Rookie Force,RF-KWS,Kyle Williams\n';
   const body=JSON.stringify({csvText,columnMapping:{
     manufacturer:'Maker',release_year:'Year',product_name:'Product',
     set_name:'Set',card_number:'Number',player_name:'Player'
