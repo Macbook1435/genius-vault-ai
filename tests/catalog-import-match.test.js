@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {matchChecklistRecord} from '../api/_lib/catalog-import-match.js';
+const input={manufacturer:'Panini',release_year:2025,product_name:'Donruss',set_name:'Base',card_number:'340',player_name:'Mason Graham'};
+const card={id:'card1',...input,team_name:'Browns',parallels:[{parallel_name:'Red Pandora',print_run:99}]};
+const options=(catalog=[])=>({catalog,source:'manufacturer_checklist',licenseStatus:'unverified'});
+test('new identity is review-only',()=>{const r=matchChecklistRecord(input,options());assert.equal(r.status,'new');assert.equal(r.requires_review,true)});
+test('exact duplicate is review-only',()=>assert.equal(matchChecklistRecord(input,options([card])).status,'exact_duplicate'));
+test('missing field is fill candidate',()=>assert.equal(matchChecklistRecord({...input,card_type:'rookie'},options([card])).status,'fill_candidate'));
+test('conflicting field is conflict',()=>assert.equal(matchChecklistRecord({...input,team_name:'Different'},options([card])).status,'conflict'));
+test('multiple matches are ambiguous',()=>assert.equal(matchChecklistRecord(input,options([card,{...card,id:'card2'}])).status,'ambiguous'));
+test('print run without parallel name is ambiguous',()=>assert.equal(matchChecklistRecord({...input,print_run:99},options([card])).status,'ambiguous'));
+test('parallel name and print run must match',()=>assert.equal(matchChecklistRecord({...input,parallel_name:'Red Pandora',print_run:25},options([card])).status,'conflict'));
+test('unknown parallel cannot be verified',()=>assert.equal(matchChecklistRecord({...input,parallel_name:'Unknown'},options([card])).status,'ambiguous'));
+test('source declaration required',()=>assert.equal(matchChecklistRecord(input,{catalog:[],licenseStatus:'unverified'}).status,'ambiguous'));
