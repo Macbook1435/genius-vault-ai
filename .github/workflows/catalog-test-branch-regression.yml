@@ -1,0 +1,24 @@
+name: Catalog TEST Branch Regression
+on:
+  push:
+    branches:
+      - test/fix-async-reference-scan-20261021
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  catalog-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax of TEST scanner endpoint
+        run: node --experimental-default-type=module --check api/scan.js
+      - name: Run focused catalog and endpoint regression tests
+        run: |
+          node --experimental-default-type=module --test \
+            tests/catalog-optic-subset-resolver.test.js \
+            tests/catalog-scan-response-review.test.js \
+            tests/catalog-scan-endpoint-wiring.test.js
