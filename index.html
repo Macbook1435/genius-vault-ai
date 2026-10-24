@@ -431,7 +431,7 @@ const escHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;
 // "Pick the parallel" menu: every parallel CardSight lists for this exact card.
 function parallelPickerHtml(data) {
   const pk = data.parallelPicker;
-  if (!pk || !pk.options?.length) return "";
+  if (!pk || !pk.options?.length) return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#e8f2ff;border-radius:12px;"><b>Card versions unavailable</b><p>No verified catalog match supplied a version list. Confirm the full product and card number before choosing a parallel. Sold-price estimates remain unavailable.</p></div>`;
   const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
   const top = pk.choiceShortlist?.topChoices || (pk.suggestedIds || []).map(id => pk.options.find(o => String(o.id) === String(id))).filter(Boolean).slice(0,5);
   const topIds = new Set(top.map(o => String(o.id)));
