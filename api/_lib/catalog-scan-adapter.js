@@ -14,8 +14,8 @@ export function scannerCatalogQuery(scan){
  return {manufacturer,year,productName,setName,cardNumber,playerName};
 }
 export function scannerCatalogEvidence(lookup){
- if(!lookup||!lookup.verifiedIdentity||!Array.isArray(lookup.sources)||lookup.sources.length===0)
-  return {status:'not_verified',identity_verified:false,parallel_verified:false,sources:[]};
+if(!lookup||!lookup.verifiedIdentity||!Array.isArray(lookup.sources)||!lookup.sources.some(s=>s&&/^https:\/\//i.test(clean(s.source_url))))
+ return {status:'not_verified',identity_verified:false,parallel_verified:false,sources:[]}; 
  return {
   status:'verified_identity_only',
   identity_verified:true,
