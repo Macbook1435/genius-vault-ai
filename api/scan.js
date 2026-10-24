@@ -15,6 +15,7 @@ import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
 import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
+import { addParallelReviewToScanResponse } from "./_lib/catalog-scan-response-review.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2161,7 +2162,7 @@ Strict rules:
       : "No prices auto-pulled. Use the sold-comps link below.";
 
     scanReservation = null; // A completed result legitimately consumes one scan.
-    return res.status(200).json({
+    const scanResponse = {
       results: "Scan completed successfully.",
       scan: scanResult,
       memorabiliaEvidence: describeMemorabiliaEvidence(scanResult.notes, scanResult),
@@ -2194,7 +2195,11 @@ Strict rules:
         url: comps.searchUrl,
         summary: legacySummary,
       },
-    });
+    };
+    // Advisory only: no trusted checklist evidence is wired yet. Fail closed.
+    // The decorator returns the original response until independently reviewed
+    // subset evidence is available; never promote fixture claims to verified.
+    return res.status(200).json(addParallelReviewToScanResponse(scanResponse, null, null));
   } catch (err) {
     console.error("scan error:", err);
     if (scanReservation) {
