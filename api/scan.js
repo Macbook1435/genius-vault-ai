@@ -1,3 +1,4 @@
+import { exactCompsAllowed } from "./_lib/catalog-exact-comps-gate.js";
 import { authenticatedUser, reserveScan, releaseScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
 import formidable from "formidable";
 import { randomUUID } from "node:crypto";
@@ -2129,7 +2130,18 @@ Strict rules:
     // Final response safety net: never let catalog pricing bypass an
     // unverified identity or a numbered-card exact-match failure.
     // Active listings remain visible strictly as asking prices, not value.
-    const soldBlocked = !identityTrusted || comps.status === "exact_match_unverified";
+    const exactSoldEligible = exactCompsAllowed({
+      identityTrusted,
+      parallelStatus: catalog.parallelComps?.status,
+      serialNumbered: Boolean(scanResult.numberedTo),
+      serialConfirmed: (v2Mode === "primary" ? v2?.pipeline?.fields?.serial : pipeline?.fields?.serial)?.status === "confirmed",
+      printRunMatched: Number.isInteger(Number(scanResult.numberedTo)) &&
+        Number(catalog.parallelComps?.catalogParallel?.numberedTo) === Number(scanResult.numberedTo),
+    });
+    const soldBlocked = !exactSoldEligible;
+    if (soldBlocked) {
+      Object.assign(comps, { ...calculateCompStats([]), items: [], count: 0, status: "exact_match_unverified", error: "Exact card and parallel not independently verified; no sold-price estimate." });
+    }
     if (soldBlocked && market?.sold) {
       market.sold = {
         kind: "sold",
