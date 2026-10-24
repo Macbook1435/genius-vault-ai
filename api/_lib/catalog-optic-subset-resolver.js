@@ -6,7 +6,10 @@ export function resolveOpticSubset(scan, evidence) {
  const range=opticSubsetCandidates(scan);
  if(range.status!=='ambiguous_subset'&&range.status!=='unique_range_candidate')
    return {status:'not_verified',subset_id:null,candidates:range.candidates};
- const approved=evidence?.verification_status==='verified' &&
+ // A caller-supplied status and URL are not independently authenticated.
+ // Until trusted ingestion exists, no external evidence can verify a subset.
+ const trustedProvenance = false;
+ const approved=trustedProvenance && evidence?.verification_status==='verified' &&
    evidence?.source_url?.startsWith('https://') &&
    evidence?.card_number!=null && String(evidence.card_number).replace(/^#/,'')===String(scan?.cardNumber??'').replace(/^#/,'') &&
    clean(evidence.player)===clean(scan?.player) &&
