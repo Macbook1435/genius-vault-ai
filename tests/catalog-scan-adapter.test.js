@@ -35,7 +35,7 @@ test('catalog evidence with no verified identity remains unverified even with so
  assert.equal(r.parallel_verified,false);
 });
 
-const verifiedProduct={manufacturer:'Panini',release_year:2025,product_name:'Donruss Optic',display_set_name:'Donruss Optic',verification_status:'verified',sources:[{verification_status:'verified',source_url:'https://example.org/checklist'}]};
+const verifiedProduct={manufacturer:'Panini',release_year:2025,product_name:'Donruss Optic',display_set_name:'Donruss Optic',sources:[{verification_status:'verified',source_url:'https://example.org/checklist'}]};
 test('product resolver accepts only a unique source-verified match',()=>{
  assert.deepEqual(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[verifiedProduct]),{catalogManufacturer:'Panini',catalogProductName:'Donruss Optic'});
 });
@@ -44,7 +44,7 @@ test('product resolver abstains on ambiguous verified products',()=>{
 });
 test('product resolver rejects unsupported provenance',()=>{
  assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,sources:[]}]),null);
- assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,verification_status:'unverified'}]),null);
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,sources:[{verification_status:'pending',source_url:'https://example.org/checklist'}]}]),null);
 });
 test('product resolver rejects year mismatch',()=>{
  assert.equal(resolveCatalogProduct({year:2024,set:'Donruss Optic'},[verifiedProduct]),null);
