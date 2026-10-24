@@ -1,4 +1,5 @@
 import { exactCompsAllowed } from "./_lib/catalog-exact-comps-gate.js";
+import { rankParallelChoices } from "./_lib/catalog-choice-shortlist.js";
 import { authenticatedUser, reserveScan, releaseScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
 import formidable from "formidable";
 import { randomUUID } from "node:crypto";
@@ -1980,6 +1981,7 @@ Strict rules:
             ...(shinyLookalikes.length ? ["Base", ...shinyLookalikes] : []), ...(catalog.rawParallels || []).map((p) => p.name)].filter(Boolean);
           parallelPicker = { cardId: pricingCardId, options, selectedId: null, needsPick: false,
             suggestedIds: suggestOptionIds(options, shortlist, { unnumbered: unnumberedCard }) };
+          parallelPicker.choiceShortlist = rankParallelChoices(options, parallelPicker.suggestedIds);
         }
         if (plan.mode === "parallel") {
           const pick = Array.isArray(list)
