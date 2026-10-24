@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Genius Vault · Test CDP Import</title><style>body{font:16px system-ui;background:#eef5ff;color:#12345a;max-width:760px;margin:30px auto;padding:20px}section{background:white;padding:25px;border-radius:16px;margin:16px 0}label{display:block;margin:15px 0}input{display:block;margin:6px 0;padding:10px;max-width:100%}button{background:#1267bb;color:white;padding:12px 18px;border:0;border-radius:8px;cursor:pointer}button:disabled{opacity:.4}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>Genius Vault AI — TEST Import</h1><p>This page is restricted to the test Supabase project. Production is not used.</p><section><h2>1. Sign in</h2><p id="auth">Checking session…</p><label>Email<input id="email" type="email" autocomplete="email"></label><label>Password<input id="password" type="password" autocomplete="current-password"></label><button id="signin">Sign in to test</button></section><section><h2>2. Choose existing files</h2><label>Card Dealer Pro ZIP<input id="zip" type="file" accept=".zip,application/zip"></label><label>Genius Vault manifest JSON<input id="manifest" type="file" accept=".json,application/json"></label><button id="start" disabled>Validate and import to TEST</button><p>One batch at a time. Re-uploading the same batch resumes instead of creating extra physical copies.</p></section><section><h2>3. Progress</h2><progress id="progress" max="110" value="0" style="width:100%"></progress><pre id="status">Waiting for files and sign-in.</pre></section><script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import JSZip from 'https://esm.sh/jszip@3.10.1';
+import {importCdpTestCollection} from '/scripts/cdp-test-collection-import.mjs';
+const $=id=>document.getElementById(id), TEST='upvklqpoekudqifydmwr';
+let client=null,ready=false;
+const status=s=>{$('status').textContent=s;};
+function enable(){ $('start').disabled=!ready||!$('zip').files.length||!$('manifest').files.length; }
+async function setup(){
+ const r=await fetch('/api/public-config',{cache:'no-store'});const c=await r.json();
+ if(!r.ok||!c.supabaseUrl||!c.supabaseAnonKey||new URL(c.supabaseUrl).hostname!==TEST+'.supabase.co')throw Error('This page is not connected to TEST Supabase. Import disabled.');
+ client=createClient(c.supabaseUrl,c.supabaseAnonKey,{auth:{persistSession:false,autoRefreshToken:true}});
+ const saved=JSON.parse(localStorage.getItem('gv-member-auth-v1')||'null');
+ if(saved?.access_token&&saved?.refresh_token)await client.auth.setSession({access_token:saved.access_token,refresh_token:saved.refresh_token});
+ const {data}=await client.auth.getUser();
+ ready=!!data?.user;$('auth').textContent=ready?'Signed in: '+data.user.email:'Not signed in to TEST';enable();
+}
+$('signin').onclick=async()=>{try{
+ const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+ if(error)throw error;ready=!!data.user;$('auth').textContent='Signed in: '+data.user.email;enable();status('Signed in. Select your ZIP and manifest.');
+}catch(e){status(e.message);}};
+$('zip').onchange=enable;$('manifest').onchange=enable;
+$('start').onclick=async()=>{ $('start').disabled=true;try{
+ const manifest=JSON.parse(await $('manifest').files[0].text());
+ if(!confirm('Import '+manifest.records?.length+' physical card records and their images to TEST only?'))return;
+ $('progress').max=manifest.records.length;status('Validating files and beginning test import…');
+ const result=await importCdpTestCollection({supabase:client,JSZip,zipFile:$('zip').files[0],manifest,onProgress:p=>{$('progress').value=p.completed;status('Saved '+p.completed+' of '+p.total+' physical cards; images uploaded or resumed.');}});
+ status('Import pass finished. Verify database counts before calling it complete.\n'+JSON.stringify(result,null,2));
+}catch(e){status('Import stopped safely: '+e.message+'\nYou can retry the same batch after correcting the problem.');}finally{enable();}};
+setup().catch(e=>{$('auth').textContent='Import unavailable';status(e.message);});
+</script></html>
