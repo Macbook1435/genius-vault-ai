@@ -14,7 +14,7 @@ test('third-party review fixture is never authorized for catalog promotion', () 
 test('every review exception identifies a player and card without duplicates', () => {
  const keys = new Set();
  for (const row of fixture.cases) {
-  assert.match(row.card_number, /^\\d+$/);
+  assert.match(row.card_number, /^\d+$/);
   assert.ok(typeof row.player === 'string' && row.player.trim());
   assert.ok(['only','exclude','base_print_run'].includes(row.rule));
   const key = row.card_number + ':' + row.player.toLowerCase();
