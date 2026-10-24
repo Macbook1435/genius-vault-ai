@@ -203,6 +203,10 @@ export function saleBucket(record, parallels, { raw = true, cardIsAuto = false }
   if (!hits.length) return record?.parallel_id || "null";
   const best = Math.max(...hits.map((h) => h.size));
   const top = hits.filter((h) => h.size === best);
+  // A provider tag that conflicts with an explicit title match is disputed evidence.
+  // Never silently move that sale into a different parallel's price sample.
+  if (top.length === 1 && record?.parallel_id && record.parallel_id !== "null"
+      && String(record.parallel_id) !== String(top[0].id)) return "skip";
   return top.length === 1 ? top[0].id : "skip";
 }
 
