@@ -200,6 +200,9 @@ export function saleBucket(record, parallels, { raw = true, cardIsAuto = false }
   }
   // On a non-auto card, an "Auto" title is a different card (unless it names an autograph parallel). On an auto card it is expected.
   if (!cardIsAuto && tw.has("autographs") && !hits.some((h) => distinctWords((parallels || []).find((p) => p.id === h.id)?.name).includes("autographs"))) return "skip";
+  // Do not treat a serial-numbered listing as an unnumbered base sale
+  // when the provider supplies no usable parallel tag.
+  if (!hits.length && /\/\s*\d+\b/.test(title) && (!record?.parallel_id || record.parallel_id === "null")) return "skip";
   if (!hits.length) return record?.parallel_id || "null";
   const best = Math.max(...hits.map((h) => h.size));
   const top = hits.filter((h) => h.size === best);
