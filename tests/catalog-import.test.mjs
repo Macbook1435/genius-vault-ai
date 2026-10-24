@@ -12,6 +12,7 @@ const run=(rows,mode="--dry-run",env={})=>{
 const valid={manufacturer:"Panini",release_year:2025,product_name:"Donruss Football",set_name:"Optic Rated Rookies Preview",card_number:"340",player_name:"Mason Graham",parallel_name:"Red Pandora Prizm",source_url:"https://example.org/checklist"};
 test("valid checklist passes dry-run without credentials",()=>assert.equal(run([valid]).status,0));
 test("duplicate entries are rejected",()=>assert.notEqual(run([valid,valid]).status,0));
+test("empty checklist batches are rejected",()=>assert.notEqual(run([]).status,0));
 test("source URL is required",()=>assert.notEqual(run([{...valid,source_url:""}]).status,0));
 test("non-HTTPS source is rejected",()=>assert.notEqual(run([{...valid,source_url:"http://example.org"}]).status,0));
 test("non-integer year is rejected",()=>assert.notEqual(run([{...valid,release_year:"2025"}]).status,0));
