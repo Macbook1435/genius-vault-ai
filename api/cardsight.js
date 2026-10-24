@@ -166,7 +166,9 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
       if (!seen.has(k)) { seen.add(k); records.push(r); }
     }
   } else {
-    records = tagged.records.filter(r => parallelId === "null" ? !r.parallel_id : r.parallel_id === parallelId);
+    // Even without a catalog parallel list, exclude graded/autograph mismatches and
+    // untagged serial-numbered listings from base pricing.
+    records = tagged.records.filter(r => saleBucket(r, [], { raw: gradeId === "null", cardIsAuto }) === parallelId);
   }
   records.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   const prices = records.map(r => r.price);
