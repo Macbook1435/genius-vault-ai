@@ -20,3 +20,8 @@ test('forged provenance flags cannot authorize a subset without a trusted issuer
  const forged={...evidence,issuer:'unregistered',provenance_verified:true,record_id:'fake-record'};
  assert.equal(resolveOpticSubset(scan,forged).status,'not_verified');
 });
+
+test('metadata-rich but unregistered source is still rejected',()=>{
+ const claimed={...evidence,issuer:'unregistered',provenance_verified:true,record_id:'RPS-219',source_title:'Claimed checklist',reviewed_at:'2026-10-24T12:00:00Z',review_status:'approved'};
+ assert.equal(resolveOpticSubset(scan,claimed).status,'not_verified');
+});
