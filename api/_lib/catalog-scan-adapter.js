@@ -1,5 +1,6 @@
 // Phase 2: pure adapter between scanner fields and the server-only catalog lookup.
 // No API calls, database writes, billing changes, or production scanner modifications.
+import { reviewPlayerParallel } from './catalog-parallel-review.js';
 const clean=v=>v===null||v===undefined?'':String(v).trim();
 const bad=v=>!v||/^(unknown|not verified|needs review|n\/a|null|undefined)$/i.test(v);
 export function scannerCatalogQuery(scan){
@@ -63,4 +64,10 @@ export async function lookupVerifiedScanIdentity(scan,candidates,lookupFn){
  if(!query||typeof lookupFn!=='function')return scannerCatalogEvidence(null);
  const found=await lookupFn(query);
  return scannerCatalogEvidence(found);
+}
+
+// Advisory-only parallel review; never modifies verified catalog evidence.
+export function reviewScanParallel(scan,fixture){
+ const review=reviewPlayerParallel({player:scan?.player,cardNumber:scan?.cardNumber,parallel:scan?.parallel},fixture);
+ return {review_status:review.status,review_reason:review.reason,parallel_verified:false};
 }
