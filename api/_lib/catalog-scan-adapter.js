@@ -46,3 +46,14 @@ export function resolveCatalogProduct(scan, candidates) {
  if(matches.length!==1)return null;
  return {catalogManufacturer:clean(matches[0].manufacturer),catalogProductName:clean(matches[0].product_name)};
 }
+
+// Compose verified product resolution with the existing read-only catalog lookup.
+// Inject the lookup function so tests never need database credentials.
+export async function lookupVerifiedScanIdentity(scan,candidates,lookupFn){
+ const product=resolveCatalogProduct(scan,candidates);
+ if(!product)return scannerCatalogEvidence(null);
+ const query=scannerCatalogQuery({...scan,...product});
+ if(!query||typeof lookupFn!=='function')return scannerCatalogEvidence(null);
+ const found=await lookupFn(query);
+ return scannerCatalogEvidence(found);
+}
