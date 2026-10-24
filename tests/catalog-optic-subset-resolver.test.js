@@ -15,3 +15,8 @@ test('unverified source cannot verify subset',()=>assert.equal(resolveOpticSubse
 test('non-HTTPS source cannot verify subset',()=>assert.equal(resolveOpticSubset(scan,{...evidence,source_url:'http://example.org'}).status,'not_verified'));
 test('subset must match product reference candidate',()=>assert.equal(resolveOpticSubset(scan,{...evidence,subset_id:'base_auto'}).status,'not_verified'));
 test('unrelated product cannot verify subset',()=>assert.equal(resolveOpticSubset(scan,{...evidence,product_id:'2025-panini-absolute-football'}).status,'not_verified'));
+
+test('forged provenance flags cannot authorize a subset without a trusted issuer',()=>{
+ const forged={...evidence,issuer:'unregistered',provenance_verified:true,record_id:'fake-record'};
+ assert.equal(resolveOpticSubset(scan,forged).status,'not_verified');
+});
