@@ -49,3 +49,8 @@ test('product resolver rejects unsupported provenance',()=>{
 test('product resolver rejects year mismatch',()=>{
  assert.equal(resolveCatalogProduct({year:2024,set:'Donruss Optic'},[verifiedProduct]),null);
 });
+
+test('product resolver rejects missing display-set provenance and non-HTTPS sources',()=>{
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,display_set_name:null}]),null);
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,sources:[{verification_status:'verified',source_url:'http://example.org/checklist'}]}]),null);
+});
