@@ -2,13 +2,22 @@
 // not proof that a card belongs to the Rated Rookie Autographs subset.
 import { opticSubsetCandidates } from './catalog-optic-subset-candidates.js';
 const clean=v=>String(v??'').trim().toLowerCase();
+// Only records explicitly issued by a future trusted ingestion service can
+// qualify. No issuer is configured yet; caller-supplied flags fail closed.
+const TRUSTED_ISSUERS = new Set();
+function isTrustedChecklistEvidence(evidence) {
+ return Boolean(evidence && typeof evidence==='object' &&
+   TRUSTED_ISSUERS.has(evidence.issuer) &&
+   evidence.provenance_verified===true &&
+   typeof evidence.record_id==='string' && evidence.record_id.length>0);
+}
 export function resolveOpticSubset(scan, evidence) {
  const range=opticSubsetCandidates(scan);
  if(range.status!=='ambiguous_subset'&&range.status!=='unique_range_candidate')
    return {status:'not_verified',subset_id:null,candidates:range.candidates};
  // A caller-supplied status and URL are not independently authenticated.
  // Until trusted ingestion exists, no external evidence can verify a subset.
- const trustedProvenance = false;
+ const trustedProvenance = isTrustedChecklistEvidence(evidence);
  const approved=trustedProvenance && evidence?.verification_status==='verified' &&
    evidence?.source_url?.startsWith('https://') &&
    evidence?.card_number!=null && String(evidence.card_number).replace(/^#/,'')===String(scan?.cardNumber??'').replace(/^#/,'') &&
