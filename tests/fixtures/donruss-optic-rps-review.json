@@ -1,0 +1,51 @@
+{
+  "fixture_type": "review_only_player_parallel_exceptions",
+  "product": "2025 Donruss Optic Football",
+  "subset": "Rated Rookies RPS Autographs",
+  "source_url": "https://www.beckett.com/news/2025-donruss-optic-football-cards/",
+  "source_status": "published_third_party_pending_independent_review",
+  "safe_to_promote": false,
+  "cases": [
+    {
+      "card_number": "205",
+      "player": "Matthew Golden",
+      "rule": "exclude",
+      "values": [
+        "Red Stars"
+      ]
+    },
+    {
+      "card_number": "208",
+      "player": "RJ Harvey",
+      "rule": "exclude",
+      "values": [
+        "Red Stars"
+      ]
+    },
+    {
+      "card_number": "219",
+      "player": "Isaac TeSlaa",
+      "rule": "only",
+      "values": [
+        "Purple Stars"
+      ]
+    },
+    {
+      "card_number": "214",
+      "player": "Elijah Arroyo",
+      "rule": "only",
+      "values": [
+        "Black Gold",
+        "Purple Stars"
+      ]
+    },
+    {
+      "card_number": "206",
+      "player": "Mason Graham",
+      "rule": "base_print_run",
+      "values": {
+        "base_print_run": 350
+      }
+    }
+  ]
+}
