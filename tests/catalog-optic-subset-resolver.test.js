@@ -4,10 +4,10 @@ import {resolveOpticSubset} from '../api/_lib/catalog-optic-subset-resolver.js';
 const scan={year:2025,brand:'Panini',set:'Donruss Optic',player:'Isaac TeSlaa',cardNumber:'219',autograph:true};
 const evidence={verification_status:'verified',source_url:'https://example.org/checklist',card_number:'219',player:'Isaac TeSlaa',product_id:'2025-donruss-optic-football',subset_id:'rookie_auto'};
 test('autograph boolean alone never verifies subset',()=>assert.equal(resolveOpticSubset(scan,null).status,'not_verified'));
-test('matching verified source evidence resolves autograph subset',()=>{
+test('self-labeled verified evidence cannot resolve autograph subset',()=>{
  const r=resolveOpticSubset(scan,evidence);
- assert.equal(r.status,'verified_subset');
- assert.equal(r.subset_id,'rookie_auto');
+ assert.equal(r.status,'not_verified');
+ assert.equal(r.subset_id,null);
 });
 test('wrong player cannot verify subset',()=>assert.equal(resolveOpticSubset(scan,{...evidence,player:'Other Player'}).status,'not_verified'));
 test('wrong number cannot verify subset',()=>assert.equal(resolveOpticSubset(scan,{...evidence,card_number:'220'}).status,'not_verified'));
