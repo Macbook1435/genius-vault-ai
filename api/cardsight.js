@@ -86,7 +86,7 @@ export async function cardsightSoldComps(cardId, opts = {}) {
       if (results.length >= 500) warnings.push("Title-search result limit reached; additional records may be missing.");
       found.push(...results.filter(r => eligibleAuction(r) && !r.grade && exactTitleMatch(r, card)
         && (ctx.cardIsAuto ? /\bauto(graph)?s?\b|\bsigned\b|signature/i.test(r.title || "") : true)
-        && saleBucket({ ...r, parallel_id: null }, opts.parallels, { raw: opts.gradeId !== undefined ? opts.gradeId === "null" : true, cardIsAuto: ctx.cardIsAuto }) === (opts.parallelId || "null")));
+        && saleBucket(r, opts.parallels, { raw: opts.gradeId !== undefined ? opts.gradeId === "null" : true, cardIsAuto: ctx.cardIsAuto }) === (opts.parallelId || "null")));
     }
   }
   const summary = summarizeSales([...ctx.records.values(), ...found]);
