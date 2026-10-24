@@ -25,4 +25,5 @@ jobs:
             tests/catalog-review-fixture-safety.test.js \
             tests/catalog-exact-comps-gate.test.js \
             tests/catalog-pending-source-safety.test.js \
-            tests/checklist-stage-validator.test.js
+            tests/checklist-stage-validator.test.js \
+            tests/catalog-choice-shortlist.test.js
