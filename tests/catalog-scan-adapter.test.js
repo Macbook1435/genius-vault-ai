@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {scannerCatalogQuery,scannerCatalogEvidence} from '../api/_lib/catalog-scan-adapter.js';
+import {scannerCatalogQuery,scannerCatalogEvidence,resolveCatalogProduct} from '../api/_lib/catalog-scan-adapter.js';
 test('missing product name never guesses a catalog query',()=>{
  assert.equal(scannerCatalogQuery({brand:'Panini',year:2025,set:'Absolute',cardNumber:'340',player:'Example'}),null);
 });
@@ -33,4 +33,19 @@ test('catalog evidence with no verified identity remains unverified even with so
  const r=scannerCatalogEvidence({verifiedIdentity:false,sources:[{source_type:'manufacturer',source_title:'Checklist'}]});
  assert.equal(r.identity_verified,false);
  assert.equal(r.parallel_verified,false);
+});
+
+const verifiedProduct={manufacturer:'Panini',release_year:2025,product_name:'Donruss Optic',display_set_name:'Donruss Optic',verification_status:'verified',sources:[{verification_status:'verified',source_url:'https://example.org/checklist'}]};
+test('product resolver accepts only a unique source-verified match',()=>{
+ assert.deepEqual(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[verifiedProduct]),{catalogManufacturer:'Panini',catalogProductName:'Donruss Optic'});
+});
+test('product resolver abstains on ambiguous verified products',()=>{
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[verifiedProduct,{...verifiedProduct,product_name:'Different Release'}]),null);
+});
+test('product resolver rejects unsupported provenance',()=>{
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,sources:[]}]),null);
+ assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,verification_status:'unverified'}]),null);
+});
+test('product resolver rejects year mismatch',()=>{
+ assert.equal(resolveCatalogProduct({year:2024,set:'Donruss Optic'},[verifiedProduct]),null);
 });
