@@ -23,7 +23,8 @@ const target=new URL(url);
 if(target.hostname!=="upvklqpoekudqifydmwr.supabase.co" || target.pathname!=="/" || target.search || target.hash)throw Error("Refusing writes: URL must be the exact Genius Vault TEST Supabase project");
 const headers={apikey:keyEnv,Authorization:`Bearer ${keyEnv}`,"Content-Type":"application/json"};
 async function request(table,query="",options={}){
- const response=await fetch(`${url}/rest/v1/${table}${query}`,{headers:{...headers,...options.headers},...options});
+ const {headers: extraHeaders={},...requestOptions}=options;
+ const response=await fetch(`${url}/rest/v1/${table}${query}`,{...requestOptions,headers:{...headers,...extraHeaders}});
  if(!response.ok)throw Error(`${table}: HTTP ${response.status} ${(await response.text()).slice(0,400)}`);
  const body=await response.text();return body?JSON.parse(body):[];
 }
