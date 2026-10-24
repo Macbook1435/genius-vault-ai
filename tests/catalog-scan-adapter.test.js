@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {scannerCatalogQuery,scannerCatalogEvidence,resolveCatalogProduct,lookupVerifiedScanIdentity} from '../api/_lib/catalog-scan-adapter.js';
+import {scannerCatalogQuery,scannerCatalogEvidence,resolveCatalogProduct,lookupVerifiedScanIdentity,reviewScanParallel} from '../api/_lib/catalog-scan-adapter.js';
 test('missing product name never guesses a catalog query',()=>{
  assert.equal(scannerCatalogQuery({brand:'Panini',year:2025,set:'Absolute',cardNumber:'340',player:'Example'}),null);
 });
@@ -118,4 +118,15 @@ test('verified evidence excludes non-HTTPS sources', () => {
   assert.equal(result.parallel_verified, false);
   assert.equal(result.sources.length, 1);
   assert.equal(result.sources[0].source_url, 'https://example.org/checklist');
+});
+
+
+test('scan adapter review never verifies a parallel',()=>{
+ const fixture={safe_to_promote:false,cases:[{card_number:'219',player:'Isaac TeSlaa',rule:'only',values:['Purple Stars']}]};
+ const candidate=reviewScanParallel({player:'Isaac TeSlaa',cardNumber:'219',parallel:'Purple Stars'},fixture);
+ assert.equal(candidate.review_status,'candidate_requires_independent_verification');
+ assert.equal(candidate.parallel_verified,false);
+ const rejected=reviewScanParallel({player:'Isaac TeSlaa',cardNumber:'219',parallel:'Gold Vinyl'},fixture);
+ assert.equal(rejected.review_status,'excluded_by_review_fixture');
+ assert.equal(rejected.parallel_verified,false);
 });
