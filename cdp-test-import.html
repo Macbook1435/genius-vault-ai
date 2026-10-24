@@ -7,7 +7,7 @@ let client=null,ready=false;
 const status=s=>{$('status').textContent=s;};
 function enable(){ $('start').disabled=!ready||!$('zip').files.length||!$('manifest').files.length; }
 async function setup(){
- const r=await fetch('/api/cdp-test-config',{cache:'no-store'});const c=await r.json();
+ const r=await fetch('/api/public-config',{cache:'no-store'});const c=await r.json();
  if(!r.ok||!c.supabaseUrl||!c.supabaseAnonKey||new URL(c.supabaseUrl).hostname!==TEST+'.supabase.co')throw Error('This page is not connected to TEST Supabase. Import disabled.');
  client=createClient(c.supabaseUrl,c.supabaseAnonKey,{auth:{persistSession:false,autoRefreshToken:true}});
  const saved=JSON.parse(localStorage.getItem('gv-member-auth-v1')||'null');
