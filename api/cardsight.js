@@ -156,10 +156,12 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
     }
     records = [...tagged.records, ...extra].filter((r) => {
       const k = saleKey(r);
-      if (seen.has(k)) return false; seen.add(k);
+      if (seen.has(k)) return false;
       const b = saleBucket(r, parallels, { raw: gradeId === "null", cardIsAuto });
       if (!cardIsAuto && b === "skip" && /\bauto(graph)?s?\b|signature/i.test(r.title || "")) autoTitled.push(r);
-      return b === parallelId;
+      if (b !== parallelId) return false;
+      seen.add(k);
+      return true;
     });
     for (const r of fromSiblings) {
       const k = saleKey(r);
