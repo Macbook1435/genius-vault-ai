@@ -4,12 +4,16 @@ import { opticSubsetCandidates } from './catalog-optic-subset-candidates.js';
 const clean=v=>String(v??'').trim().toLowerCase();
 // Only records explicitly issued by a future trusted ingestion service can
 // qualify. No issuer is configured yet; caller-supplied flags fail closed.
-const TRUSTED_ISSUERS = new Set();
+const TRUSTED_ISSUERS = new Set(); // No external issuers approved yet.
 function isTrustedChecklistEvidence(evidence) {
  return Boolean(evidence && typeof evidence==='object' &&
    TRUSTED_ISSUERS.has(evidence.issuer) &&
    evidence.provenance_verified===true &&
-   typeof evidence.record_id==='string' && evidence.record_id.length>0);
+   typeof evidence.record_id==='string' && evidence.record_id.length>0 &&
+   typeof evidence.source_url==='string' && evidence.source_url.startsWith('https://') &&
+   typeof evidence.source_title==='string' && evidence.source_title.trim().length>0 &&
+   typeof evidence.reviewed_at==='string' && !Number.isNaN(Date.parse(evidence.reviewed_at)) &&
+   evidence.review_status==='approved');
 }
 export function resolveOpticSubset(scan, evidence) {
  const range=opticSubsetCandidates(scan);
