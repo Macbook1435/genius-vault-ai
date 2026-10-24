@@ -20,7 +20,14 @@ if(!lookup||!lookup.verifiedIdentity||!Array.isArray(lookup.sources)||!lookup.so
   status:'verified_identity_only',
   identity_verified:true,
   parallel_verified:false,
-  sources:lookup.sources.map(s=>({source_type:s.source_type??null,source_title:s.source_title??null,source_url:s.source_url??null}))
+  sources: lookup.sources
+  .filter(s => s && /^https:\/\//i.test(clean(s.source_url)))
+  .map(s => ({
+    source_type: s.source_type ?? null,
+    source_title: s.source_title ?? null,
+    source_url: s.source_url ?? null
+  }))
+
  };
 }
 
