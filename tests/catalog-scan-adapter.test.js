@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {scannerCatalogQuery,scannerCatalogEvidence,resolveCatalogProduct} from '../api/_lib/catalog-scan-adapter.js';
+import {scannerCatalogQuery,scannerCatalogEvidence,resolveCatalogProduct,lookupVerifiedScanIdentity} from '../api/_lib/catalog-scan-adapter.js';
 test('missing product name never guesses a catalog query',()=>{
  assert.equal(scannerCatalogQuery({brand:'Panini',year:2025,set:'Absolute',cardNumber:'340',player:'Example'}),null);
 });
@@ -53,4 +53,33 @@ test('product resolver rejects year mismatch',()=>{
 test('product resolver rejects missing display-set provenance and non-HTTPS sources',()=>{
  assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,display_set_name:null}]),null);
  assert.equal(resolveCatalogProduct({year:2025,set:'Donruss Optic'},[{...verifiedProduct,sources:[{verification_status:'verified',source_url:'http://example.org/checklist'}]}]),null);
+});
+
+test('verified scanner lookup calls catalog with resolved identity and never verifies parallel',async()=>{
+ const scan={year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'};
+ let called=0;
+ const result=await lookupVerifiedScanIdentity(scan,[verifiedProduct],async query=>{
+  called++;
+  assert.deepEqual(query,{manufacturer:'Panini',year:2025,productName:'Donruss Optic',setName:'Donruss Optic',cardNumber:'340',playerName:'Example'});
+  return {verifiedIdentity:true,sources:[{source_type:'manufacturer',source_url:'https://example.org/checklist'}],parallel:{id:5}};
+ });
+ assert.equal(called,1);
+ assert.equal(result.identity_verified,true);
+ assert.equal(result.parallel_verified,false);
+});
+test('ambiguous products never invoke database lookup',async()=>{
+ let called=0;
+ const result=await lookupVerifiedScanIdentity({year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'},[verifiedProduct,{...verifiedProduct,product_name:'Another'}],async()=>{called++;});
+ assert.equal(called,0);
+ assert.equal(result.status,'not_verified');
+});
+test('missing card number never invokes database lookup',async()=>{
+ let called=0;
+ const result=await lookupVerifiedScanIdentity({year:2025,set:'Donruss Optic',player:'Example'},[verifiedProduct],async()=>{called++;});
+ assert.equal(called,0);
+ assert.equal(result.identity_verified,false);
+});
+test('lookup with no verified sources stays unverified',async()=>{
+ const result=await lookupVerifiedScanIdentity({year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'},[verifiedProduct],async()=>({verifiedIdentity:false,sources:[]}));
+ assert.equal(result.identity_verified,false);
 });
