@@ -433,22 +433,21 @@ function parallelPickerHtml(data) {
   const pk = data.parallelPicker;
   if (!pk || !pk.options?.length) return "";
   const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
-  const sugg = new Set(pk.suggestedIds || []);
-  const top = (pk.suggestedIds || []).map((id) => pk.options.find((o) => o.id === id)).filter(Boolean);
-  const rest = pk.options.filter((o) => !sugg.has(o.id));
-  const opt = (o) => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
-  const sales = "";
+  const top = pk.choiceShortlist?.topChoices || (pk.suggestedIds || []).map(id => pk.options.find(o => String(o.id) === String(id))).filter(Boolean).slice(0,5);
+  const topIds = new Set(top.map(o => String(o.id)));
+  const rest = pk.options.filter(o => !topIds.has(String(o.id)));
+  const opt = o => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
   return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#e8f2ff;border-radius:12px;">
-    ${!pk.needsPick ? '<details><summary>Change parallel (optional)</summary>' : ''}
-    <b style="color:#326748;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
-    ${pk.needsPick ? `<div style="margin:8px 0;">${escHtml(pk.reason || "The scanner is not sure which parallel this is.")} Pick the parallel on your card below.</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
+    ${!pk.needsPick ? '<details><summary>Change card version (optional)</summary>' : ''}
+    <b style="color:#225a83;">Which version is your card?</b>
+    <div style="margin:8px 0;color:#36516c;">${escHtml(pk.reason || "Check the parallel name and any serial stamp on your card. These are suggestions, not verified matches.")}</div>
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
-      <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card...</option>
-      ${top.length ? `<optgroup label="Most likely">${top.map(opt).join("")}</optgroup><optgroup label="All parallels for this card">${rest.map(opt).join("")}</optgroup>` : pk.options.map(opt).join("")}
+      <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose your card version...</option>
+      ${top.map(opt).join("")}
     </select>
-    <button onclick="pickParallel()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">LOAD SOLD PRICES FOR THIS PARALLEL</button>
-    <div id="parallelPickStatus" style="margin-top:8px;"></div>
-    ${sales ? `<div style="margin-top:10px;"><b>Recent sales:</b>${sales}</div>` : ""}
+    ${rest.length ? `<details style="margin-bottom:12px;"><summary>See all ${pk.options.length} versions</summary><div style="margin:8px 0;color:#36516c;">If your version is not listed above, choose it from the full catalog.</div><select id="parallelPickAll" aria-label="All card versions" style="width:100%;padding:10px;border-radius:8px;font-size:16px;" onchange="document.getElementById('parallelPick').value=this.value"><option value="">Choose another version...</option>${rest.map(opt).join("")}</select></details>` : ""}
+    <button onclick="pickParallel()" style="background:#0875cf;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">CHECK SALES FOR SELECTED VERSION</button>
+    <div id="parallelPickStatus" style="margin-top:8px;" role="status"></div>
     ${!pk.needsPick ? "</details>" : ""}
   </div>`;
 }
