@@ -23,3 +23,24 @@ export function scannerCatalogEvidence(lookup){
   sources:lookup.sources.map(s=>({source_type:s.source_type??null,source_title:s.source_title??null,source_url:s.source_url??null}))
  };
 }
+
+// Read-only identity resolver. Candidate catalog records must already have verified
+// provenance; a matching display name is not sufficient to invent a product.
+export function resolveCatalogProduct(scan, candidates) {
+ if(!scan||!Array.isArray(candidates)||!candidates.length)return null;
+ const year=Number(scan.year);
+ if(!Number.isInteger(year)||year<1880||year>2100)return null;
+ const normalized=v=>clean(v).normalize('NFKC').replace(/\s+/g,' ').toLocaleLowerCase('en-US');
+ const displayed=normalized(scan.set);
+ if(!displayed||bad(displayed))return null;
+ const matches=candidates.filter(c=>
+  c&&c.verification_status==='verified'&&
+  Array.isArray(c.sources)&&c.sources.some(s=>s?.verification_status==='verified'&&clean(s.source_url))&&
+  Number(c.release_year)===year&&
+  !bad(clean(c.manufacturer))&&!bad(clean(c.product_name))&&
+  normalized(c.display_set_name)===displayed
+ );
+ // Never pick the first match when two products share a display name.
+ if(matches.length!==1)return null;
+ return {catalogManufacturer:clean(matches[0].manufacturer),catalogProductName:clean(matches[0].product_name)};
+}
