@@ -21,3 +21,15 @@ test('unrelated release cannot receive Optic review',()=>{
  assert.equal(addParallelReviewToScanResponse(input,fixture,evidence),input);
 });
 test('missing response is handled without throwing',()=>assert.equal(addParallelReviewToScanResponse(null,fixture,evidence),null));
+
+test('missing checklist evidence never adds player-specific claims',()=>{
+ const input={...base,scan:{...base.scan,autograph:true,catalogSubsetId:'rookie_auto'}};
+ const out=addParallelReviewToScanResponse(input,fixture,null);
+ assert.equal(out,input);
+ assert.equal(out.parallelReview,undefined);
+});
+test('self-reported autograph does not substitute for checklist evidence',()=>{
+ const input={...base,scan:{...base.scan,autograph:true}};
+ const out=addParallelReviewToScanResponse(input,fixture,{...evidence,verification_status:'candidate'});
+ assert.equal(out,input);
+});
