@@ -28,3 +28,17 @@ Import thousands of unsorted physical sports cards from Fujitsu fi-7160 duplex J
 4. Duplicate upload does not create 10 additional physical copies.
 5. Each saved copy has two correctly matched images and independently verified/unknown identification fields.
 6. No writes to production; no public exposure of personal card photos.
+
+## Duplicate physical copies vs duplicate uploads
+- Identical card identity and parallel may represent multiple **real physical copies**. Keep one canonical card/variant identity but record each owned physical copy separately; display aggregated owned quantity.
+- A repeated scan of a different physical copy must not be rejected solely because front/back images or card identity look identical. Do not use image hash alone to deduplicate inventory.
+- A retry of the **same upload batch** must not create more copies. Use a stable client-generated batch ID plus per-pair position/idempotency key to prevent replay, while allowing new batches containing the same card.
+- If a user rescans a cropped card, provide an explicit **replace images for existing copy** operation, not automatic quantity increment.
+- For numbered parallels, preserve the exact stamped serial as a property of the physical copy when verified; two copies with distinct stamps are distinct even when same checklist variant.
+- Review count example: four physically owned identical Josh Allen base cards = quantity four; reuploading the same batch = still four; uploading a new batch containing two more owned copies = six.
+
+## Additional acceptance checks
+7. Four distinct physical copies of one base card count as four under one card identity.
+8. Replaying a batch does not change quantity.
+9. A new batch with another physical copy increases quantity even if images look identical.
+10. Rescanning a damaged image updates the intended copy without increasing quantity.
