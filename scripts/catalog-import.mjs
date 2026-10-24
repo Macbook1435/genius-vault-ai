@@ -19,6 +19,8 @@ console.log(`Validated ${rows.length} entries; mode: ${mode}`);
 if(mode==="--dry-run")process.exit(0);
 const url=process.env.TEST_SUPABASE_URL,keyEnv=process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!keyEnv||!/^https:\/\//.test(url))throw Error("TEST Supabase credentials required; never use production keys");
+const target=new URL(url);
+if(target.hostname!=="upvklqpoekudqifydmwr.supabase.co" || target.pathname!=="/" || target.search || target.hash)throw Error("Refusing writes: URL must be the exact Genius Vault TEST Supabase project");
 const headers={apikey:keyEnv,Authorization:`Bearer ${keyEnv}`,"Content-Type":"application/json"};
 async function request(table,query="",options={}){
  const response=await fetch(`${url}/rest/v1/${table}${query}`,{headers:{...headers,...options.headers},...options});
