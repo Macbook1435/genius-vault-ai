@@ -13,6 +13,7 @@ for(const [i,r] of rows.entries()){
  if(!Number.isInteger(r.release_year))throw Error(`Row ${i+1}: invalid release_year`);
 }
 const key=r=>[r.manufacturer,r.release_year,r.product_name,r.set_name,r.card_number,r.player_name,r.parallel_name||""].map(v=>String(v).trim().toLowerCase()).join("|");
+if(!rows.length)throw Error("Checklist is empty; refusing an empty import");
 const unique=new Map(rows.map(r=>[key(r),r]));
 if(unique.size!==rows.length)throw Error("Duplicate checklist entries in input");
 console.log(`Validated ${rows.length} entries; mode: ${mode}`);
