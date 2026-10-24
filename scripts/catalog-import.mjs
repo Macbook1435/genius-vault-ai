@@ -41,7 +41,8 @@ for(const r of rows){
  const c=await findOrCreate("gv_catalog_cards",{product_id:p.id,set_name:r.set_name,card_number:String(r.card_number),player_name:r.player_name},{product_id:p.id,set_name:r.set_name,card_number:String(r.card_number),player_name:r.player_name});
  let parallel=null;
  if(r.parallel_name)parallel=await findOrCreate("gv_catalog_parallels",{card_id:c.id,parallel_name:r.parallel_name},{card_id:c.id,parallel_name:r.parallel_name});
- const sources=await request("gv_catalog_sources",`?select=id&card_id=eq.${c.id}&source_url=eq.${encodeURIComponent(r.source_url)}&source_type=eq.manufacturer_checklist${parallel?`&parallel_id=eq.${parallel.id}`:"&parallel_id=is.null"}`);
+ const sourceQuery=new URLSearchParams({select:"id",card_id:`eq.${c.id}`,source_url:`eq.${r.source_url}`,source_type:"eq.manufacturer_checklist",parallel_id:parallel?`eq.${parallel.id}`:"is.null"});
+ const sources=await request("gv_catalog_sources",`?${sourceQuery}`);
  if(!sources.length)await request("gv_catalog_sources","",{method:"POST",body:JSON.stringify({card_id:c.id,parallel_id:parallel?.id||null,source_type:"manufacturer_checklist",source_title:r.source_title||"Manufacturer checklist (pending review)",source_url:r.source_url,verification_status:"pending"})});
 }
 console.log("Import complete; all new source claims remain pending verification.");
