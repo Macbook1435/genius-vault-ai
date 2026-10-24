@@ -103,3 +103,19 @@ test('unverified product source prevents catalog lookup',async()=>{
  assert.equal(calls,0);
  assert.equal(result.identity_verified,false);
 });
+
+test('verified evidence excludes non-HTTPS sources', () => {
+  const result = scannerCatalogEvidence({
+    verifiedIdentity: true,
+    sources: [
+      { source_url: 'https://example.org/checklist' },
+      { source_url: 'http://example.org/insecure' },
+      { source_url: null }
+    ]
+  });
+
+  assert.equal(result.identity_verified, true);
+  assert.equal(result.parallel_verified, false);
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].source_url, 'https://example.org/checklist');
+});
