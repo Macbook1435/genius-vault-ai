@@ -83,3 +83,23 @@ test('lookup with no verified sources stays unverified',async()=>{
  const result=await lookupVerifiedScanIdentity({year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'},[verifiedProduct],async()=>({verifiedIdentity:false,sources:[]}));
  assert.equal(result.identity_verified,false);
 });
+
+test('missing lookup function never marks identity verified',async()=>{
+ const scan={year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'};
+ const result=await lookupVerifiedScanIdentity(scan,[verifiedProduct],null);
+ assert.equal(result.status,'not_verified');
+ assert.equal(result.parallel_verified,false);
+});
+test('null catalog lookup result abstains rather than guessing',async()=>{
+ const scan={year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'};
+ const result=await lookupVerifiedScanIdentity(scan,[verifiedProduct],async()=>null);
+ assert.equal(result.identity_verified,false);
+ assert.equal(result.parallel_verified,false);
+});
+test('unverified product source prevents catalog lookup',async()=>{
+ let calls=0;
+ const scan={year:2025,set:'Donruss Optic',cardNumber:'340',player:'Example'};
+ const result=await lookupVerifiedScanIdentity(scan,[{...verifiedProduct,sources:[]}],async()=>{calls++;return {verifiedIdentity:true,sources:[{source_url:'https://example.org'}]};});
+ assert.equal(calls,0);
+ assert.equal(result.identity_verified,false);
+});
