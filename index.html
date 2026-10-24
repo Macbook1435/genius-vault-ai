@@ -438,7 +438,7 @@ function parallelPickerHtml(data) {
   const rest = pk.options.filter(o => !topIds.has(String(o.id)));
   const opt = o => `<option value="${escHtml(o.id)}" ${pk.selectedId === o.id ? "selected" : ""}>${escHtml(label(o))}</option>`;
   return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#e8f2ff;border-radius:12px;">
-    ${!pk.needsPick ? '<details><summary>Change card version (optional)</summary>' : ''}
+    
     <b style="color:#225a83;">Which version is your card?</b>
     <div style="margin:8px 0;color:#36516c;">${escHtml(pk.reason || "Check the parallel name and any serial stamp on your card. These are suggestions, not verified matches.")}</div>
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
@@ -448,7 +448,7 @@ function parallelPickerHtml(data) {
     ${rest.length ? `<details style="margin-bottom:12px;"><summary>See all ${pk.options.length} versions</summary><div style="margin:8px 0;color:#36516c;">If your version is not listed above, choose it from the full catalog.</div><select id="parallelPickAll" aria-label="All card versions" style="width:100%;padding:10px;border-radius:8px;font-size:16px;" onchange="const main=document.getElementById('parallelPick');const chosen=this.options[this.selectedIndex];if(chosen?.value){let entry=Array.from(main.options).find(o=>o.value===chosen.value);if(!entry){entry=new Option(chosen.text,chosen.value);main.add(entry);}main.value=chosen.value;}"><option value="">Choose another version...</option>${rest.map(opt).join("")}</select></details>` : ""}
     <button onclick="pickParallel()" style="background:#0875cf;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">CHECK SALES FOR SELECTED VERSION</button>
     <div id="parallelPickStatus" style="margin-top:8px;" role="status"></div>
-    ${!pk.needsPick ? "</details>" : ""}
+    
   </div>`;
 }
 
