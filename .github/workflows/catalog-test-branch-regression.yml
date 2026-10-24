@@ -23,4 +23,5 @@ jobs:
             tests/catalog-scan-response-review.test.js \
             tests/catalog-scan-endpoint-wiring.test.js \
             tests/catalog-review-fixture-safety.test.js \
-            tests/catalog-exact-comps-gate.test.js
+            tests/catalog-exact-comps-gate.test.js \
+            tests/catalog-pending-source-safety.test.js
