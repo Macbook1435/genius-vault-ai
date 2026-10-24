@@ -862,13 +862,33 @@ updateCount();
 
 // Membership stays hidden until the business explicitly enables subscriptions.
 let gvMemberConfig=null,gvMemberToken=null;
+const GV_AUTH_KEY='gv-member-auth-v1';
+function memberSaveSession(data){
+ if(!data?.access_token||!data?.refresh_token)return false;
+ localStorage.setItem(GV_AUTH_KEY,JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+Math.max(30,Number(data.expires_in)||3600)*1000}));
+ gvMemberToken=data.access_token;
+ sessionStorage.removeItem('gv-member-token');
+ return true;
+}
+async function memberRestoreSession(force=false){
+ if(!gvMemberConfig)return false;
+ let saved;
+ try{saved=JSON.parse(localStorage.getItem(GV_AUTH_KEY)||'null');}catch{localStorage.removeItem(GV_AUTH_KEY);return false;}
+ if(!saved?.refresh_token){localStorage.removeItem(GV_AUTH_KEY);return false;}
+ if(!force&&saved.access_token&&Number(saved.expires_at)>Date.now()+60000){gvMemberToken=saved.access_token;return true;}
+ try{
+  const url=gvMemberConfig.supabaseUrl.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token';
+  const response=await fetch(url,{method:'POST',headers:{apikey:gvMemberConfig.supabaseAnonKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:saved.refresh_token})});
+  if(!response.ok){if(response.status===400||response.status===401){localStorage.removeItem(GV_AUTH_KEY);gvMemberToken=null;}return false;}
+  return memberSaveSession(await response.json());
+ }catch{return false;}
+}
 async function memberInit(){
  try{
   const r=await fetch('/api/public-config');const c=await r.json();
   if(!c.enabled||!c.supabaseUrl||!c.supabaseAnonKey)return;
   gvMemberConfig=c;document.getElementById('memberLogin').hidden=false;document.getElementById('memberStatus').textContent='Membership account access is available. Sign in to view your verified plan status.';document.getElementById('memberState').textContent='Account access available';
-  gvMemberToken=sessionStorage.getItem('gv-member-token');
-  if(gvMemberToken)await memberRefresh();
+  if(await memberRestoreSession())await memberRefresh();
  }catch{ /* Existing free scanner remains available when membership is disabled. */ }
 }
 async function memberAuth(mode){
@@ -882,7 +902,7 @@ async function memberAuth(mode){
   const d=await r.json();
   if(!r.ok)throw Error(d.msg||d.error_description||d.message||'Sign-in failed');
   if(!d.access_token){notice('Check your email to confirm your account, then sign in.');return;}
-  gvMemberToken=d.access_token;sessionStorage.setItem('gv-member-token',gvMemberToken);
+  memberSaveSession(d);
   await memberRefresh();
  }catch(e){notice(e.message);}
 }
@@ -890,7 +910,7 @@ async function memberRefresh(){
  if(!gvMemberToken)return;
  try{
   const r=await fetch('/api/subscription-status',{headers:{Authorization:'Bearer '+gvMemberToken},cache:'no-store'});
-  if(r.status===401){memberLogout();notice('Session expired. Please sign in again.');return;}
+  if(r.status===401){if(await memberRestoreSession(true))return memberRefresh();memberLogout();notice('Session expired. Please sign in again.');return;}
   if(!r.ok)throw Error('Membership status is temporarily unavailable.');
   const d=await r.json(),plan=d.plan||null;
   const used=Number(d.used),remaining=Number(d.remaining),limit=Number(plan?.scan_limit);
@@ -929,7 +949,7 @@ async function memberRefresh(){
  }
 }
 function memberLogout(){
- gvMemberToken=null;sessionStorage.removeItem('gv-member-token');
+ gvMemberToken=null;sessionStorage.removeItem('gv-member-token');localStorage.removeItem(GV_AUTH_KEY);
  document.getElementById('memberLogin').hidden=false;document.getElementById('memberActions').hidden=true;
  document.getElementById('memberStatus').textContent='Sign in to view your unlimited membership status.';
  document.getElementById('memberState').textContent='Signed out';
