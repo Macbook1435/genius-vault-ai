@@ -339,7 +339,15 @@ async function aiScan() {
  for(const [key,file] of [['image',front],['back',back],['serial',serial]])if(file){scanStage='preparing '+key+' photo';form.append(key,await compressImage(file),key+'.jpg');}
  scanStage='sending scan request';
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),180000);
- let response;try{response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal,headers:gvMemberToken?{Authorization:'Bearer '+gvMemberToken}:{}});}finally{clearTimeout(timer);}
+ let response;try{
+  // Refresh a nearly expired membership token before submitting a credit-bearing scan.
+  // Do not automatically retry a submitted scan: the first attempt might have consumed a credit.
+  if(gvMemberToken&&gvMemberConfig){
+   let saved=null;try{saved=JSON.parse(localStorage.getItem(GV_AUTH_KEY)||'null');}catch{}
+   if(saved?.refresh_token&&Number(saved.expires_at)<=Date.now()+60000)await memberRestoreSession(true);
+  }
+  response=await fetch('/api/scan',{method:'POST',body:form,signal:controller.signal,headers:gvMemberToken?{Authorization:'Bearer '+gvMemberToken}:{}});
+ }finally{clearTimeout(timer);}
  scanStage='reading scan response';
  const raw=await response.text();let data;
  try{data=JSON.parse(raw);}catch{throw new Error(response.ok?'The scanner returned an unreadable response. Please try again.':scanFailureMessage(response.status,null));}
