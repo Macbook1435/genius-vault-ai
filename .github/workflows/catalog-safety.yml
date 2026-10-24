@@ -15,6 +15,7 @@ on:
       - 'tests/donruss-optic-rps-review.test.js'
       - 'tests/catalog-scan-response-review.test.js'
       - 'tests/catalog-optic-subset-candidates.test.js'
+      - 'tests/catalog-optic-subset-resolver.test.js'
       - 'tests/fixtures/donruss-optic-rps-review.json'
       - '.github/workflows/catalog-safety.yml'
   workflow_dispatch:
@@ -30,4 +31,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run read-only catalog tests
-        run: node --experimental-default-type=module --test tests/catalog-import.test.js tests/catalog-import-match.test.js tests/catalog-import-preview-match.test.js tests/catalog-dry-run.test.js tests/catalog-scan-adapter.test.js tests/donruss-optic-rps-review.test.js tests/catalog-scan-response-review.test.js tests/catalog-optic-subset-candidates.test.js
+        run: node --experimental-default-type=module --test tests/catalog-import.test.js tests/catalog-import-match.test.js tests/catalog-import-preview-match.test.js tests/catalog-dry-run.test.js tests/catalog-scan-adapter.test.js tests/donruss-optic-rps-review.test.js tests/catalog-scan-response-review.test.js tests/catalog-optic-subset-candidates.test.js tests/catalog-optic-subset-resolver.test.js
