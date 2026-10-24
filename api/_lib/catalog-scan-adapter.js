@@ -35,10 +35,10 @@ export function resolveCatalogProduct(scan, candidates) {
  if(!displayed||bad(displayed))return null;
  const matches=candidates.filter(c=>
   c&&
-  Array.isArray(c.sources)&&c.sources.some(s=>s?.verification_status==='verified'&&clean(s.source_url))&&
+  Array.isArray(c.sources)&&c.sources.some(s=>s?.verification_status==='verified'&&/^https:\/\//i.test(clean(s.source_url)))&&
   Number(c.release_year)===year&&
   !bad(clean(c.manufacturer))&&!bad(clean(c.product_name))&&
-  normalized(c.display_set_name)===displayed
+  !bad(clean(c.display_set_name))&&normalized(c.display_set_name)===displayed
  );
  // Source verification is stored on gv_catalog_sources, not gv_catalog_products.
  // Candidate display_set_name must be explicitly provided by a reviewed source adapter.
