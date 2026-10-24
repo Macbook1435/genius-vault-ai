@@ -1,0 +1,32 @@
+{
+  "fixture_type": "real_card_reference_benchmark",
+  "safe_to_promote": false,
+  "product_year": 2025,
+  "manufacturer": "Panini",
+  "product": "Donruss Football",
+  "subset": "Optic Rated Rookies Preview",
+  "parallel": "Red Pandora",
+  "player": "Mason Graham",
+  "team": "Cleveland Browns",
+  "card_number": "340",
+  "serial_number": null,
+  "autograph": false,
+  "source_review_status": "secondary_checklists_correlated_not_manufacturer_verified",
+  "reference_urls": [
+    "https://www.tcdb.com/Checklist.cfm/sid/564419/2025-Donruss-Optic-Rated-Rookies-Preview-Red-Pandora",
+    "https://theclector.com/cards/football/nfl/panini/2025/donruss/optic-rated-rookies-preview-red-pandora"
+  ],
+  "scanner_observed": {
+    "player": "Mason Graham",
+    "year": 2025,
+    "set": "Panini Donruss Football",
+    "card_number": "340",
+    "parallel": null,
+    "serial_number": null,
+    "autograph_detected": false,
+    "returned_auction_median_usd": 1.77,
+    "returned_sold_records": 5
+  },
+  "pricing_guardrail": "Do not value exact Red Pandora card from mixed parallel, bulk lot, or unidentified sold records.",
+  "notes": "Observed from user screenshots; price records not independently verified. This fixture is documentation, not trusted catalog evidence."
+}
