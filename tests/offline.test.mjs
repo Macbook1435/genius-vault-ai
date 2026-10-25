@@ -77,12 +77,9 @@ test('CSV export quotes embedded delimiters and neutralizes formula cells',()=>{
 });
 
 
-const verificationSource=fs.readFileSync(new URL('../api/_lib/verification.js',import.meta.url),'utf8');
-const verificationScript=verificationSource.split('// Keep SOLD prices and ACTIVE asking prices completely separate.')[0]
- .replaceAll('export function ','function ');
-const verifyContext=vm.createContext({});
-vm.runInContext(verificationScript,verifyContext);
-const verify=(scan,v={},ctx={})=>verifyContext.buildFieldVerification(scan,v,ctx);
+// Import the actual ESM module instead of evaluating its import declarations as a VM script.
+const { buildFieldVerification } = await import('../api/_lib/verification.js');
+const verify=(scan,v={},ctx={})=>buildFieldVerification(scan,v,ctx);
 test('high confidence photo parallel remains only a suggestion',()=>{
  const source=fs.readFileSync(new URL('../api/cardsight.js',import.meta.url),'utf8');
  const code=segment(source,'export function resolveParallel(card) {','\nfunction median(').replace('export function','function');
