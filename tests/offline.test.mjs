@@ -303,3 +303,23 @@ test('scan code syntax parses without calling AI or eBay',()=>{
  assert.match(scanSource,/async function fetchSoldComps\(/);
  assert.match(scanSource,/matchAudit:/);
 });
+
+
+test('110-card audit regression: Trevor Etienne photo cannot silently become Raheim Sanders',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const result=scanAuditAdvisory({scan:{player:'Raheim Sanders',cardNumber:'189',evidence:{playerNameText:'Trevor Etienne',cardNumberText:'179'}}});
+ assert.equal(result.status,'unverified');
+ assert.equal(result.approvalAllowed,false);
+ assert.equal(result.autoApproved,false);
+ assert.ok(result.issues.some(i=>i.code==='player_evidence_conflict'));
+ assert.ok(result.issues.some(i=>i.code==='number_evidence_conflict'));
+});
+
+test('110-card audit regression: matching identity still cannot auto-verify Paper or Chrome parallel',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const result=scanAuditAdvisory({scan:{player:'Trevor Etienne',cardNumber:'179',parallel:'Chrome',evidence:{playerNameText:'Trevor Etienne',cardNumberText:'179'}}});
+ assert.equal(result.status,'unverified');
+ assert.equal(result.requiresHumanReview,true);
+ assert.equal(result.autoApproved,false);
+ assert.ok(result.issues.some(i=>i.code==='physical_parallel_unverified'));
+});
