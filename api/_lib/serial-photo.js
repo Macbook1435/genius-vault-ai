@@ -47,6 +47,13 @@ Find a physical foil-stamped serial number. Transcribe EACH digit separately, th
                 ['middle strip',{x0:0,x1:1,y0:0.3,y1:0.7}],
                 ['bottom strip',{x0:0,x1:1,y0:0.6,y1:1}]];
   const second=await readRegions(strips,'serial_full_retry');
-  return second.serial ? second : {...first,fallback:second};
+  if (second.serial) return second;
+  // Some horizontal autograph cards place the foil stamp just above the
+  // set logo in the lower-right center. Give that area a tighter crop
+  // only after the ordinary corner and strip reads failed.
+  const targeted=[['lower center',{x0:0.32,x1:0.77,y0:0.54,y1:0.93}],
+                  ['lower right',{x0:0.62,x1:1,y0:0.48,y1:0.92}]];
+  const third=await readRegions(targeted,'serial_targeted_retry');
+  return third.serial ? third : {...first,fallback:second,targeted:third};
  } catch(e) {return {status:'error',reads:[],serial:null};}
 }
