@@ -1160,7 +1160,9 @@ async function ebayOutsideMatches(card) {
   const out = { configured: ebayConfigured(), status: "not_checked", listings: [] };
   if (!out.configured) { out.status = "not_configured"; return out; }
   if (!cleanPart(card.player)) { out.status = "skipped"; return out; }
-  const q = [card.player, card.cardNumber ? `#${card.cardNumber}` : "", card.numberedTo ? `/${card.numberedTo}` : "", card.autograph ? "auto" : ""]
+  const specificSet = cleanPart(card.set || card.setName || "").trim();
+  const trustedSetSearch = specificSet && !/^(panini|topps|upper deck|leaf|wild card)$/i.test(specificSet);
+  const q = [card.year || "", trustedSetSearch ? specificSet : "", card.player, card.cardNumber ? `#${card.cardNumber}` : "", card.numberedTo ? `/${card.numberedTo}` : "", card.autograph ? "auto" : ""]
     .filter(Boolean).join(" ");
   try {
     const items = await ebaySearch(q);
@@ -1169,7 +1171,7 @@ async function ebayOutsideMatches(card) {
     const matches = items.filter((i) => {
       const t = i.title.toLowerCase();
       const tn = i.title.toUpperCase().replace(/[^A-Z0-9#/ ]/g, " ");
-      return t.includes(last) && (!num || new RegExp(`(#|NO\\.?\\s*)${num}\\b`).test(tn)) &&
+      return (!card.year || new RegExp(`\\b${card.year}\\b`).test(t)) && (!trustedSetSearch || specificSet.toLowerCase().split(/\\s+/).every(w => t.includes(w))) && t.includes(last) && (!num || new RegExp(`(#|NO\\.?\\s*)${num}\\b`).test(tn)) &&
         (!card.numberedTo || t.includes(`/${card.numberedTo}`));
     });
     out.query = q;
