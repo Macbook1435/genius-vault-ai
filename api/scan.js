@@ -1791,6 +1791,13 @@ Strict rules:
       }
     }
 
+    // A manufacturer by itself is not a product/set identification.
+    // Keep the brand, but do not present it as a confirmed set.
+    if (cleanPart(scanResult.set) && /^(panini|topps|upper deck|leaf|wild card)$/i.test(cleanPart(scanResult.set))) {
+      detailWarnings.push("Only the manufacturer was recognized; the product/set remains unidentified.");
+      scanResult.set = "";
+    }
+
     // Avoid "Topps Topps Chrome": drop a repeated brand from the start of the set name.
     if (cleanPart(scanResult.brand) && cleanPart(scanResult.set)) {
       const b = cleanPart(scanResult.brand);
