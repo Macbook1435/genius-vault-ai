@@ -137,7 +137,12 @@ test('reference catalog uses release and subset scope and never fills in invente
  const {catalogCoverage,listReferenceVariants,vocabularyCandidates}=await import('../api/_lib/catalog-reference.js');
  const coverage=catalogCoverage();
  assert.equal(coverage.length,8); // Eight explicit product checklist modules in api/_data/checklists/index.js
- assert.ok(coverage.every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
+ const unverifiedAbsolute=coverage.find(p=>p.id==='2025-panini-absolute-football');
+ assert.ok(unverifiedAbsolute);
+ assert.equal(unverifiedAbsolute.sourceUrls.length,0);
+ assert.equal(unverifiedAbsolute.variantRows,0);
+ assert.equal(unverifiedAbsolute.crossCheckedRows,0);
+ assert.ok(coverage.filter(p=>p.id!=='2025-panini-absolute-football').every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
  assert.ok(coverage.every(p=>p.crossCheckedRows+p.singleSourceOrUnresolvedRows===p.variantRows));
  const release=coverage.find(p=>p.id==='2025-donruss-optic-football');
  assert.ok(release);
