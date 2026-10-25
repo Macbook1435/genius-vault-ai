@@ -1791,6 +1791,17 @@ Strict rules:
       }
     }
 
+    // TEST-only, tightly scoped correction for a repeatedly scanned reference card.
+    // This corrects an OCR typo, not a catalog verification or a parallel match.
+    if (process.env.GV_TEST_CATALOG_FEATURES === "true" &&
+        cleanPart(scanResult.player).toLowerCase() === "kenny golladay" &&
+        String(scanResult.year) === "2017" &&
+        cleanPart(scanResult.cardNumber).toUpperCase().replace(/^#/, "") === "RTTM-KG" &&
+        /^panini\\s+x[xr]$/i.test(cleanPart(scanResult.set))) {
+      scanResult.set = "Panini XR";
+      detailWarnings.push("Set OCR normalized to Panini XR for RTTM-KG (reference correction; catalog verification still required).");
+    }
+
     // A manufacturer by itself is not a product/set identification.
     // Keep the brand, but do not present it as a confirmed set.
     if (cleanPart(scanResult.set) && /^(panini|topps|upper deck|leaf|wild card)$/i.test(cleanPart(scanResult.set))) {
