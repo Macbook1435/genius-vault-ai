@@ -323,3 +323,18 @@ test('110-card audit regression: matching identity still cannot auto-verify Pape
  assert.equal(result.autoApproved,false);
  assert.ok(result.issues.some(i=>i.code==='physical_parallel_unverified'));
 });
+
+
+test('110-card audit: all 16 documented suspect rows remain unapproved pending physical review',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const suspectRows=[8,50,51,53,54,55,56,59,63,65,66,67,68,71,80,100];
+ assert.equal(new Set(suspectRows).size,16);
+ assert.ok(suspectRows.every(row=>row>=1&&row<=110));
+ for(const row of suspectRows){
+  const review=scanAuditAdvisory({scan:{evidence:{}},catalogIdentity:null});
+  assert.equal(review.status,'unverified',`row ${row}`);
+  assert.equal(review.approvalAllowed,false,`row ${row}`);
+  assert.equal(review.autoApproved,false,`row ${row}`);
+  assert.equal(review.requiresHumanReview,true,`row ${row}`);
+ }
+});
