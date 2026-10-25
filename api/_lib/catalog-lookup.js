@@ -31,3 +31,38 @@ export async function lookupCatalogCard({ manufacturer, year, productName, setNa
     parallel: null
   };
 }
+
+
+// Find identity candidates without trusting the scanner's OCR product label.
+// Read-only: return only a unique card with independently verified provenance.
+export async function lookupCatalogByIdentity({ year, cardNumber, playerName }) {
+  const y = Number(year);
+  const number = String(cardNumber || "").trim().replace(/^#/, "");
+  const player = String(playerName || "").trim();
+  if (!Number.isInteger(y) || y < 1880 || y > 2100 || !number || !player) return null;
+  const cards = await supabaseRequest(
+    "/rest/v1/gv_catalog_cards?select=id,product_id,player_name,card_number,set_name" +
+    "&card_number=eq." + eq(number) + "&player_name=ilike." + eq(player) + "&limit=10",
+    { admin: true }
+  );
+  if (!Array.isArray(cards) || !cards.length) return null;
+  const matches = [];
+  for (const card of cards) {
+    const products = await supabaseRequest(
+      "/rest/v1/gv_catalog_products?select=id,manufacturer,release_year,product_name&id=eq." +
+      eq(card.product_id) + "&release_year=eq." + y + "&limit=1", { admin: true }
+    );
+    if (!Array.isArray(products) || products.length !== 1) continue;
+    const sources = await supabaseRequest(
+      "/rest/v1/gv_catalog_sources?select=id,source_type,source_title,source_url,verification_status" +
+      "&card_id=eq." + eq(card.id) + "&parallel_id=is.null&verification_status=eq.verified&limit=20",
+      { admin: true }
+    );
+    const verified = (Array.isArray(sources) ? sources : []).filter(x =>
+      x && /^https:\/\//i.test(String(x.source_url || ""))
+    );
+    if (verified.length) matches.push({ card, product: products[0], sources: verified });
+  }
+  // Ambiguous matches are never resolved by choosing the first candidate.
+  return matches.length === 1 ? { ...matches[0], verifiedIdentity: true } : null;
+}
