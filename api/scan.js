@@ -20,6 +20,7 @@ import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 import { addParallelReviewToScanResponse } from "./_lib/catalog-scan-response-review.js";
 import { scanReferenceFeatures } from "./_lib/catalog-feature-evidence.js";
 import { lookupCatalogByIdentity } from "./_lib/catalog-lookup.js";
+import { scanAuditAdvisory } from "./_lib/scan-audit-advisory.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2265,7 +2266,7 @@ Strict rules:
         console.error("test catalog identity lookup unavailable:", identityError);
       }
     }
-    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures, catalogIdentity }, null, null));
+    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures, catalogIdentity, visualAudit: scanAuditAdvisory({ scan: scanResult, catalogIdentity }) }, null, null));
   } catch (err) {
     console.error("scan error:", err);
     if (scanReservation) {
