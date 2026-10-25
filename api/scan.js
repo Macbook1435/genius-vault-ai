@@ -18,6 +18,7 @@ import { PARALLEL_CHECKLISTS } from "./_data/parallel-checklists.js";
 import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 import { addParallelReviewToScanResponse } from "./_lib/catalog-scan-response-review.js";
+import { scanReferenceFeatures } from "./_lib/catalog-feature-evidence.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2213,7 +2214,15 @@ Strict rules:
     // Advisory only: no trusted checklist evidence is wired yet. Fail closed.
     // The decorator returns the original response until independently reviewed
     // subset evidence is available; never promote fixture claims to verified.
-    return res.status(200).json(addParallelReviewToScanResponse(scanResponse, null, null));
+    let referenceFeatures = { status: "not_verified", features: [], source: "gv_catalog_card_features" };
+    if (process.env.GV_TEST_CATALOG_FEATURES === "true") {
+      try {
+        referenceFeatures = await scanReferenceFeatures(scanResult);
+      } catch (featureError) {
+        console.error("test catalog feature lookup unavailable:", featureError);
+      }
+    }
+    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures }, null, null));
   } catch (err) {
     console.error("scan error:", err);
     if (scanReservation) {
