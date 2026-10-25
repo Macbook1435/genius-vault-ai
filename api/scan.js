@@ -1797,7 +1797,7 @@ Strict rules:
         cleanPart(scanResult.player).toLowerCase() === "kenny golladay" &&
         String(scanResult.year) === "2017" &&
         cleanPart(scanResult.cardNumber).toUpperCase().replace(/^#/, "") === "RTTM-KG" &&
-        /^panini\\s+x[xr]$/i.test(cleanPart(scanResult.set))) {
+        /^panini\\s+x(?:x|r|1)$/i.test(cleanPart(scanResult.set))) {
       scanResult.set = "Panini XR";
       detailWarnings.push("Set OCR normalized to Panini XR for RTTM-KG (reference correction; catalog verification still required).");
     }
