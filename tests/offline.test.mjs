@@ -136,7 +136,7 @@ test('serial: two matching full-photo observations narrow print run but never ex
 test('reference catalog uses release and subset scope and never fills in invented print runs',async()=>{
  const {catalogCoverage,listReferenceVariants,vocabularyCandidates}=await import('../api/_lib/catalog-reference.js');
  const coverage=catalogCoverage();
- assert.equal(coverage.length,7);
+ assert.equal(coverage.length,8); // Eight explicit product checklist modules in api/_data/checklists/index.js
  assert.ok(coverage.every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
  assert.ok(coverage.every(p=>p.crossCheckedRows+p.singleSourceOrUnresolvedRows===p.variantRows));
  const release=coverage.find(p=>p.id==='2025-donruss-optic-football');
