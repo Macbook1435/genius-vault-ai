@@ -19,6 +19,7 @@ import { scannerChecklistReference } from "./_lib/checklist-registry.js";
 import { describeMemorabiliaEvidence } from "./_lib/memorabilia-evidence.js";
 import { addParallelReviewToScanResponse } from "./_lib/catalog-scan-response-review.js";
 import { scanReferenceFeatures } from "./_lib/catalog-feature-evidence.js";
+import { lookupCatalogByIdentity } from "./_lib/catalog-lookup.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -2242,7 +2243,29 @@ Strict rules:
         console.error("test catalog feature lookup unavailable:", featureError);
       }
     }
-    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures }, null, null));
+    // TEST-only read-only identity evidence. Never overwrite OCR, confidence, parallel or pricing.
+    let catalogIdentity = { status: "not_verified", candidates: [] };
+    if (process.env.GV_TEST_CATALOG_FEATURES === "true") {
+      try {
+        const identity = await lookupCatalogByIdentity({
+          year: scanResult.year, cardNumber: scanResult.cardNumber, playerName: scanResult.player
+        });
+        if (identity?.verifiedIdentity) {
+          catalogIdentity = {
+            status: "verified_reference_identity",
+            manufacturer: identity.product.manufacturer,
+            productName: identity.product.product_name,
+            setName: identity.card.set_name,
+            cardNumber: identity.card.card_number,
+            playerName: identity.card.player_name,
+            sources: identity.sources.map(x => ({ title: x.source_title, url: x.source_url }))
+          };
+        }
+      } catch (identityError) {
+        console.error("test catalog identity lookup unavailable:", identityError);
+      }
+    }
+    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures, catalogIdentity }, null, null));
   } catch (err) {
     console.error("scan error:", err);
     if (scanReservation) {
