@@ -1471,6 +1471,15 @@ export default async function handler(req, res) {
       });
     }
 
+    // Fail closed for automated batch requests until provider-side cost ceilings
+    // and dedicated TEST authentication are proven. Manual scans are unchanged.
+    if (req.headers["x-gv-test-batch"] !== undefined) {
+      return res.status(423).json({
+        error: "Automated TEST batch is locked pending verified authentication and provider-side cost limits.",
+        batchEnabled: false,
+      });
+    }
+
     if (
       !process.env.OPENAI_API_KEY &&
       !process.env.SPECIAL_API_KEY
@@ -1484,15 +1493,6 @@ export default async function handler(req, res) {
     const member = subscriptionsEnabled() ? await authenticatedUser(req) : null;
     if (subscriptionsEnabled() && !member) {
       return res.status(401).json({ error: "Sign in to scan cards." });
-    }
-
-    // Fail closed for automated batch requests until provider-side cost ceilings
-    // and dedicated TEST authentication are proven. Manual scans are unchanged.
-    if (req.headers["x-gv-test-batch"] !== undefined) {
-      return res.status(423).json({
-        error: "Automated TEST batch is locked pending verified authentication and provider-side cost limits.",
-        batchEnabled: false,
-      });
     }
 
     const { files, fields: formFields } = await parseForm(req);
