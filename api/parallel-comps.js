@@ -2,11 +2,14 @@
 // GET /api/parallel-comps?cardId=<uuid>&parallelId=<uuid|null>
 import { cardsightConfigured, cardsightSoldComps, cardsightCardInfo } from "./cardsight.js";
 
+import { authenticatedUser, subscriptionsEnabled } from './_lib/subscriptions.js';
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function handler(req, res) {
   try {
     if (req.method !== "GET") return res.status(405).json({ error: "Use GET." });
+    if (subscriptionsEnabled() && !await authenticatedUser(req)) return res.status(401).json({error:'Sign in required'});
     if (!cardsightConfigured()) return res.status(503).json({ error: "Sold-price source is not connected." });
     const cardId = String(req.query.cardId || "");
     const parallelId = String(req.query.parallelId || "null");
@@ -23,9 +26,16 @@ export default async function handler(req, res) {
       parallelName = p.name;
     }
     const sold = await cardsightSoldComps(cardId, { parallelId, parallels: list, cardIsAuto: info.isAuto });
-    return res.status(200).json({ cardId, parallelId, parallelName, count: sold.count, min: sold.min, median: sold.median,
-      mean: sold.mean, coverage: sold.coverage, coverageNote: sold.coverageNote, warnings: sold.warnings, fetchedAt: sold.fetchedAt, latestSaleDate: sold.latestSaleDate,
-      max: sold.max, items: sold.items, source: sold.source, considered: sold.considered, period: sold.period, autoTitledCount: (sold.autoTitled || []).length, autoTitled: (sold.autoTitled || []).slice(0, 15), cardIsAuto: info.isAuto });
+    // A catalog selection is not evidence about the scanned physical copy.
+    // Keep comparison records separate from the verified valuation contract.
+    return res.status(200).json({ cardId, parallelId, parallelName,
+      status:'selected_version_only', verified:false, approvalAllowed:false, autoApproved:false,
+      count:0, min:null, median:null, mean:null, max:null, items:[],
+      referenceSales:{count:sold.count, items:sold.items, source:sold.source,
+        note:'Sales for the selected catalog version; physical card match is unverified.'},
+
+      coverage: sold.coverage, coverageNote: sold.coverageNote, warnings: sold.warnings, fetchedAt: sold.fetchedAt, latestSaleDate: sold.latestSaleDate,
+      source: sold.source, considered: sold.considered, period: sold.period, autoTitledCount: (sold.autoTitled || []).length, autoTitled: (sold.autoTitled || []).slice(0, 15), cardIsAuto: info.isAuto });
   } catch (e) {
     console.error("parallel-comps error:", e);
     return res.status(502).json({ error: "Could not load sold prices right now. Try again shortly." });

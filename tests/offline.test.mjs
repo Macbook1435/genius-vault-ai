@@ -77,12 +77,9 @@ test('CSV export quotes embedded delimiters and neutralizes formula cells',()=>{
 });
 
 
-const verificationSource=fs.readFileSync(new URL('../api/_lib/verification.js',import.meta.url),'utf8');
-const verificationScript=verificationSource.split('// Keep SOLD prices and ACTIVE asking prices completely separate.')[0]
- .replaceAll('export function ','function ');
-const verifyContext=vm.createContext({});
-vm.runInContext(verificationScript,verifyContext);
-const verify=(scan,v={},ctx={})=>verifyContext.buildFieldVerification(scan,v,ctx);
+// Import the actual ESM module instead of evaluating its import declarations as a VM script.
+const { buildFieldVerification } = await import('../api/_lib/verification.js');
+const verify=(scan,v={},ctx={})=>buildFieldVerification(scan,v,ctx);
 test('high confidence photo parallel remains only a suggestion',()=>{
  const source=fs.readFileSync(new URL('../api/cardsight.js',import.meta.url),'utf8');
  const code=segment(source,'export function resolveParallel(card) {','\nfunction median(').replace('export function','function');
@@ -139,8 +136,13 @@ test('serial: two matching full-photo observations narrow print run but never ex
 test('reference catalog uses release and subset scope and never fills in invented print runs',async()=>{
  const {catalogCoverage,listReferenceVariants,vocabularyCandidates}=await import('../api/_lib/catalog-reference.js');
  const coverage=catalogCoverage();
- assert.equal(coverage.length,7);
- assert.ok(coverage.every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
+ assert.equal(coverage.length,8); // Eight explicit product checklist modules in api/_data/checklists/index.js
+ const unverifiedAbsolute=coverage.find(p=>p.id==='2025-panini-absolute-football');
+ assert.ok(unverifiedAbsolute);
+ assert.equal(unverifiedAbsolute.sourceUrls.length,0);
+ assert.equal(unverifiedAbsolute.variantRows,0);
+ assert.equal(unverifiedAbsolute.crossCheckedRows,0);
+ assert.ok(coverage.filter(p=>p.id!=='2025-panini-absolute-football').every(p=>p.sourceUrls.length>=2 && p.variantRows>0));
  assert.ok(coverage.every(p=>p.crossCheckedRows+p.singleSourceOrUnresolvedRows===p.variantRows));
  const release=coverage.find(p=>p.id==='2025-donruss-optic-football');
  assert.ok(release);
@@ -300,4 +302,39 @@ test('scan code syntax parses without calling AI or eBay',()=>{
  // Source uses imports and exports: compile module via --check in CI separately.
  assert.match(scanSource,/async function fetchSoldComps\(/);
  assert.match(scanSource,/matchAudit:/);
+});
+
+
+test('110-card audit regression: Trevor Etienne photo cannot silently become Raheim Sanders',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const result=scanAuditAdvisory({scan:{player:'Raheim Sanders',cardNumber:'189',evidence:{playerNameText:'Trevor Etienne',cardNumberText:'179'}}});
+ assert.equal(result.status,'unverified');
+ assert.equal(result.approvalAllowed,false);
+ assert.equal(result.autoApproved,false);
+ assert.ok(result.issues.some(i=>i.code==='player_evidence_conflict'));
+ assert.ok(result.issues.some(i=>i.code==='number_evidence_conflict'));
+});
+
+test('110-card audit regression: matching identity still cannot auto-verify Paper or Chrome parallel',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const result=scanAuditAdvisory({scan:{player:'Trevor Etienne',cardNumber:'179',parallel:'Chrome',evidence:{playerNameText:'Trevor Etienne',cardNumberText:'179'}}});
+ assert.equal(result.status,'unverified');
+ assert.equal(result.requiresHumanReview,true);
+ assert.equal(result.autoApproved,false);
+ assert.ok(result.issues.some(i=>i.code==='physical_parallel_unverified'));
+});
+
+
+test('110-card audit: all 16 documented suspect rows remain unapproved pending physical review',async()=>{
+ const {scanAuditAdvisory}=await import('../api/_lib/scan-audit-advisory.js');
+ const suspectRows=[8,50,51,53,54,55,56,59,63,65,66,67,68,71,80,100];
+ assert.equal(new Set(suspectRows).size,16);
+ assert.ok(suspectRows.every(row=>row>=1&&row<=110));
+ for(const row of suspectRows){
+  const review=scanAuditAdvisory({scan:{evidence:{}},catalogIdentity:null});
+  assert.equal(review.status,'unverified',`row ${row}`);
+  assert.equal(review.approvalAllowed,false,`row ${row}`);
+  assert.equal(review.autoApproved,false,`row ${row}`);
+  assert.equal(review.requiresHumanReview,true,`row ${row}`);
+ }
 });

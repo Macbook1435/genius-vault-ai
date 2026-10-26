@@ -1,3 +1,4 @@
+import { reconcileScanResponse } from './_lib/scan-response-policy.js';
 import { exactCompsAllowed } from "./_lib/catalog-exact-comps-gate.js";
 import { rankParallelChoices } from "./_lib/catalog-choice-shortlist.js";
 import { authenticatedUser, reserveScan, releaseScan, subscriptionsEnabled } from "./_lib/subscriptions.js";
@@ -1470,6 +1471,26 @@ export default async function handler(req, res) {
       });
     }
 
+    // Isolated TEST preview only: block ALL paid recognition before uploads or providers.
+    // A verified provider-side ceiling is required before this safety gate can be reviewed.
+    if (process.env.VERCEL_ENV === "preview" &&
+        process.env.VERCEL_GIT_COMMIT_REF === "test/visual-audit-guards-20261025") {
+      return res.status(423).json({
+        error: "TEST recognition locked pending verified provider-side spending ceilings.",
+        paidExecutionAllowed: false,
+        costCeilingUsd: 0,
+      });
+    }
+
+    // Fail closed for automated batch requests until provider-side cost ceilings
+    // and dedicated TEST authentication are proven. Manual scans are unchanged.
+    if (req.headers["x-gv-test-batch"] !== undefined) {
+      return res.status(423).json({
+        error: "Automated TEST batch is locked pending verified authentication and provider-side cost limits.",
+        batchEnabled: false,
+      });
+    }
+
     if (
       !process.env.OPENAI_API_KEY &&
       !process.env.SPECIAL_API_KEY
@@ -1481,8 +1502,8 @@ export default async function handler(req, res) {
 
     // Authenticate up front; reserve allowance only after a usable photo arrives.
     const member = subscriptionsEnabled() ? await authenticatedUser(req) : null;
-    if (subscriptionsEnabled() && !member) {
-      return res.status(401).json({ error: "Sign in to scan cards." });
+    if (subscriptionsEnabled() && (!member || !member.email_confirmed_at)) {
+      return res.status(401).json({ error: "Verified sign-in required to scan cards." });
     }
 
     const { files, fields: formFields } = await parseForm(req);
@@ -2265,7 +2286,7 @@ Strict rules:
         console.error("test catalog identity lookup unavailable:", identityError);
       }
     }
-    return res.status(200).json(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures, catalogIdentity }, null, null));
+    return res.status(200).json(reconcileScanResponse(addParallelReviewToScanResponse({ ...scanResponse, referenceFeatures, catalogIdentity }, null, null)));
   } catch (err) {
     console.error("scan error:", err);
     if (scanReservation) {
