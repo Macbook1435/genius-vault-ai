@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/test-preflight.js';
+import handler from '../api/_lib/test-preflight.js';
 import {preflight} from '../scripts/accuracy-preflight.mjs';
 const branch='test/visual-audit-guards-20261025',sha='a'.repeat(40);
 const origin='https://genius-vault-test123-macbook1435s-projects.vercel.app';
@@ -24,6 +24,6 @@ test('batch client refuses production/custom origins, redirects and wrong commit
  assert.equal(requests.length,0);
  const missing=await preflight({origin,expectedCommit:sha,fetcher});assert.equal(missing.authenticated,false);assert.equal(requests.length,0);
  const report=await preflight({origin,expectedCommit:sha,token:'secret',fetcher});assert.equal(report.costCeilingUsd,0);assert.equal(report.paidExecutionAllowed,false);
- assert.equal(requests.length,1);assert.match(requests[0].url,/\/api\/test-preflight$/);assert.equal(requests[0].options.method,'GET');assert.equal(requests[0].options.redirect,'error');
+ assert.equal(requests.length,1);assert.match(requests[0].url,/\/api\/subscription-status\?testPreflight=1$/);assert.equal(requests[0].options.method,'GET');assert.equal(requests[0].options.redirect,'error');
  await assert.rejects(()=>preflight({origin,expectedCommit:'b'.repeat(40),token:'secret',fetcher}));
 });

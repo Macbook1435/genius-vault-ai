@@ -1,5 +1,5 @@
 // Read-only TEST preflight. Never reserves scans, calls AI, or changes billing.
-import { authenticatedUser, subscriptionsEnabled } from './_lib/subscriptions.js';
+import { authenticatedUser, subscriptionsEnabled } from './subscriptions.js';
 export const TEST_BRANCH = 'test/visual-audit-guards-20261025';
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, private');

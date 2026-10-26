@@ -393,6 +393,18 @@ function renderAccuracyDashboard(data) {
 }
 // Renders the scan output. Called again when the user picks a parallel.
 function renderScan(data) {
+ // Reapply the TEST review restriction to old browser-saved results as well.
+ // A historical confirmation or a selected catalog version cannot verify a copy.
+ data.pipeline = {...data.pipeline, fields:{...data.pipeline?.fields,
+  parallel:{...data.pipeline?.fields?.parallel,status:'unconfirmed',basis:'Physical parallel requires independent verification.'}},
+  unconfirmed:[...new Set([...(data.pipeline?.unconfirmed||[]),'parallel'])],allConfirmed:false};
+ data.verification = {...data.verification,status:data.verification?.status==='rejected'?'rejected':'needs_review',approvalAllowed:false,autoApproved:false};
+ data.confidence = data.verification.status==='rejected'?'rejected':'needs review';
+ data.comps = {...data.comps,count:0,min:null,max:null,median:null,mean:null,items:[],status:'exact_match_unverified',error:'Physical parallel remains unverified; compare selected-version records separately.'};
+ if(data.market?.sold)data.market.sold={...data.market.sold,...data.comps};
+ if(data.soldComps)data.soldComps.summary='No verified sold-price estimate.';
+ data.visualAudit = data.visualAudit || {status:'unverified',approvalAllowed:false,autoApproved:false,requiresHumanReview:true,
+  issues:[{code:'physical_parallel_unverified',message:'Saved result requires independent physical-parallel verification'}]};
  renderAccuracyDashboard(data);
  const auditIssues=data.visualAudit?.issues || [];
  document.getElementById('visualAuditNotice').hidden=!auditIssues.length;
@@ -449,7 +461,8 @@ function parallelPickerHtml(data) {
   const pk = data.parallelPicker;
   if (!pk || !pk.options?.length) return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#e8f2ff;border-radius:12px;"><b>Card versions unavailable</b><p>No verified catalog match supplied a version list. Confirm the full product and card number before choosing a parallel. Sold-price estimates remain unavailable.</p></div>`;
   const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
-  const ranked = pk.choiceShortlist?.topChoices || (pk.suggestedIds || []).map(id => pk.options.find(o => String(o.id) === String(id))).filter(Boolean).slice(0,5);
+  const suggested = (pk.suggestedIds || []).map(id => pk.options.find(o => String(o.id) === String(id))).filter(Boolean);
+  const ranked = pk.choiceShortlist?.topChoices?.length ? pk.choiceShortlist.topChoices : (suggested.length ? suggested : pk.options).slice(0,5);
   const selected = pk.selectedId == null ? null : pk.options.find(o => String(o.id) === String(pk.selectedId));
   const top = selected ? [selected, ...ranked.filter(o => String(o.id) !== String(selected.id))].slice(0,5) : ranked;
   const topIds = new Set(top.map(o => String(o.id)));

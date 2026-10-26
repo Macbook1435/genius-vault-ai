@@ -7,7 +7,7 @@ export async function preflight({origin, expectedCommit, token, fetcher=fetch}) 
     throw new Error('Use an exact, verified TEST preview deployment origin');
   if(!/^[a-f0-9]{40}$/.test(expectedCommit)) throw new Error('Pinned commit required');
   if(!token) return {authenticated:false,paidExecutionAllowed:false,costCeilingUsd:0,attemptedScans:0,blockers:['TEST access token missing']};
-  const response=await fetcher(new URL('/api/test-preflight',url),{method:'GET',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:'Bearer '+token,Accept:'application/json'}});
+  const response=await fetcher(new URL('/api/subscription-status?testPreflight=1',url),{method:'GET',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:'Bearer '+token,Accept:'application/json'}});
   if(response.status!==200) return {authenticated:false,httpStatus:response.status,paidExecutionAllowed:false,costCeilingUsd:0,attemptedScans:0,blockers:['TEST preflight denied or unavailable']};
   const result=await response.json();
   if(result.environment!=='preview'||result.branch!=='test/visual-audit-guards-20261025'||result.commit!==expectedCommit||result.authenticated!==true||result.emailVerified!==true)

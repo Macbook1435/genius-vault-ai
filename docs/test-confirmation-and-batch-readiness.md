@@ -40,7 +40,7 @@ and SDK retries need a verified upper bound before any positive ceiling.
 
 ## Authentication preflight
 
-`GET /api/test-preflight` is available only on the exact TEST branch in Preview.
+`GET /api/subscription-status?testPreflight=1` is available only on the exact TEST branch in Preview.
 It requires a server-validated user with confirmed email. It never reserves an
 allowance, submits an image, calls a paid provider, or changes billing. It reports
 the deployed SHA and whether the scan's existing authentication flag is enforced.
