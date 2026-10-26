@@ -23,3 +23,13 @@ test('TEST scanner requires a verified user before accepting a photo', () => {
   assert.ok(authentication !== -1 && verifiedGuard > authentication && verifiedGuard < parse);
   assert.match(scan.slice(verifiedGuard, parse), /status\(401\)/);
 });
+
+test('TEST preflight is read-only and denies unverified sessions', () => {
+  const preflight = fs.readFileSync(new URL('../api/_lib/test-preflight.js', import.meta.url), 'utf8');
+  assert.match(preflight, /req\.method !== 'GET'/);
+  assert.match(preflight, /process\.env\.VERCEL_ENV !== 'preview'/);
+  assert.match(preflight, /!member \|\| !member\.email_confirmed_at/);
+  assert.match(preflight, /paidExecutionAllowed:false, costCeilingUsd:0/);
+  assert.match(preflight, /attemptedScans:0, approvalAllowed:false, autoApproved:false/);
+  assert.doesNotMatch(preflight, /reserveScan\(|parseForm\(|chat\.completions\.create\(/);
+});
