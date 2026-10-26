@@ -10,7 +10,7 @@ export function authorizeTestBatch({ environment, scans, approvedMaxScans, estim
   if (![scans, approvedMaxScans].every(n => Number.isSafeInteger(n) && n > 0)) return fail('Invalid scan count');
   if (scans > approvedMaxScans) return fail('Batch exceeds approved scan count');
   if (![estimatedUsdPerScan, approvedUsd].every(n => Number.isFinite(n) && n > 0)) return fail('Verified estimate and approved budget required');
-  const estimatedTotalUsd = Math.ceil(scans * estimatedUsdPerScan * 100) / 100;
+  const estimatedTotalUsd = Math.ceil((scans * Math.round(estimatedUsdPerScan * 10000) / 10000) * 100 - 1e-9) / 100;
   if (estimatedTotalUsd > approvedUsd) return fail('Estimated cost exceeds approved budget');
   return { allowed: false, reason: 'Preflight estimate passed, but execution remains locked until provider-side limits are verified', estimatedTotalUsd, preflightPassed: true };
 }
