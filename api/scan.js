@@ -1491,8 +1491,8 @@ export default async function handler(req, res) {
 
     // Authenticate up front; reserve allowance only after a usable photo arrives.
     const member = subscriptionsEnabled() ? await authenticatedUser(req) : null;
-    if (subscriptionsEnabled() && !member) {
-      return res.status(401).json({ error: "Sign in to scan cards." });
+    if (subscriptionsEnabled() && (!member || !member.email_confirmed_at)) {
+      return res.status(401).json({ error: "Verified sign-in required to scan cards." });
     }
 
     const { files, fields: formFields } = await parseForm(req);
