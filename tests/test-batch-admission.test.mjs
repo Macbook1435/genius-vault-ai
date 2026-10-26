@@ -12,3 +12,8 @@ for (const [label,changes] of [
   ['unknown cost',{estimatedUsdPerScan:0}],
   ['invalid count',{scans:1.5}]
 ]) test('rejects '+label,()=>assert.equal(authorizeTestBatch({...base,...changes}).allowed,false));
+
+test('rejects fractional-cent budgets and excessive cost precision',()=>{
+  assert.equal(authorizeTestBatch({...base,approvedUsd:2.201}).allowed,false);
+  assert.equal(authorizeTestBatch({...base,estimatedUsdPerScan:0.02001}).allowed,false);
+});
