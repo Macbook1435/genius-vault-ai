@@ -33,3 +33,13 @@ test('TEST preflight is read-only and denies unverified sessions', () => {
   assert.match(preflight, /attemptedScans:0, approvalAllowed:false, autoApproved:false/);
   assert.doesNotMatch(preflight, /reserveScan\(|parseForm\(|chat\.completions\.create\(/);
 });
+
+test('isolated TEST preview rejects every scan before parsing or paid providers', () => {
+  const gate = scan.indexOf('process.env.VERCEL_GIT_COMMIT_REF === "test/visual-audit-guards-20261025"');
+  const batch = scan.indexOf('req.headers["x-gv-test-batch"] !== undefined');
+  const parse = scan.indexOf('await parseForm(req)');
+  assert.ok(gate !== -1 && gate < batch && batch < parse);
+  assert.match(scan.slice(gate, batch), /status\(423\)/);
+  assert.match(scan.slice(gate, batch), /paidExecutionAllowed: false/);
+  assert.match(scan.slice(gate, batch), /costCeilingUsd: 0/);
+});
