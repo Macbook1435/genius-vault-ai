@@ -21,7 +21,7 @@ export function scanAuditAdvisory({ scan, catalogIdentity } = {}) {
       issues.push({ code: "catalog_number_conflict", message: "Reference card number differs from scan" });
     }
   }
-  if (!visiblePlayer || !visibleNumber) {
+  if (!clean(visiblePlayer) || !clean(visibleNumber)) {
     issues.push({ code: "incomplete_visible_evidence", message: "Readable name and card number evidence required" });
   }
   // This endpoint does not provide independently verified physical parallel evidence.
