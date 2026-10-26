@@ -1486,6 +1486,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Sign in to scan cards." });
     }
 
+    // Fail closed for automated batch requests until provider-side cost ceilings
+    // and dedicated TEST authentication are proven. Manual scans are unchanged.
+    if (req.headers["x-gv-test-batch"] !== undefined) {
+      return res.status(423).json({
+        error: "Automated TEST batch is locked pending verified authentication and provider-side cost limits.",
+        batchEnabled: false,
+      });
+    }
+
     const { files, fields: formFields } = await parseForm(req);
     // Pipeline v2: "off" (default, today's scanner), "shadow" (test only: runs v2 next to
     // v1 and returns it under "v2"), or "primary" (only when GV_PIPELINE=v2 is set).
