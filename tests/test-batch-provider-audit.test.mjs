@@ -15,3 +15,11 @@ test('paid providers have retries and require separate cost controls', () => {
   assert.match(cardsight,/fetch\(BASE \+ path/);
   assert.match(cardsight,/response\.status === 429 && attempt < 2/);
 });
+
+test('TEST scanner requires a verified user before accepting a photo', () => {
+  const authentication = scan.indexOf('const member = subscriptionsEnabled() ? await authenticatedUser(req) : null;');
+  const verifiedGuard = scan.indexOf('if (subscriptionsEnabled() && (!member || !member.email_confirmed_at))');
+  const parse = scan.indexOf('await parseForm(req)');
+  assert.ok(authentication !== -1 && verifiedGuard > authentication && verifiedGuard < parse);
+  assert.match(scan.slice(verifiedGuard, parse), /status\(401\)/);
+});
