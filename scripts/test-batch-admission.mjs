@@ -10,7 +10,15 @@ export function authorizeTestBatch({ environment, scans, approvedMaxScans, estim
   if (![scans, approvedMaxScans].every(n => Number.isSafeInteger(n) && n > 0)) return fail('Invalid scan count');
   if (scans > approvedMaxScans) return fail('Batch exceeds approved scan count');
   if (![estimatedUsdPerScan, approvedUsd].every(n => Number.isFinite(n) && n > 0)) return fail('Verified estimate and approved budget required');
-  const estimatedTotalUsd = Math.ceil((scans * Math.round(estimatedUsdPerScan * 10000) / 10000) * 100 - 1e-9) / 100;
-  if (estimatedTotalUsd > approvedUsd) return fail('Estimated cost exceeds approved budget');
+  // Decimal estimates are converted to integer ten-thousandths of a dollar.
+  // Reject precision we cannot safely represent rather than silently undercount.
+  const perScanUnits = estimatedUsdPerScan * 10000;
+  const approvedCents = approvedUsd * 100;
+  if (!Number.isSafeInteger(perScanUnits) || !Number.isSafeInteger(approvedCents)) return fail('Costs must use at most four decimal places per scan and cents for the budget');
+  const totalUnits = perScanUnits * scans;
+  if (!Number.isSafeInteger(totalUnits)) return fail('Cost calculation exceeds safe integer range');
+  const estimatedCents = Math.ceil(totalUnits / 100);
+  const estimatedTotalUsd = estimatedCents / 100;
+  if (estimatedCents > approvedCents) return fail('Estimated cost exceeds approved budget');
   return { allowed: false, reason: 'Preflight estimate passed, but execution remains locked until provider-side limits are verified', estimatedTotalUsd, preflightPassed: true };
 }
