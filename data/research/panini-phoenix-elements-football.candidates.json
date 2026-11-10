@@ -1,0 +1,62 @@
+{
+  "purpose": "TEST-only user-supplied research, not verified checklists",
+  "import_enabled": false,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Phoenix Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_numbering_range": "/250 to 1/1; release-dependent",
+      "candidate_inserts": [
+        "En Fuego",
+        "Phoenician",
+        "Volcano",
+        "Flame",
+        "Metropolis"
+      ],
+      "candidate_memorabilia_autographs": [
+        "Rookie Jumbo Memorabilia Autographs",
+        "RPS Rookie Auto Jersey",
+        "Veteran Auto Materials"
+      ],
+      "candidate_visual_traits": [
+        "high-contrast foil",
+        "geometric refractor",
+        "possible die-cut edges"
+      ],
+      "cautions": [
+        "Do not assume En Fuego or Phoenician are always die-cut",
+        "Numbering and format vary by year"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Elements Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_numbering_range": "/99 or /75 to 1/1; release-dependent",
+      "candidate_inserts": [
+        "Nuclear",
+        "Supercharged",
+        "Heavy Metal",
+        "Steel Signatures"
+      ],
+      "candidate_memorabilia_autographs": [
+        "Rookie Neon Signs",
+        "Pro Mettle",
+        "Mettle Materials",
+        "Transition Materials"
+      ],
+      "candidate_visual_traits": [
+        "metallic surface appearance",
+        "industrial typography",
+        "reflective highlights"
+      ],
+      "cautions": [
+        "Cannot confirm actual metal, weight, thickness, or rivets from photographs alone",
+        "Verify insert names and print runs by year"
+      ]
+    }
+  ]
+}
