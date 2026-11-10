@@ -1,0 +1,26 @@
+name: Checklist importer offline validation
+on:
+  push:
+    branches:
+      - test/visual-audit-guards-20261025
+    paths:
+      - 'lib/checklist-import-validation.mjs'
+      - 'tests/checklist-import-validation.test.mjs'
+      - '.github/workflows/checklist-import-validation.yml'
+  pull_request:
+    paths:
+      - 'lib/checklist-import-validation.mjs'
+      - 'tests/checklist-import-validation.test.mjs'
+      - '.github/workflows/checklist-import-validation.yml'
+  workflow_dispatch:
+jobs:
+  checklist-offline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/checklist-import-validation.test.mjs
