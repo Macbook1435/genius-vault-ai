@@ -1,0 +1,301 @@
+{
+  "purpose": "User-supplied unverified TEST research; no canonical import",
+  "import_enabled": false,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Certified Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_parallels": [
+        [
+          "Mirror Purple",
+          null
+        ],
+        [
+          "Mirror Pink",
+          null
+        ],
+        [
+          "Mirror Orange",
+          null
+        ],
+        [
+          "Mirror Red",
+          null
+        ],
+        [
+          "Mirror Teal",
+          null
+        ],
+        [
+          "Mirror Blue",
+          null
+        ],
+        [
+          "Mirror Green",
+          null
+        ],
+        [
+          "Mirror Lime Green",
+          null
+        ],
+        [
+          "Mirror Gold",
+          null
+        ],
+        [
+          "Mirror Black",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "Night Moves",
+        "The Mighty",
+        "Rookie Certifications Prototypes",
+        "Certified Ballers",
+        "Rookie Certifications"
+      ],
+      "candidate_relics": [
+        "Freshman Fabric Signatures",
+        "Stitches in Time"
+      ],
+      "cautions": [
+        "Paired parallel number ranges are not exact per-color print runs",
+        "35pt–55pt thickness cannot be established from photo"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Crown Royale Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_parallels": [
+        [
+          "Bronze",
+          null
+        ],
+        [
+          "Pink Quartz",
+          null
+        ],
+        [
+          "Ruby",
+          99
+        ],
+        [
+          "Amethyst",
+          75
+        ],
+        [
+          "Emerald",
+          25
+        ],
+        [
+          "Gold",
+          10
+        ],
+        [
+          "Platinum",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "Kaboom!",
+        "Kaboom! Gold",
+        "Sovereign Signatures",
+        "Test of Time",
+        "Lords of the Gridiron"
+      ],
+      "candidate_relics": [
+        "Silhouette Autographs"
+      ],
+      "candidate_geometry": [
+        "possible crown-shaped die-cut",
+        "nonrectangular card boundary"
+      ],
+      "cautions": [
+        "Do not apply crown silhouette to every Crown Royale subset",
+        "Verify Kaboom numbering and product attribution by release"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Contenders Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_parallels": [
+        [
+          "Wild Card Ticket",
+          null
+        ],
+        [
+          "Red Zone Ticket",
+          null
+        ],
+        [
+          "First Down Ticket",
+          10
+        ],
+        [
+          "Touchdown Ticket",
+          5
+        ],
+        [
+          "Championship Ticket",
+          null
+        ],
+        [
+          "Super Bowl Ticket",
+          null
+        ],
+        [
+          "Printing Plates",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "License to Domin8",
+        "Volcanic",
+        "MVP Contenders",
+        "Rookie of the Year Contenders",
+        "Round Numbers"
+      ],
+      "candidate_autographs": [
+        "Rookie Ticket Autographs",
+        "Rookie Ticket Variations",
+        "Legendary Contenders Autographs"
+      ],
+      "candidate_geometry": [
+        "ticket-stub visual",
+        "seat row gate section labels"
+      ],
+      "cautions": [
+        "Ticket variation numbering changes by year/subset",
+        "Championship and Super Bowl Ticket should not be assumed 1/1"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Spectra Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_parallels": [
+        [
+          "Neon Blue",
+          null
+        ],
+        [
+          "Neon Green",
+          49
+        ],
+        [
+          "Neon Purple",
+          35
+        ],
+        [
+          "Neon Pink",
+          25
+        ],
+        [
+          "Neon Orange",
+          15
+        ],
+        [
+          "Gold",
+          10
+        ],
+        [
+          "Green",
+          5
+        ],
+        [
+          "Nebula",
+          1
+        ],
+        [
+          "Gold Vinyl",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "Color Blast",
+        "Main Materials",
+        "Solar Eclipse"
+      ],
+      "candidate_autographs": [
+        "Radiant Rookie Patch Autographs",
+        "Aspiring Signatures",
+        "Illustrious Legends Signatures",
+        "Sky High Signatures"
+      ],
+      "cautions": [
+        "Neon Blue /149 or /99 is ambiguous",
+        "Foil thickness and material are not visually provable"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Obsidian Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "candidate_parallels": [
+        [
+          "Electric Etch Purple",
+          149
+        ],
+        [
+          "Electric Etch Orange",
+          99
+        ],
+        [
+          "Electric Etch Green",
+          50
+        ],
+        [
+          "Electric Etch Yellow",
+          25
+        ],
+        [
+          "Electric Etch Red",
+          10
+        ],
+        [
+          "Electric Etch Tundras",
+          null
+        ],
+        [
+          "White Contra",
+          null
+        ],
+        [
+          "Electric Etch Blue",
+          null
+        ],
+        [
+          "Nebula",
+          null
+        ]
+      ],
+      "candidate_inserts": [
+        "Color Blast Black",
+        "Volcanix",
+        "Vitreo",
+        "Supernova"
+      ],
+      "candidate_autographs": [
+        "Rookie Jersey Autographs",
+        "Lightning Strike Signatures",
+        "Matrix Material Autographs"
+      ],
+      "candidate_geometry": [
+        "dark-field border",
+        "high-contrast etched pattern"
+      ],
+      "cautions": [
+        "Multiple named variants sharing alleged print runs require independent confirmation",
+        "Do not assume every dark card is Obsidian"
+      ]
+    }
+  ]
+}

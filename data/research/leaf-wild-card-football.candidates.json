@@ -1,0 +1,63 @@
+{
+  "status": "unverified_user_research",
+  "import_enabled": false,
+  "profiles": [
+    {
+      "manufacturer": "Leaf",
+      "products": [
+        "Metal Football",
+        "Trinity Football"
+      ],
+      "release_year": null,
+      "parallel_candidates": [
+        "Prismatic",
+        "Mojo",
+        "Wave",
+        "Crystal",
+        "Tiger",
+        "Zebra",
+        "Snakeskin",
+        "Super Prismatic",
+        "Printing Plates"
+      ],
+      "subset_candidates": [
+        "Clear",
+        "Patch Autographs",
+        "Multi-Player Signatures",
+        "Anime Nation"
+      ],
+      "visual_hints": [
+        "chromium",
+        "acetate",
+        "large patch window"
+      ],
+      "cautions": [
+        "Do not infer every Leaf card is /50 or lower",
+        "Lack of NFL logos is not definitive product evidence"
+      ]
+    },
+    {
+      "manufacturer": "Wild Card",
+      "products": [
+        "Alumination Football",
+        "Matte Football"
+      ],
+      "release_year": null,
+      "parallel_or_insert_candidates": [
+        "Stacked Deck",
+        "Comix",
+        "7 Card Stud",
+        "Auto Mania",
+        "Dino-Might"
+      ],
+      "visual_hints": [
+        "novelty die-cut",
+        "matte or metallic finish"
+      ],
+      "cautions": [
+        "Verify which terms are inserts versus parallels by year",
+        "Do not infer /25, /10, /5 or 1/1 from appearance"
+      ]
+    }
+  ]
+}

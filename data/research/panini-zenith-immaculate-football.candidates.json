@@ -1,0 +1,128 @@
+{
+  "purpose": "Unverified research only; no canonical import",
+  "import_enabled": false,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Zenith Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "parallel_candidates": [
+        [
+          "Red Zone",
+          null
+        ],
+        [
+          "Artist Proof",
+          null
+        ],
+        [
+          "Purple",
+          null
+        ],
+        [
+          "Pink",
+          null
+        ],
+        [
+          "Gold",
+          10
+        ],
+        [
+          "Green",
+          5
+        ],
+        [
+          "Platinum",
+          1
+        ],
+        [
+          "Gold Vinyl",
+          1
+        ]
+      ],
+      "insert_candidates": [
+        "Z-Team",
+        "Zoom!",
+        "State of the Art",
+        "Thunder & Lightning",
+        "A to Z",
+        "Class President"
+      ],
+      "autograph_candidates": [
+        "Rookie Patch Autographs",
+        "Z-Jersey Autographs"
+      ],
+      "memorabilia_candidates": [
+        "Epics",
+        "2nd Down",
+        "3rd Down",
+        "4th Down"
+      ],
+      "visual_candidates": [
+        "retro geometry",
+        "possible transparent acetate",
+        "multi-window patch"
+      ],
+      "cautions": [
+        "No exact print run inferred from a range",
+        "Not all Z-Team cards should be assumed acetate"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Immaculate Football",
+      "release_year": null,
+      "verification_status": "pending",
+      "parallel_candidates": [
+        [
+          "Base",
+          null
+        ],
+        [
+          "Red",
+          null
+        ],
+        [
+          "Blue",
+          null
+        ],
+        [
+          "Gold",
+          10
+        ],
+        [
+          "Emerald",
+          5
+        ],
+        [
+          "Platinum",
+          1
+        ]
+      ],
+      "insert_candidates": [
+        "Nameplate Nobility",
+        "Brand Logos",
+        "Laundry Tags"
+      ],
+      "autograph_candidates": [
+        "Rookie Patch Autographs",
+        "Eye Black Signatures",
+        "Dual Autographs",
+        "Triple Autographs",
+        "Quad Autographs",
+        "Greats Signatures"
+      ],
+      "visual_candidates": [
+        "large patch window",
+        "white background candidate",
+        "shadowbox layered signature"
+      ],
+      "cautions": [
+        "Base /99 or /75 and Red/Blue ranges need exact release-year checklists",
+        "NFL Shields and laundry tags are not automatically 1/1 across all cards",
+        "Physical thickness, material and authenticity not verifiable from photograph"
+      ]
+    }
+  ]
+}

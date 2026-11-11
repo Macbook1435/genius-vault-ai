@@ -1,0 +1,56 @@
+{
+  "status": "candidate_geometry_only",
+  "scope": [
+    "Panini National Treasures booklets",
+    "Panini Immaculate booklets",
+    "other verified booklet products"
+  ],
+  "folded_standard_ratio_hint": 0.7142857142857143,
+  "open_horizontal_ratio_hint": 1.4285714285714286,
+  "open_vertical_ratio_hint": 0.35714285714285715,
+  "geometry": {
+    "fold_center_candidates": [
+      {
+        "orientation": "vertical",
+        "normalized_position": 0.5
+      },
+      {
+        "orientation": "horizontal",
+        "normalized_position": 0.5
+      }
+    ],
+    "detect_two_panels": true,
+    "do_not_split_on_center_seam": true,
+    "allow_card_boundary_nonstandard": true
+  },
+  "capture": {
+    "requested_views": [
+      "open_front",
+      "closed_front",
+      "closed_back"
+    ],
+    "optional_views": [
+      "open_back",
+      "angled_view"
+    ],
+    "preserve_originals": true
+  },
+  "evidence": {
+    "panel_location_assumptions": false,
+    "scan_both_panels_for": [
+      "player",
+      "autograph",
+      "serial_stamp",
+      "patch",
+      "card_number",
+      "copyright"
+    ],
+    "serial_stamp_location": "unknown_until_detected"
+  },
+  "cautions": [
+    "Dimensions and fold direction are examples, not universal booklet dimensions",
+    "Fold line can be off-center or hidden",
+    "Do not infer NFL shield authenticity or print run from visible patch",
+    "Never auto-crop away a panel"
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "purpose": "Unverified user-supplied research intake; not for automatic identification or canonical import",
+  "import_enabled": false,
+  "release_year": null,
+  "year_required_before_verification": true,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Prizm Football",
+      "surface": "chromium",
+      "parallel_candidates": [
+        {
+          "parallel_name": "Orange Prizm",
+          "print_run": 249,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Blue Wave Prizm",
+          "print_run": 199,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Purple Ice Prizm",
+          "print_run": 149,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Red Power Prizm",
+          "print_run": 99,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Blue Prizm",
+          "print_run": 75,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Purple Prizm",
+          "print_run": 50,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Orange Shimmer",
+          "print_run": 35,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Mojo Prizm",
+          "print_run": 25,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Gold Prizm",
+          "print_run": 10,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Black Gold Prizm",
+          "print_run": 5,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Finite Prizm",
+          "print_run": 1,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        }
+      ],
+      "insert_name_candidates": [
+        "Manga",
+        "Color Blast",
+        "Color Blast Duos",
+        "Emergent",
+        "Fireworks",
+        "Prizmatic",
+        "Lockdown",
+        "Global Reach",
+        "Vortex"
+      ],
+      "memorabilia_name_candidates": [
+        "Premier Jerseys",
+        "Rookie Gear",
+        "Rookie Patch Autographs"
+      ],
+      "autograph_name_candidates": [
+        "Sensational Signatures"
+      ],
+      "notes": "Claims vary by year and format; Orange Shimmer FOTL exclusivity requires year-specific verification."
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Donruss Football",
+      "surface": "paper",
+      "parallel_candidates": [
+        {
+          "parallel_name": "Blue Press Proof",
+          "print_run": null,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Red Press Proof",
+          "print_run": null,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Silver Press Proof",
+          "print_run": 100,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Gold Press Proof",
+          "print_run": 50,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Die-Cut",
+          "print_run": 25,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Fireworks / Aqua",
+          "print_run": 10,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "Emerald Press Proof",
+          "print_run": 5,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        },
+        {
+          "parallel_name": "One of One / Gold Vinyl",
+          "print_run": 1,
+          "verification_status": "pending",
+          "subset_scope": "unconfirmed"
+        }
+      ],
+      "insert_name_candidates": [
+        "Downtown!",
+        "Downtown Duos",
+        "Gridiron Marvels",
+        "Crunch Time",
+        "Gridiron Kings",
+        "Dominators",
+        "The Elite Series"
+      ],
+      "memorabilia_name_candidates": [
+        "Jersey Kings",
+        "All-Pro Kings",
+        "Threads",
+        "Pro Bowl Materials",
+        "Rookie Holiday Sweater"
+      ],
+      "autograph_name_candidates": [
+        "Rated Rookie Signatures"
+      ],
+      "notes": "Do not merge Donruss paper with Donruss Optic; Gold Vinyl and certain numbered tiers may belong to Optic or other subsets, requiring source verification."
+    }
+  ]
+}

@@ -60,8 +60,12 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.set = field(setText, "confirmed", `Matches the independently documented ${exactCard.insert} insert in ${exactCard.year} ${exactCard.brand} ${exactCard.product}.`);
   } else if (catalogOk) {
     fields.set = field(setText, "confirmed", "Matches the catalog (CardSight).");
+  } else if (checklist && idn.setOk === true) {
+    // A product-level checklist alone does not prove the photographed card's set.
+    // Require independent identity evidence before displaying Confirmed.
+    fields.set = field(setText, "confirmed", `Set evidence agrees with the ${checklist.label || checklist.id} checklist.`);
   } else if (checklist) {
-    fields.set = field(setText, "confirmed", `Matches the ${checklist.label || checklist.id} checklist.`);
+    fields.set = field(setText, "unconfirmed", "Product checklist is available, but the card's set identity has not been independently confirmed.");
   } else {
     fields.set = field(setText, "unconfirmed", "Read from the card; no catalog/checklist for this product yet.");
   }
@@ -73,8 +77,12 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.cardNumber = field(null, "unconfirmed", "Card number not readable or reads disagreed.");
   } else if (exactCard) {
     fields.cardNumber = field(num, "confirmed", `Exact ${exactCard.player} ${exactCard.insert} #${exactCard.cardNumber} checklist entry independently corroborated.`);
+  } else if (catalogOk && catalog.match?.number &&
+      String(catalog.match.number).trim().replace(/^#/, "").toUpperCase() === num.trim().toUpperCase() &&
+      idn.numberOk === true) {
+    fields.cardNumber = field(num, "confirmed", "Exact catalog card number matches the photographed number and independent identity checks.");
   } else if (catalogOk && catalog.match?.number) {
-    fields.cardNumber = field(num, "confirmed", "Matches the catalog (CardSight).");
+    fields.cardNumber = field(num, "unconfirmed", "Catalog supplied a card number, but the exact number and independent photo evidence do not fully agree.");
   } else if (patterns.length && patterns.some((re) => re.test(num))) {
     // A matching number format does not establish that this exact player/card
     // exists in the manufacturer checklist.
@@ -86,11 +94,23 @@ export function buildFieldVerification(card, v, ctx = {}) {
   }
 
   // --- Parallel ---
-  if (pid.source === "catalog" && pid.status === "confirmed") {
-    fields.parallel = field(card.parallel, "confirmed", "Matches the catalog (CardSight).");
+  // A parallel label is not verified merely because a model or a product-level
+  // checklist selected it. Require an actual named variation and supporting
+  // physical evidence; numbered variations must agree with the stamped run.
+  const parallelNamed = present(card.parallel) && !/^(unknown|unconfirmed|not verified|base)$/i.test(String(card.parallel).trim());
+  const parallelRun = Number(pid.evidence?.numberedTo);
+  const stampedRun = Number(card.numberedTo);
+  const parallelRunAgrees = !Number.isFinite(parallelRun) || parallelRun <= 0 ||
+    (Number.isFinite(stampedRun) && stampedRun > 0 && parallelRun === stampedRun);
+  const parallelEvidence = present(pid.evidence?.color) || present(pid.evidence?.finish) ||
+    (Number.isFinite(parallelRun) && parallelRun > 0 && parallelRunAgrees);
+  if (pid.source === "catalog" && pid.status === "confirmed" && parallelNamed && parallelRunAgrees && parallelEvidence) {
+    fields.parallel = field(card.parallel, "confirmed", "Named catalog variation agrees with physical parallel evidence and any stamped print run.");
+  } else if ((pid.status === "confirmed" || pid.status === "confirmed_by_tiebreak") &&
+      parallelNamed && parallelRunAgrees && parallelEvidence && checklist) {
+    fields.parallel = field(card.parallel, "confirmed", "Named checklist variation agrees with physical parallel evidence and any stamped print run.");
   } else if (pid.status === "confirmed" || pid.status === "confirmed_by_tiebreak") {
-    fields.parallel = field(card.parallel, "confirmed",
-      `Only checklist parallel that fits ${[pid.evidence?.numberedTo ? `/${pid.evidence.numberedTo}` : null, pid.evidence?.color, pid.evidence?.finish ? String(pid.evidence.finish).replace(/_/g, " ") : null].filter(present).join(" + ") || "the card"}${pid.status === "confirmed_by_tiebreak" ? " (closer look picked it)" : ""}.`);
+    fields.parallel = field(card.parallel, "unconfirmed", "Parallel candidate lacks sufficient independent checklist, color, finish, or stamped-run evidence.");
   } else if (pid.status === "probable") {
     fields.parallel = field(null, "unconfirmed", pid.guessOnly
       ? `Possibly ${pid.probable} (CardSight photo guess); no checklist to confirm it.`
@@ -117,8 +137,10 @@ export function buildFieldVerification(card, v, ctx = {}) {
 
   // --- Serial ---
   if (!present(card.serialNumber) && !card.numberedTo) {
-    fields.serial = field(null, ctx.serialImage ? "unconfirmed" : "confirmed",
-      ctx.serialImage ? "Close-up could not be confirmed." : "No serial number found (not numbered).");
+    // Not seeing a stamp in a scan cannot establish that a card is unnumbered.
+    // Only an independently verified exact variation can prove a non-numbered card.
+    fields.serial = field(null, "unconfirmed",
+      ctx.serialImage ? "Close-up could not be confirmed." : "No serial number detected; unnumbered status requires exact-variation verification.");
   } else if (ctx.serialImage) {
     // A close-up existing is not evidence that its two reads agreed.
     const confirmed = ctx.closeupVerified === true && present(card.serialNumber);

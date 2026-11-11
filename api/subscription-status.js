@@ -1,5 +1,7 @@
+import testPreflight from './_lib/test-preflight.js';
 import {authenticatedUser,entitlement,usageCount,subscriptionsEnabled} from './_lib/subscriptions.js';
 export default async function handler(req,res){
+ if(req.query?.testPreflight === '1') return testPreflight(req,res);
  if(req.method!=='GET')return res.status(405).json({error:'GET only'});
  res.setHeader('Cache-Control','no-store, private');
  if(!subscriptionsEnabled())return res.status(200).json({enabled:false,checkoutReady:false});

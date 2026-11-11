@@ -1,0 +1,29 @@
+name: TEST scanner pure-module checks
+on:
+  push:
+    branches:
+      - test/visual-audit-guards-20261025
+    paths:
+      - 'lib/browser-card-reticle.mjs'
+      - 'tests/browser-card-reticle.test.mjs'
+      - 'lib/ocr-fallback-router.mjs'
+      - 'lib/scan-quality-cache-hints.mjs'
+      - 'tests/ocr-fallback-router.test.mjs'
+      - 'tests/scan-quality-cache-hints.test.mjs'
+      - '.github/workflows/scanner-pure-module-tests.yml'
+      - 'api/_lib/verification.js'
+      - 'api/_data/exact-card-references.js'
+      - 'tests/verification-safety.test.mjs'
+  workflow_dispatch:
+jobs:
+  pure-module-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run scanner safety tests (no secrets, no paid APIs)
+        run: node --test tests/ocr-fallback-router.test.mjs tests/scan-quality-cache-hints.test.mjs tests/browser-card-reticle.test.mjs tests/verification-safety.test.mjs

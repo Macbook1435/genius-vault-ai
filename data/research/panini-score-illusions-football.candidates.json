@@ -1,0 +1,143 @@
+{
+  "status": "unverified_user_research",
+  "import_enabled": false,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Score Football",
+      "release_year": null,
+      "medium_candidate": "paper",
+      "parallel_candidates": [
+        [
+          "Scorecard",
+          null
+        ],
+        [
+          "Showcase",
+          100
+        ],
+        [
+          "Gold Zone",
+          50
+        ],
+        [
+          "Artist's Proof",
+          35
+        ],
+        [
+          "Red Zone",
+          20
+        ],
+        [
+          "First Down",
+          10
+        ],
+        [
+          "End Zone",
+          6
+        ],
+        [
+          "Gem Masters",
+          1
+        ]
+      ],
+      "insert_candidates": [
+        "Lenticular",
+        "Step Ahead",
+        "Extraterrestrial",
+        "Sack Attack",
+        "Celebration",
+        "Protential",
+        "NFL Draft"
+      ],
+      "autograph_candidates": [
+        "Rookie Signatures",
+        "Inscriptions",
+        "First Ballot Signatures"
+      ],
+      "cautions": [
+        "Scorecard /399 versus unnumbered unresolved",
+        "First Down 1/1 claim conflicts with /10 claim; must not be promoted without release-year verification",
+        "Insert spellings and subsets require confirmation"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Illusions Football",
+      "release_year": null,
+      "medium_candidate": "foil and acetate",
+      "parallel_candidates": [
+        [
+          "Trophy Collection Emerald",
+          null
+        ],
+        [
+          "Trophy Collection Orange",
+          null
+        ],
+        [
+          "Trophy Collection Pink",
+          null
+        ],
+        [
+          "Trophy Collection Blue",
+          null
+        ],
+        [
+          "Trophy Collection Starlight",
+          null
+        ],
+        [
+          "Trophy Collection Bronze",
+          249
+        ],
+        [
+          "Trophy Collection Teal",
+          150
+        ],
+        [
+          "Trophy Collection Ruby",
+          99
+        ],
+        [
+          "Trophy Collection Sapphire",
+          50
+        ],
+        [
+          "Trophy Collection Purple",
+          25
+        ],
+        [
+          "Trophy Collection Gold",
+          10
+        ],
+        [
+          "Trophy Collection Green",
+          5
+        ],
+        [
+          "Trophy Collection Platinum",
+          1
+        ]
+      ],
+      "insert_candidates": [
+        "HoloHeroes",
+        "Illusionists",
+        "King of Cards",
+        "Mystique",
+        "Funkadelic",
+        "Operation Detonation"
+      ],
+      "autograph_candidates": [
+        "Rookie Endorsements",
+        "First Impressions",
+        "Superlatives",
+        "Limelight Signatures"
+      ],
+      "cautions": [
+        "Trophy Collection print runs and names are release-dependent",
+        "Acetate transparency should be treated as a visual clue, not proof"
+      ]
+    }
+  ]
+}

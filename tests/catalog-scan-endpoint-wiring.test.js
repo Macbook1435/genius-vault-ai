@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 const endpoint = readFileSync(new URL('../api/scan.js', import.meta.url), 'utf8');
 test('completed scan response passes through fail-closed review decorator', () => {
  assert.match(endpoint, /import\s*\{\s*addParallelReviewToScanResponse\s*\}\s*from\s*["']\.\/_lib\/catalog-scan-response-review\.js["']/);
- assert.match(endpoint, /return res\.status\(200\)\.json\(addParallelReviewToScanResponse\(scanResponse, null, null\)\)/);
+ assert.match(endpoint, /return res\.status\(200\)\.json\(reconcileScanResponse\(addParallelReviewToScanResponse\(/);
 });
 test('scanner keeps authentication and credit accounting', () => {
  assert.match(endpoint, /authenticatedUser\(req\)/);

@@ -1,0 +1,94 @@
+{
+  "status": "unverified_user_research",
+  "import_enabled": false,
+  "release_year": null,
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "product_name": "Donruss Optic Football",
+      "surface": "chrome",
+      "parallel_candidates": [
+        {
+          "name": "Neon Blue",
+          "claimed_print_run": 399
+        },
+        {
+          "name": "Gold Vinyl",
+          "claimed_print_run": 1
+        },
+        {
+          "name": "Nebula",
+          "claimed_print_run": 1
+        },
+        {
+          "name": "White Sparkle",
+          "claimed_print_run": 1
+        }
+      ],
+      "insert_candidates": [
+        "Downtown",
+        "Uptown",
+        "My House!",
+        "Sunday Kings",
+        "Rookie Kings",
+        "Best Tuddys"
+      ],
+      "autograph_candidates": [
+        "Rated Rookie RPS Autographs",
+        "Rookie Patch Autographs"
+      ],
+      "memorabilia_candidates": [
+        "Dynamic Patch",
+        "Legendary Patch"
+      ],
+      "cautions": [
+        "Do not assume White Sparkle is numbered 1/1 without year-specific evidence",
+        "Do not assume every parallel is available in every subset or format"
+      ]
+    },
+    {
+      "manufacturer": "Panini",
+      "product_name": "Mosaic Football",
+      "surface": "prismatic",
+      "parallel_candidates": [
+        {
+          "name": "White/Gold Mosaic",
+          "claimed_print_run": 99
+        },
+        {
+          "name": "Black Mosaic",
+          "claimed_print_run": 1
+        },
+        {
+          "name": "Nebula",
+          "claimed_print_run": 1
+        },
+        {
+          "name": "Genesis",
+          "claimed_print_run": null
+        },
+        {
+          "name": "Honeycomb",
+          "claimed_print_run": null
+        }
+      ],
+      "insert_candidates": [
+        "Stained Glass",
+        "Micro Mosaic",
+        "Money",
+        "Center Stage",
+        "Bang!"
+      ],
+      "autograph_candidates": [
+        "Rookie Scripts",
+        "Scripts",
+        "Showtime Signatures"
+      ],
+      "cautions": [
+        "Genesis and Honeycomb may be parallels rather than standalone insert sets",
+        "Stained Glass geometry and exact numbering vary by year"
+      ]
+    }
+  ],
+  "note": "User-supplied candidates only. Validate manufacturer release/year, checklist, exact parallel and print run before promotion."
+}

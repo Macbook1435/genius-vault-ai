@@ -1,0 +1,206 @@
+{
+  "purpose": "Unverified research candidates for TEST catalog mapping; not verified rules or scanner training labels",
+  "profiles": [
+    {
+      "manufacturer": "Panini",
+      "release_year": null,
+      "year_required_before_verification": true,
+      "verification_status": "pending",
+      "source_type": "user_supplied_research",
+      "import_enabled": false,
+      "product_name": "Absolute Football",
+      "profile": "memorabilia_ssp",
+      "candidate_parallels": [
+        [
+          "Spectrum Rookies",
+          375
+        ],
+        [
+          "Red Spectrum",
+          null
+        ],
+        [
+          "Blue Spectrum",
+          null
+        ],
+        [
+          "Green Spectrum",
+          null
+        ],
+        [
+          "Purple Spectrum",
+          null
+        ],
+        [
+          "Black Spectrum",
+          10
+        ],
+        [
+          "Gold Spectrum",
+          5
+        ],
+        [
+          "1-of-1 Spectrum",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "Kaboom! Horizontal",
+        "Kaboom! Vertical",
+        "Glass",
+        "Solar Eclipse",
+        "By Storm",
+        "Introductions",
+        "Star Gazing",
+        "Canton Absolutes"
+      ],
+      "candidate_memorabilia": [
+        "Tools of the Trade Double",
+        "Tools of the Trade Triple",
+        "Tools of the Trade Quad",
+        "Tools of the Trade Five",
+        "Rookie Premiere Materials",
+        "Ground Hoggs",
+        "Jumbo Jersey Number"
+      ],
+      "candidate_autographs": [
+        "Rookie Premiere Materials Autos"
+      ],
+      "verification_notes": "Red/Blue/Green/Purple numbering unspecified individually; do not infer values. Verify layouts and subset names by release year."
+    },
+    {
+      "manufacturer": "Panini",
+      "release_year": null,
+      "year_required_before_verification": true,
+      "verification_status": "pending",
+      "source_type": "user_supplied_research",
+      "import_enabled": false,
+      "product_name": "Select Football",
+      "profile": "multi_tier_chromium",
+      "candidate_tiers": [
+        "Concourse",
+        "Premier Level",
+        "Club Level",
+        "Suite Level",
+        "Field Level"
+      ],
+      "candidate_patterns": [
+        "Disco / No Huddle",
+        "Pulsar",
+        "Shock",
+        "Zebra",
+        "Tie-Dye"
+      ],
+      "candidate_parallels": [
+        [
+          "Tie-Dye Prizm",
+          25
+        ]
+      ],
+      "candidate_inserts": [
+        "Color Wheel",
+        "Alter Ego",
+        "Starcade",
+        "Neon Icons",
+        "Phenomenon",
+        "Turbocharged"
+      ],
+      "candidate_memorabilia": [
+        "Jumbo Rookie Signature Swatches",
+        "Prime Selections"
+      ],
+      "candidate_autographs": [
+        "Rookie Signatures",
+        "Select Signatures"
+      ],
+      "verification_notes": "Five-tier arrangement and Tie-Dye /25 require year/set verification; >400 claim not treated as factual count."
+    },
+    {
+      "manufacturer": "Panini",
+      "release_year": null,
+      "year_required_before_verification": true,
+      "verification_status": "pending",
+      "source_type": "user_supplied_research",
+      "import_enabled": false,
+      "product_name": "Prestige Football",
+      "profile": "paper_high_volume",
+      "candidate_patterns": [
+        "Xtra Time",
+        "Sunburst",
+        "Galaxy",
+        "Diamond"
+      ],
+      "candidate_parallels": [
+        [
+          "Xtra Time Base / Premium",
+          null
+        ]
+      ],
+      "candidate_inserts": [
+        "Blank Slate",
+        "City Limits",
+        "Youth Movement",
+        "Power House",
+        "Living Legends",
+        "Heroes",
+        "Prestigious Pros"
+      ],
+      "candidate_autographs": [
+        "Distinctive Ink",
+        "Shutter Signatures"
+      ],
+      "verification_notes": "Xtra Time /249-to-1/1 range is not a one-to-one parallel definition; requires exact year-specific checklist."
+    },
+    {
+      "manufacturer": "Panini",
+      "release_year": null,
+      "year_required_before_verification": true,
+      "verification_status": "pending",
+      "source_type": "user_supplied_research",
+      "import_enabled": false,
+      "product_name": "National Treasures Football",
+      "profile": "thick_premium_relic",
+      "candidate_parallels": [
+        [
+          "Base Cards / Base Rookies",
+          99
+        ],
+        [
+          "Silver",
+          null
+        ],
+        [
+          "Gold",
+          10
+        ],
+        [
+          "Emerald",
+          5
+        ],
+        [
+          "Platinum / Printing Plates",
+          1
+        ]
+      ],
+      "candidate_inserts": [
+        "Colossal Signatures",
+        "Gridiron Graphs",
+        "Treasure Dual Cuts",
+        "Elevated Ink"
+      ],
+      "candidate_memorabilia": [
+        "Rookie Patch Autographs",
+        "Stars & Stripes RPAs",
+        "NFL Shields",
+        "Rookie Jumbo Prime Signature Booklets"
+      ],
+      "candidate_geometry": [
+        "thick_card_stock",
+        "patch_window",
+        "on_card_autograph",
+        "booklet_multi_panel"
+      ],
+      "verification_notes": "Silver /25 or /15 unresolved; NFL Shield not universally 1/1; cardstock thickness and patch provenance cannot be authenticated from photos alone."
+    }
+  ]
+}

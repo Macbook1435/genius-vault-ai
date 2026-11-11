@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { validateChecklist } from '../lib/checklist-import-validation.mjs';
+const source='https://example.org/authorized-checklist';
+const card={manufacturer:'Example',release_year:2025,product_name:'Series',set_name:'Base',card_number:'1',player_name:'Player',source_url:source,license_status:'authorized'};
+test('accepts approved source only as pending, without writes',()=>{const r=validateChecklist([card],{permittedSources:[source]});assert.equal(r.accepted.length,1);assert.equal(r.accepted[0].verification_status,'pending');assert.equal(r.dryRun,true)});
+test('rejects unapproved source',()=>assert.equal(validateChecklist([card]).accepted.length,0));
+test('rejects unauthorized licensing',()=>assert.equal(validateChecklist([{...card,license_status:'unknown'}],{permittedSources:[source]}).accepted.length,0));
+test('rejects duplicates within batch',()=>{const r=validateChecklist([card,{...card}],{permittedSources:[source]});assert.equal(r.accepted.length,1);assert.match(r.rejected[0].errors.join(),/duplicate/)});
+test('rejects invalid year and missing required field',()=>{const r=validateChecklist([{...card,release_year:'bad',player_name:''}],{permittedSources:[source]});assert.equal(r.accepted.length,0);assert.ok(r.rejected[0].errors.length>=2)});
+test('rejects invalid rows',()=>assert.equal(validateChecklist([null],{permittedSources:[source]}).rejected.length,1));
