@@ -1,0 +1,146 @@
+{
+  "source": "user_supplied_master_dictionary_2026_11_10",
+  "status": "unverified",
+  "import_enabled": false,
+  "notes": [
+    "max_serial values are claimed ceilings, not safe universal print runs",
+    "names may be inserts, parallels, subsets or case hits depending on release year",
+    "no year-specific card checklist or licensing approval included",
+    "new product Panini Flawless requires independent verification"
+  ],
+  "products": [
+    {
+      "name": "Topps Bowman",
+      "medium_candidate": "Paper & Chrome",
+      "claimed_max_serial": 499,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Prizm",
+      "medium_candidate": "Chromium",
+      "claimed_max_serial": 249,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Donruss",
+      "medium_candidate": "Paper",
+      "claimed_max_serial": 100,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Donruss Optic",
+      "medium_candidate": "Chromium",
+      "claimed_max_serial": 399,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Mosaic",
+      "medium_candidate": "Chromium dot matrix",
+      "claimed_max_serial": 99,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Select",
+      "medium_candidate": "Chromium multi tier",
+      "claimed_max_serial": 199,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Absolute",
+      "medium_candidate": "Paper & Foil",
+      "claimed_max_serial": 375,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Prestige",
+      "medium_candidate": "Paper",
+      "claimed_max_serial": 249,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Phoenix",
+      "medium_candidate": "Chromium & die-cut",
+      "claimed_max_serial": 250,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Elements",
+      "medium_candidate": "Metal & Acetate",
+      "claimed_max_serial": 99,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Certified",
+      "medium_candidate": "Mirror foil",
+      "claimed_max_serial": 399,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Crown Royale",
+      "medium_candidate": "Crown die-cut",
+      "claimed_max_serial": 175,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Contenders",
+      "medium_candidate": "Ticket layout",
+      "claimed_max_serial": 99,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Spectra",
+      "medium_candidate": "Thick chromium",
+      "claimed_max_serial": 149,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Obsidian",
+      "medium_candidate": "Dark etched",
+      "claimed_max_serial": 149,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Zenith",
+      "medium_candidate": "Paper & acetate",
+      "claimed_max_serial": 299,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini National Treasures",
+      "medium_candidate": "Thick foil",
+      "claimed_max_serial": 99,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Immaculate",
+      "medium_candidate": "Thick foil & shadowbox",
+      "claimed_max_serial": 99,
+      "release_year": null,
+      "verification_status": "pending"
+    },
+    {
+      "name": "Panini Flawless",
+      "medium_candidate": "Thick foil & gemstones",
+      "claimed_max_serial": 20,
+      "release_year": null,
+      "verification_status": "pending"
+    }
+  ]
+}
