@@ -60,8 +60,12 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.set = field(setText, "confirmed", `Matches the independently documented ${exactCard.insert} insert in ${exactCard.year} ${exactCard.brand} ${exactCard.product}.`);
   } else if (catalogOk) {
     fields.set = field(setText, "confirmed", "Matches the catalog (CardSight).");
+  } else if (checklist && idn.setOk === true) {
+    // A product-level checklist alone does not prove the photographed card's set.
+    // Require independent identity evidence before displaying Confirmed.
+    fields.set = field(setText, "confirmed", `Set evidence agrees with the ${checklist.label || checklist.id} checklist.`);
   } else if (checklist) {
-    fields.set = field(setText, "confirmed", `Matches the ${checklist.label || checklist.id} checklist.`);
+    fields.set = field(setText, "unconfirmed", "Product checklist is available, but the card's set identity has not been independently confirmed.");
   } else {
     fields.set = field(setText, "unconfirmed", "Read from the card; no catalog/checklist for this product yet.");
   }
