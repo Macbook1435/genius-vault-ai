@@ -77,8 +77,12 @@ export function buildFieldVerification(card, v, ctx = {}) {
     fields.cardNumber = field(null, "unconfirmed", "Card number not readable or reads disagreed.");
   } else if (exactCard) {
     fields.cardNumber = field(num, "confirmed", `Exact ${exactCard.player} ${exactCard.insert} #${exactCard.cardNumber} checklist entry independently corroborated.`);
+  } else if (catalogOk && catalog.match?.number &&
+      String(catalog.match.number).trim().replace(/^#/, "").toUpperCase() === num.trim().toUpperCase() &&
+      idn.numberOk === true) {
+    fields.cardNumber = field(num, "confirmed", "Exact catalog card number matches the photographed number and independent identity checks.");
   } else if (catalogOk && catalog.match?.number) {
-    fields.cardNumber = field(num, "confirmed", "Matches the catalog (CardSight).");
+    fields.cardNumber = field(num, "unconfirmed", "Catalog supplied a card number, but the exact number and independent photo evidence do not fully agree.");
   } else if (patterns.length && patterns.some((re) => re.test(num))) {
     // A matching number format does not establish that this exact player/card
     // exists in the manufacturer checklist.
