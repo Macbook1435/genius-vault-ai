@@ -8,7 +8,7 @@ const verification = (overrides={}) => ({outside:{catalog:{status:"unavailable"}
 test("missing serial cannot be confirmed as unnumbered",()=>{
   const result=buildFieldVerification(card(),verification());
   assert.equal(result.fields.serial.status,"unconfirmed");
-  assert.match(result.fields.serial.basis,/not detected/i);
+  assert.match(result.fields.serial.basis,/no serial number detected/i);
 });
 
 test("product checklist alone does not confirm set",()=>{
