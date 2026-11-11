@@ -137,8 +137,10 @@ export function buildFieldVerification(card, v, ctx = {}) {
 
   // --- Serial ---
   if (!present(card.serialNumber) && !card.numberedTo) {
-    fields.serial = field(null, ctx.serialImage ? "unconfirmed" : "confirmed",
-      ctx.serialImage ? "Close-up could not be confirmed." : "No serial number found (not numbered).");
+    // Not seeing a stamp in a scan cannot establish that a card is unnumbered.
+    // Only an independently verified exact variation can prove a non-numbered card.
+    fields.serial = field(null, "unconfirmed",
+      ctx.serialImage ? "Close-up could not be confirmed." : "No serial number detected; unnumbered status requires exact-variation verification.");
   } else if (ctx.serialImage) {
     // A close-up existing is not evidence that its two reads agreed.
     const confirmed = ctx.closeupVerified === true && present(card.serialNumber);
