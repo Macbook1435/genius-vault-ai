@@ -7,3 +7,6 @@ test('three consecutive acceptable frames required',()=>{const good={cornerCover
 test('hamming distance counts bits',()=>assert.equal(hammingDistance64('0000000000000000','000000000000000f'),4));
 test('duplicate hint never reuses identity or price',()=>{const hints=possibleDuplicateScans({dhash:'0000000000000000',side:'front',user_scope:'u1'},[{dhash:'0000000000000001',side:'front',user_scope:'u1',scan_id:'s1'}]);assert.equal(hints[0].reuse_card_identity,false);assert.equal(hints[0].reuse_price,false)});
 test('duplicate hints are scoped by side and user',()=>assert.equal(possibleDuplicateScans({dhash:'0000000000000000',side:'front',user_scope:'u1'},[{dhash:'0000000000000000',side:'back',user_scope:'u2'}]).length,0));
+
+test('missing user scope cannot produce cross-user hints',()=>assert.equal(possibleDuplicateScans({dhash:'0000000000000000',side:'front'},[{dhash:'0000000000000000',side:'front',scan_id:'other'}]).length,0));
+test('invalid distance is rejected for scoped scans',()=>assert.throws(()=>possibleDuplicateScans({dhash:'0000000000000000',side:'front',user_scope:'u1'},[],{maxDistance:-1}),RangeError));
