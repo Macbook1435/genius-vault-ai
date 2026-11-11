@@ -34,12 +34,12 @@ test('TEST preflight is read-only and denies unverified sessions', () => {
   assert.doesNotMatch(preflight, /reserveScan\(|parseForm\(|chat\.completions\.create\(/);
 });
 
-test('isolated TEST preview rejects every scan before parsing or paid providers', () => {
-  const gate = scan.indexOf('process.env.VERCEL_GIT_COMMIT_REF === "test/visual-audit-guards-20261025"');
+test('TEST permits owner-requested manual scans but blocks automated batches before parsing', () => {
   const batch = scan.indexOf('req.headers["x-gv-test-batch"] !== undefined');
   const parse = scan.indexOf('await parseForm(req)');
-  assert.ok(gate !== -1 && gate < batch && batch < parse);
-  assert.match(scan.slice(gate, batch), /status\(423\)/);
-  assert.match(scan.slice(gate, batch), /paidExecutionAllowed: false/);
-  assert.match(scan.slice(gate, batch), /costCeilingUsd: 0/);
+  assert.ok(batch !== -1 && batch < parse);
+  assert.match(scan.slice(batch, parse), /status\(423\)/);
+  assert.match(scan.slice(batch, parse), /batchEnabled: false/);
+  // The former blanket TEST 423 guard was intentionally removed for manual scans.
+  assert.doesNotMatch(scan.slice(0, batch), /paidExecutionAllowed: false/);
 });
