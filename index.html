@@ -322,6 +322,8 @@ function scannerFileError(file,label){
 }
 function scanFailureMessage(status,data){
  const fromServer=typeof data?.error==='string'?data.error.trim():'';
+ if(status===423&&data?.paidExecutionAllowed===false)return 'TEST scanning temporarily locked. Paid recognition is disabled until provider-side spending ceilings are verified. Your photos were accepted; no card identification was attempted.';
+ if(status===423)return 'Scanning is temporarily locked. No card identification was completed.';
  if(status===401)return 'Sign in again before scanning.';
  if(status===413)return 'Photo upload is too large. Try smaller images.';
  if(status===429)return 'Too many requests right now. Wait briefly and try again.';
@@ -362,7 +364,7 @@ async function aiScan() {
  if(!data.scan)throw new Error('No card identification returned. Try clear front and back photos.');
  scanStage='displaying scan result';
  window.gvLast=data;window.gvOrigParallel=data.scan.parallel||'';renderScan(data);notice('Scan ready. Check any unconfirmed details.');
- }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'The scanner took too long to respond. Its final processing status is unknown; please check before retrying.':e instanceof TypeError&&scanStage==='sending scan request'?'Network connection failed. Check your internet and try again.':('Scan failed while '+scanStage+': '+(e.message||'Please try again.'));notice('No completed scan result was received.');}
+ }catch(e){console.error('Genius Vault scan failed at:',scanStage,e);document.getElementById('emptyResult').textContent=e.name==='AbortError'?'The scanner took too long to respond. Its final processing status is unknown; please check before retrying.':e instanceof TypeError&&scanStage==='sending scan request'?'Network connection failed. Check your internet and try again.':(e.message?.startsWith('TEST scanning temporarily locked.')||e.message?.startsWith('Scanning is temporarily locked.')?e.message:('Scan failed while '+scanStage+': '+(e.message||'Please try again.')));notice('No completed scan result was received.');}
  finally{button.disabled=false;button.textContent='Identify card';for(const id of ['imageUpload','backImageUpload','serialUpload'])document.getElementById(id).disabled=false;}
 }
 // Explain existing server evidence without spending credits or inventing certainty.
