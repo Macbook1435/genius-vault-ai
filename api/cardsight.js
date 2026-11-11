@@ -4,9 +4,21 @@ const BASE = "https://api.cardsight.ai";
 import { eligibleAuction, saleKey, exactTitleMatch, summarizeSales } from "./_lib/sold-records.js";
 
 function key() { return process.env.CARDSIGHT_API_KEY || ""; }
-export function cardsightConfigured() { return Boolean(key()); }
+// TEST preview: never invoke the CardSight paid provider while its independent
+// provider-side spending ceiling remains unverified. This is a second barrier
+// independent of the /api/scan recognition lock.
+function cardsightTestLocked() {
+  return process.env.VERCEL_ENV === "preview" &&
+    process.env.VERCEL_GIT_COMMIT_REF === "test/visual-audit-guards-20261025";
+}
+export function cardsightConfigured() { return !cardsightTestLocked() && Boolean(key()); }
 
 async function call(path, options = {}, attempt = 0) {
+  if (cardsightTestLocked()) {
+    const error = new Error("CardSight disabled in TEST pending verified provider-side spending ceiling.");
+    error.status = 423;
+    throw error;
+  }
   const response = await fetch(BASE + path, { ...options, headers: { "X-API-Key": key(), ...(options.headers || {}) },
     signal: AbortSignal.timeout(25000) });
   // Rate limited: wait briefly and retry (twice at most).
