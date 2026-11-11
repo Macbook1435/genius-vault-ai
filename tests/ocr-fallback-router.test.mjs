@@ -9,3 +9,6 @@ test('back card number is candidate only',()=>{const r=routeOcrScan([{text:'No. 
 test('back without number asks for manual search',()=>assert.equal(routeOcrScan([{text:'copyright',conf:99}],'back').action,'MANUAL_SEARCH_FALLBACK'));
 test('invalid side fails closed',()=>assert.throws(()=>routeOcrScan([],'sideways'),TypeError));
 test('invalid confidence never advances front',()=>assert.equal(routeOcrScan([{text:'PRIZM',conf:120},{text:'DANIELS',conf:90}]).action,'REQUEST_FLIP'));
+
+test('low confidence back OCR cannot suggest a number',()=>assert.equal(routeOcrScan([{text:'No. RR-12',conf:25}],'back').action,'MANUAL_SEARCH_FALLBACK'));
+test('missing confidence back OCR cannot suggest a number',()=>assert.equal(routeOcrScan([{text:'No. RR-12'}],'back').action,'MANUAL_SEARCH_FALLBACK'));
