@@ -10,3 +10,6 @@ test('duplicate hints are scoped by side and user',()=>assert.equal(possibleDupl
 
 test('missing user scope cannot produce cross-user hints',()=>assert.equal(possibleDuplicateScans({dhash:'0000000000000000',side:'front'},[{dhash:'0000000000000000',side:'front',scan_id:'other'}]).length,0));
 test('invalid distance is rejected for scoped scans',()=>assert.throws(()=>possibleDuplicateScans({dhash:'0000000000000000',side:'front',user_scope:'u1'},[],{maxDistance:-1}),RangeError));
+
+test('invalid frame metrics fail closed',()=>{for(const value of [-.1,1.1,NaN])assert.equal(evaluateFrameQuality({cornerCoverage:value,sharpness:120,glareFraction:.01}).captureReady,false)});
+test('invalid quality thresholds fail closed',()=>assert.equal(evaluateFrameQuality({cornerCoverage:.9,sharpness:120,glareFraction:.01,thresholds:{maxGlare:2}}).captureReady,false));
