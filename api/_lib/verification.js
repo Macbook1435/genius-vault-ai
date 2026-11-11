@@ -94,11 +94,23 @@ export function buildFieldVerification(card, v, ctx = {}) {
   }
 
   // --- Parallel ---
-  if (pid.source === "catalog" && pid.status === "confirmed") {
-    fields.parallel = field(card.parallel, "confirmed", "Matches the catalog (CardSight).");
+  // A parallel label is not verified merely because a model or a product-level
+  // checklist selected it. Require an actual named variation and supporting
+  // physical evidence; numbered variations must agree with the stamped run.
+  const parallelNamed = present(card.parallel) && !/^(unknown|unconfirmed|not verified|base)$/i.test(String(card.parallel).trim());
+  const parallelRun = Number(pid.evidence?.numberedTo);
+  const stampedRun = Number(card.numberedTo);
+  const parallelRunAgrees = !Number.isFinite(parallelRun) || parallelRun <= 0 ||
+    (Number.isFinite(stampedRun) && stampedRun > 0 && parallelRun === stampedRun);
+  const parallelEvidence = present(pid.evidence?.color) || present(pid.evidence?.finish) ||
+    (Number.isFinite(parallelRun) && parallelRun > 0 && parallelRunAgrees);
+  if (pid.source === "catalog" && pid.status === "confirmed" && parallelNamed && parallelRunAgrees && parallelEvidence) {
+    fields.parallel = field(card.parallel, "confirmed", "Named catalog variation agrees with physical parallel evidence and any stamped print run.");
+  } else if ((pid.status === "confirmed" || pid.status === "confirmed_by_tiebreak") &&
+      parallelNamed && parallelRunAgrees && parallelEvidence && checklist) {
+    fields.parallel = field(card.parallel, "confirmed", "Named checklist variation agrees with physical parallel evidence and any stamped print run.");
   } else if (pid.status === "confirmed" || pid.status === "confirmed_by_tiebreak") {
-    fields.parallel = field(card.parallel, "confirmed",
-      `Only checklist parallel that fits ${[pid.evidence?.numberedTo ? `/${pid.evidence.numberedTo}` : null, pid.evidence?.color, pid.evidence?.finish ? String(pid.evidence.finish).replace(/_/g, " ") : null].filter(present).join(" + ") || "the card"}${pid.status === "confirmed_by_tiebreak" ? " (closer look picked it)" : ""}.`);
+    fields.parallel = field(card.parallel, "unconfirmed", "Parallel candidate lacks sufficient independent checklist, color, finish, or stamped-run evidence.");
   } else if (pid.status === "probable") {
     fields.parallel = field(null, "unconfirmed", pid.guessOnly
       ? `Possibly ${pid.probable} (CardSight photo guess); no checklist to confirm it.`
