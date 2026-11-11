@@ -11,6 +11,9 @@ on:
       - 'tests/ocr-fallback-router.test.mjs'
       - 'tests/scan-quality-cache-hints.test.mjs'
       - '.github/workflows/scanner-pure-module-tests.yml'
+      - 'api/_lib/verification.js'
+      - 'api/_data/exact-card-references.js'
+      - 'tests/verification-safety.test.mjs'
   workflow_dispatch:
 jobs:
   pure-module-tests:
@@ -23,4 +26,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run scanner safety tests (no secrets, no paid APIs)
-        run: node --test tests/ocr-fallback-router.test.mjs tests/scan-quality-cache-hints.test.mjs tests/browser-card-reticle.test.mjs
+        run: node --test tests/ocr-fallback-router.test.mjs tests/scan-quality-cache-hints.test.mjs tests/browser-card-reticle.test.mjs tests/verification-safety.test.mjs
