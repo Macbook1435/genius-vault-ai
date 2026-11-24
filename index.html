@@ -413,7 +413,7 @@ function renderScan(data) {
  }
  document.getElementById('sales').innerHTML=(comps.items||[]).map(i=>`<div><a class="sale" href="${safeUrl(i.url)}" target="_blank" rel="noopener noreferrer"><div><strong>${escHtml(i.title||'Sold card')}</strong><small>${escHtml(i.date?i.date.slice(0,10):i.soldDate||'Date unavailable')} · ${escHtml(i.source||comps.source||'Catalog')} · Returned sold record</small></div><b>${money(i.price,comps.currency)}</b></a><p class="muted" style="font-size:12px;margin:2px 0 12px 4px">${i.match?.matchedFields?.length?'Title checks passed: '+escHtml(i.match.matchedFields.join(', '))+'. Seller title only; not independently authenticated.':'Catalog or provider record; exact-card match and final transaction amount should be checked at source.'}</p></div>`).join('')||'<p class="muted">No matching sold records loaded. Use the sold searches below and check the year, set, parallel, serial and condition.</p>';
  document.getElementById('sales').innerHTML += `<p class="muted">${escHtml(comps.coverageNote||'Partial returned sample, not the complete market. Check eBay and 130Point for additional completed sales and actual accepted offers.')} ${escHtml((comps.warnings||[]).join(' '))}${comps.fetchedAt?' Updated '+escHtml(comps.fetchedAt.slice(0,16).replace('T',' '))+' UTC.':''}</p>`;
- document.getElementById('parallelSlot').innerHTML=parallelPickerHtml(data);
+ document.getElementById('parallelSlot').innerHTML=parallelPickerHtml(data)||versionPickerHtml(data);
  const ebay='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(query)+'&LH_Sold=1&LH_Complete=1&_sop=13';
  for(const [id,url] of [['ebaySold',ebay],['pointSold','https://130point.com/sales/?search='+encodeURIComponent(query)]]){const a=document.getElementById(id);a.href=url;a.hidden=!query;}
  document.getElementById('searchCopyBox').value=query;
@@ -451,6 +451,45 @@ function parallelPickerHtml(data) {
     ${sales ? `<div style="margin-top:10px;"><b>Recent sales:</b>${sales}</div>` : ""}
     ${!pk.needsPick ? "</details>" : ""}
   </div>`;
+}
+
+// "Pick the version" menu: shown when several catalog cards share the player and number (e.g. Base vs Chrome).
+function versionPickerHtml(data) {
+  const vp = data.versionPicker;
+  if (!vp || !vp.candidates?.length) return "";
+  const label = (c) => [c.year, c.release, c.set && !/^base set$/i.test(c.set) ? c.set : (c.set ? "Base" : ""), c.name, c.number ? "#" + c.number : ""].filter(Boolean).join(" ");
+  return `<div class="parallel-picker" style="margin-top:15px;padding:16px;background:#e8f2ff;border-radius:12px;">
+    <b style="color:#326748;">VERSION - PICK ONE TO LOAD SOLD PRICES:</b><br>
+    <div style="margin:8px 0;">${escHtml(vp.reason || "More than one version of this card matches.")}</div>
+    <select id="versionPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
+      <option value="" selected disabled>Choose the version you have...</option>
+      ${vp.candidates.map((c) => `<option value="${escHtml(c.id)}">${escHtml(label(c))}</option>`).join("")}
+    </select>
+    <button onclick="pickVersion()" style="background:#00c853;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer;">USE THIS VERSION</button>
+    <div id="versionPickStatus" style="margin-top:8px;"></div>
+  </div>`;
+}
+
+async function pickVersion() {
+  const data = window.gvLast;
+  const sel = document.getElementById("versionPick");
+  const status = document.getElementById("versionPickStatus");
+  if (!data?.versionPicker || !sel?.value) { if (status) status.textContent = "Choose a version first."; return; }
+  status.textContent = "Loading parallels for this version...";
+  try {
+    const r = await fetch(`/api/parallel-comps?cardId=${encodeURIComponent(sel.value)}&options=1`);
+    const c = await r.json();
+    if (!r.ok || !Array.isArray(c.options)) throw new Error(c.error || "Could not load this version.");
+    const n = Number(data.scan?.numberedTo) || null;
+    // Suggest parallels with the same print run the scan read (e.g. every /50).
+    const suggestedIds = n ? c.options.filter((o) => Number(o.numberedTo) === n).map((o) => o.id) : [];
+    data.parallelPicker = { cardId: sel.value, options: c.options, selectedId: null, needsPick: true, suggestedIds,
+      reason: n ? `Version chosen. Now pick the parallel on your card (the scan read a /${n} serial).` : "Version chosen. Now pick the parallel on your card." };
+    data.versionPicker = null;
+    document.getElementById("parallelSlot").innerHTML = parallelPickerHtml(data);
+  } catch (e) {
+    status.textContent = e.message || "Could not load this version.";
+  }
 }
 
 async function pickParallel() {
@@ -775,7 +814,7 @@ function saveCollectionEdit(event){
  item.data.verification={status:'needs_review',warnings:['Card details were manually edited. Re-scan to verify the corrected identity.']};
  item.data.pipeline=null;item.data.comps={count:0,items:[],status:'identity_unverified',error:'Manually edited identity: sold comps require a fresh verified scan.'};
  item.data.market=null;item.data.soldComps={query:'',summary:'Verification required before sold comparisons.'};
- item.data.parallelPicker=null;
+ item.data.parallelPicker=null;item.data.versionPicker=null;
  try{writeCollection(list);document.getElementById('collectionEditDialog').close();renderCollection();notice('Card updated. AI verification and stale prices were cleared.');}
  catch(e){notice(e?.message||'Could not save changes.');}
 }
