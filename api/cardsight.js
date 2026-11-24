@@ -183,7 +183,7 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
 
 // ---- Sorting a sale by its listing title ----
 const SUBSET_WORDS = new Set(["rated", "rookie", "rookies", "rc", "parallel", "base", "set"]);
-const titleWords = (t) => new Set(String(t || "").toLowerCase().replace(/\bauto(graph)?s?\b/g, "autographs").split(/[^a-z0-9]+/).filter(Boolean));
+const titleWords = (t) => new Set(String(t || "").toLowerCase().replace(/\bauto(graph)?s?\b/g, "autographs").replace(/\bdie[\s-]*cuts?\b/g, "die cut").split(/[^a-z0-9]+/).filter(Boolean));
 const distinctWords = (name) => words(name).filter((w) => !SUBSET_WORDS.has(w)).map((w) => (/^auto(graph)?s?$/.test(w) ? "autographs" : w));
 
 // Which bucket a sale belongs to: a parallel id, "null" (base), or "skip" (graded in raw comps, autograph mismatch, unclear).
