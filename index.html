@@ -450,6 +450,9 @@ function parallelPickerHtml(data) {
     ${!pk.needsPick ? '<details><summary>Change parallel (optional)</summary>' : ''}
     <b style="color:#326748;">PARALLEL${pk.needsPick ? " - PICK ONE TO LOAD SOLD PRICES" : ""}:</b><br>
     ${pk.needsPick ? `<div style="margin:8px 0;">${escHtml(pk.reason || "The scanner is not sure which parallel this is.")} Pick the parallel on your card below.</div>` : `<div style="margin:8px 0;">Wrong parallel? Pick the right one and prices reload.</div>`}
+    ${pk.options.some((o) => o.numberedTo) ? `<label for="parallelRun" style="display:block;font-size:13px;margin-bottom:4px;">Numbered card? Type the number after the slash (e.g. 189 for 039/189) to narrow the list:</label>
+    <input id="parallelRun" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 189" oninput="filterParallelRun()" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:8px;border:1px solid #b9cde6;">
+    <div id="parallelRunNote" style="font-size:13px;margin-bottom:6px;"></div>` : ""}
     <select id="parallelPick" style="width:100%;padding:10px;border-radius:8px;font-size:16px;margin-bottom:10px;">
       <option value="" ${pk.selectedId ? "" : "selected"} disabled>Choose the parallel on your card...</option>
       ${top.length ? `<optgroup label="Most likely">${top.map(opt).join("")}</optgroup><optgroup label="All parallels for this card">${rest.map(opt).join("")}</optgroup>` : pk.options.map(opt).join("")}
@@ -498,6 +501,23 @@ async function pickVersion() {
   } catch (e) {
     status.textContent = e.message || "Could not load this version.";
   }
+}
+
+// Narrow the parallel menu to one print run (the number after the slash on the serial).
+function filterParallelRun() {
+  const pk = window.gvLast?.parallelPicker;
+  const sel = document.getElementById("parallelPick");
+  const note = document.getElementById("parallelRunNote");
+  if (!pk || !sel) return;
+  if (!pk.fullOptionsHtml) pk.fullOptionsHtml = sel.innerHTML;
+  const n = Number(String(document.getElementById("parallelRun")?.value || "").replace(/\D/g, "")) || null;
+  if (!n) { sel.innerHTML = pk.fullOptionsHtml; if (note) note.textContent = ""; return; }
+  const hits = pk.options.filter((o) => Number(o.numberedTo) === n);
+  const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
+  sel.innerHTML = `<option value="" disabled ${hits.length === 1 ? "" : "selected"}>${hits.length ? "Choose the parallel on your card..." : "No parallel numbered to /" + n}</option>`
+    + hits.map((o) => `<option value="${escHtml(o.id)}" ${hits.length === 1 ? "selected" : ""}>${escHtml(label(o))}</option>`).join("");
+  if (note) note.textContent = hits.length === 1 ? `Only one /${n} version: ${hits[0].name}. Tap the button to load prices.`
+    : hits.length ? `${hits.length} versions are numbered to /${n}.` : `This card has no version numbered to /${n}. Check the number, or clear the box to see every version.`;
 }
 
 async function pickParallel() {

@@ -48,6 +48,12 @@ try{
  await page.waitForSelector('#parallelPick');
  const likely=await page.$$eval('#parallelPick optgroup[label="Most likely"] option',o=>o.map(x=>x.textContent));
  assert.deepEqual(likely,['Orange Refractor /50']);
+ // Typing a print run narrows the menu to that run and auto-selects a single hit.
+ await page.fill('#parallelRun','25');
+ assert.deepEqual(await page.$$eval('#parallelPick option:not([disabled])',o=>o.map(x=>x.textContent)),['Gold Refractor /25']);
+ assert.ok((await page.textContent('#parallelRunNote')).includes('Only one /25 version'));
+ await page.fill('#parallelRun','');
+ assert.ok((await page.$$eval('#parallelPick option',o=>o.length))>=3);
  await page.selectOption('#parallelPick',ORANGE);
  await page.click('text=LOAD SOLD PRICES FOR THIS PARALLEL');
  await page.waitForFunction(()=>window.gvLast?.comps?.count===2);
