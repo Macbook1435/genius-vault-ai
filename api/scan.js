@@ -1456,7 +1456,7 @@ function buildReadoutSummary(card, comps) {
 // Temporary troubleshooting aid: when GV_SCAN_DEBUG_LOG=1 is set in Vercel,
 // log one line per completed scan (identity, verification, price summary).
 // No photos, image data, or user identity are logged. Unset it to turn off.
-function logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted }) {
+function logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted, catalog }) {
   if (process.env.GV_SCAN_DEBUG_LOG !== "1") return;
   try {
     const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
@@ -1469,6 +1469,13 @@ function logScanSummary({ startedAt, scanResult, verification, confidence, comps
       comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error"]),
       compTitles: (comps?.items || []).slice(0, 5).map((i) => [i.title, i.price, i.date]),
       marketSold: pick(market?.sold, ["source", "status", "count", "median", "error"]),
+      catalog: {
+        status: catalog?.status ?? null,
+        error: catalog?.error ?? null,
+        match: catalog?.match ? pick(catalog.match, ["id", "name", "year", "release", "set", "number", "numberedTo"]) : null,
+        parallelComps: catalog?.parallelComps ? pick(catalog.parallelComps, ["mode", "name", "status", "reason", "error"]) : null,
+        soldLookup: catalog?.soldLookup ?? null,
+      },
     }));
   } catch (e) {
     console.warn("scan summary log failed:", e?.message);
@@ -2178,7 +2185,7 @@ Strict rules:
       : "No prices auto-pulled. Use the sold-comps link below.";
 
     scanReservation = null; // A completed result legitimately consumes one scan.
-    logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted });
+    logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted, catalog });
     return res.status(200).json({
       results: "Scan completed successfully.",
       scan: scanResult,
