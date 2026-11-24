@@ -1474,6 +1474,7 @@ function logScanSummary({ startedAt, scanResult, verification, confidence, comps
         error: catalog?.error ?? null,
         match: catalog?.match ? pick(catalog.match, ["id", "name", "year", "release", "set", "number", "numberedTo"]) : null,
         parallelComps: catalog?.parallelComps ? pick(catalog.parallelComps, ["mode", "name", "status", "reason", "error"]) : null,
+        detailsLookup: catalog?.detailsLookup ? { ...catalog.detailsLookup, candidates: (catalog.detailsLookup.candidates || []).slice(0, 5) } : null,
         soldLookup: catalog?.soldLookup ?? null,
       },
     }));

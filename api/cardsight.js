@@ -212,7 +212,8 @@ const words = (v) => String(v ?? "").toLowerCase().split(/[^a-z0-9]+/).filter((w
 
 // Pick the one catalog card that fits the verified player + card number + year (+ set words when given).
 // Returns { status: "matched", card } only when exactly one base card fits; otherwise no match (no guessing).
-export const isAutoCard = (c) => (c.attributes || []).some((a) => /^auto/i.test(String(a))) || /autograph|\bauto\b|signature|\bsigs?\b|\bmarks\b|\bink\b/i.test(`${c.setName || ""}`);
+const AUTO_WORDS = /autograph|\bauto\b|signature|\bsigs?\b|\bmarks\b|\bink\b/i;
+export const isAutoCard = (c) => (c.attributes || []).some((a) => /^auto/i.test(String(a))) || AUTO_WORDS.test(`${c.setName || ""}`);
 export const isRelicCard = (c) => /relic|memorabilia|patch|jersey|swatch/i.test(`${c.setName || ""}`);
 
 export function pickCatalogCard(cards, { player, number, year, set, brand, autograph, memorabilia } = {}) {
@@ -225,7 +226,13 @@ export function pickCatalogCard(cards, { player, number, year, set, brand, autog
     && (!year || !c.releaseYear || String(c.releaseYear).startsWith(String(year)))
     && !c.variationOf && !c.isParallelOnly);
   // Autograph / relic must agree with what the scan saw (only when the scan said yes or no).
-  if (autograph === true) fits = fits.filter(isAutoCard);
+  if (autograph === true) {
+    // Some all-autograph products (e.g. "Topps Signature Class") name the
+    // autograph in the release, with a plain "Base Set" and no AUTO attribute.
+    // Use the release name only when no card qualifies by set or attribute.
+    const strict = fits.filter(isAutoCard);
+    fits = strict.length ? strict : fits.filter((c) => AUTO_WORDS.test(`${c.releaseName || ""}`));
+  }
   if (autograph === false) fits = fits.filter((c) => !isAutoCard(c));
   if (memorabilia === true) fits = fits.filter(isRelicCard);
   if (memorabilia === false) fits = fits.filter((c) => !isRelicCard(c));

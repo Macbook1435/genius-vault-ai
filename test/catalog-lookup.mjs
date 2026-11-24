@@ -64,3 +64,13 @@ t("patch card keeps only relic versions", () => {
   assert.equal(pickCatalogCard(cards, { player: "Sam Example", number: "XU7", year: 2019, autograph: true, memorabilia: true }).card.id, "rel");
 });
 console.log("catalog-lookup: version checks passed");
+t("all-autograph release with a plain Base Set still matches an autographed scan", () => {
+  const sigClass = { ...base, id: "sc1", releaseName: "Brandco Signature Class", setName: "Base Set", attributes: [] };
+  assert.equal(pickCatalogCard([sigClass], { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).card.id, "sc1");
+  // A set-level autograph card still wins over the release-name fallback.
+  const setAuto = { ...base, id: "au1", setName: "Rookie Autographs", attributes: ["AUTO"] };
+  assert.equal(pickCatalogCard([sigClass, setAuto], { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).card.id, "au1");
+  // A non-autograph release is never treated as an autograph card.
+  assert.equal(pickCatalogCard([base], { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).status, "no_match");
+});
+console.log("catalog-lookup: release-level autograph checks passed");
