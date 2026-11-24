@@ -9,6 +9,7 @@ import { cardsightConfigured, cardsightIdentify, resolveParallel, cardsightSoldC
 import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/verification.js";
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
+import { writeScanLog } from "./_lib/scan-log.js";
 import { readSerialFromPhotos, serialValue } from "./_lib/serial-photo.js";
 import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
@@ -2221,8 +2222,20 @@ Strict rules:
 
     scanReservation = null; // A completed result legitimately consumes one scan.
     logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog });
+    const keep = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
+    const scanLogId = await writeScanLog({
+      user_id: member?.id || null, ms: Date.now() - startedAt, phases,
+      card: keep(scanResult, ["year", "brand", "set", "player", "cardNumber", "parallel", "numberedTo", "serialNumber", "autograph", "memorabilia", "rookie"]),
+      verification: verification?.status ?? null, confidence: confidence ?? null,
+      catalog_card_id: catalog?.soldLookup?.cardId || catalog?.match?.id || catalog?.detailsLookup?.match?.id || null,
+      catalog_match: catalog?.match || catalog?.detailsLookup?.match || null,
+      parallel_id: catalog?.soldLookup?.parallelId || null,
+      parallel_name: catalog?.parallelComps?.name || null,
+      comps: keep(comps, ["source", "status", "count", "min", "median", "max"]),
+    });
     return res.status(200).json({
       results: "Scan completed successfully.",
+      scanLogId,
       scan: scanResult,
       memorabiliaEvidence: describeMemorabiliaEvidence(scanResult.notes, scanResult),
       confidence,
