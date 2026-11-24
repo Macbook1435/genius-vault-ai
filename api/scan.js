@@ -2043,6 +2043,13 @@ Strict rules:
             cardIsAuto: info && !info.error ? info.isAuto : null }).catch((e) => ({ error: e.message, count: 0 }));
           if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
+          // No sales for the version the scan assumed: the color or serial may have been missed
+          // (e.g. a Red /99 read as base). Open the parallel menu instead of hiding it.
+          if (parallelPicker && !catalogSold?.count) {
+            const assumed = parallelId === "null" ? "the base version" : `the ${catalogSold?.parallelName || plan.name || "selected"} parallel`;
+            parallelPicker.needsPick = true;
+            parallelPicker.reason = `No sold auction sales were found for ${assumed}. If your card has a color or a serial number like /99, pick it below.`;
+          }
         }
       }
       // When independent magnified-photo reads agree, preserve that evidence in the
