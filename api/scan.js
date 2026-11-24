@@ -1943,6 +1943,7 @@ Strict rules:
           memorabilia: typeof scanResult.memorabilia === "boolean" ? scanResult.memorabilia : undefined }).catch((e) => ({ status: "error", error: e.message }));
         mark("detailsLookup");
         catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null, candidates: found.candidates || [],
+          apiCount: found.apiCount ?? null, apiSample: found.apiSample || null,
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;
         // Several catalog versions share this player + number (e.g. Base vs Chrome):
@@ -1960,6 +1961,7 @@ Strict rules:
         const retry = await cardsightFindByDetails({ player: scanResult.player,
           number: scanResult.cardNumber, autograph: scanResult.autograph === true,
           memorabilia: scanResult.memorabilia === true }).catch((e) => ({status:"error",error:e.message}));
+        if (catalog.detailsLookup && retry.status !== "matched") catalog.detailsLookup.retry = { status: retry.status, apiCount: retry.apiCount ?? null, apiSample: retry.apiSample || null };
         if (retry.status === "matched" && retry.card?.id) {
           pricingCardId = retry.card.id;
           catalog.detailsLookup = {status:"matched",count:retry.count ?? 1,

@@ -277,7 +277,14 @@ export async function cardsightFindByDetails(details) {
   const qs = new URLSearchParams({ name: last, number: String(details.number).replace(/^#/, ""), take: "50" });
   if (details.year) qs.set("year", String(details.year));
   const body = await call(`/v1/catalog/cards?${qs}`);
-  return pickCatalogCard(body?.cards, details);
+  const out = pickCatalogCard(body?.cards, details);
+  if (out.status !== "matched") {
+    // Diagnostic: what the catalog actually returned, so misses can be traced (no secrets, catalog text only).
+    const cards = Array.isArray(body?.cards) ? body.cards : [];
+    out.apiCount = cards.length;
+    out.apiSample = cards.slice(0, 8).map((c) => [c.releaseYear, c.releaseName, c.setName, c.number, c.name].join(" | "));
+  }
+  return out;
 }
 
 // ---- Parallel comps: map the confirmed parallel name to CardSight's parallel for this card ----
