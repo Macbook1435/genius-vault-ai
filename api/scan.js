@@ -351,7 +351,7 @@ async function fetchWithTimeout(url, timeoutMs = 9000) {
   }
 }
 
-async // Conservative title audit: never count a vaguely similar sale as an exact comp.
+// Conservative title audit: never count a vaguely similar sale as an exact comp.
 // Marketplace titles are seller-authored, so even a pass is a candidate, not proof.
 function auditSoldTitle(item, card) {
   const title = String(item.title || "");
