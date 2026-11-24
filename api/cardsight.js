@@ -367,7 +367,7 @@ export function suggestOptionIds(options, names, { unnumbered = false } = {}) {
 // Tries each value; an unsupported value comes back as an error message.
 export async function cardsightListingTypes(cardId) {
   const out = {};
-  for (const lt of ["", "auction", "fixed_price", "buy_it_now", "all"]) {
+  for (const lt of ["auction", "fixed", "both"]) {
     const qs = new URLSearchParams({ period: "1y", limit: "500", grade_id: "null" });
     if (lt) qs.set("listing_type", lt);
     try {
@@ -375,7 +375,7 @@ export async function cardsightListingTypes(cardId) {
       const recs = body?.raw?.records || [];
       const types = {};
       for (const r of recs) { const k = `${r.listing_type}|${r.best_offer ? "offer" : "no-offer"}|${r.sold === false ? "unsold" : "sold?"}`; types[k] = (types[k] || 0) + 1; }
-      out[lt || "(none)"] = { count: recs.length, types, keys: recs[0] ? Object.keys(recs[0]) : [] };
+      out[lt || "(none)"] = { count: recs.length, types, sample: recs.filter((r) => r.listing_type !== "auction").slice(0, 6).map((r) => [r.date, r.price, r.title, r.url]) };
     } catch (e) { out[lt || "(none)"] = { error: e.message }; }
   }
   return out;
