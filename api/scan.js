@@ -1453,8 +1453,31 @@ function buildReadoutSummary(card, comps) {
   }`;
 }
 
+// Temporary troubleshooting aid: when GV_SCAN_DEBUG_LOG=1 is set in Vercel,
+// log one line per completed scan (identity, verification, price summary).
+// No photos, image data, or user identity are logged. Unset it to turn off.
+function logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted }) {
+  if (process.env.GV_SCAN_DEBUG_LOG !== "1") return;
+  try {
+    const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
+    console.log("scan summary " + JSON.stringify({
+      ms: Date.now() - startedAt,
+      card: pick(scanResult, ["year", "brand", "set", "player", "cardNumber", "parallel", "numberedTo", "serialNumber", "autograph"]),
+      verification: verification?.status ?? null,
+      confidence,
+      identityTrusted,
+      comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error"]),
+      compTitles: (comps?.items || []).slice(0, 5).map((i) => [i.title, i.price, i.date]),
+      marketSold: pick(market?.sold, ["source", "status", "count", "median", "error"]),
+    }));
+  } catch (e) {
+    console.warn("scan summary log failed:", e?.message);
+  }
+}
+
 export default async function handler(req, res) {
   let scanReservation = null;
+  const startedAt = Date.now();
   try {
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
@@ -2155,6 +2178,7 @@ Strict rules:
       : "No prices auto-pulled. Use the sold-comps link below.";
 
     scanReservation = null; // A completed result legitimately consumes one scan.
+    logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted });
     return res.status(200).json({
       results: "Scan completed successfully.",
       scan: scanResult,
