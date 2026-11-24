@@ -363,6 +363,24 @@ export function suggestOptionIds(options, names, { unnumbered = false } = {}) {
   return [...new Set(ids)];
 }
 
+// Diagnostic: which listing types CardSight returns for a card (counts only, no records).
+// Tries each value; an unsupported value comes back as an error message.
+export async function cardsightListingTypes(cardId) {
+  const out = {};
+  for (const lt of ["", "auction", "fixed_price", "buy_it_now", "all"]) {
+    const qs = new URLSearchParams({ period: "1y", limit: "500", grade_id: "null" });
+    if (lt) qs.set("listing_type", lt);
+    try {
+      const body = await call(`/v1/pricing/${encodeURIComponent(cardId)}?${qs}`);
+      const recs = body?.raw?.records || [];
+      const types = {};
+      for (const r of recs) { const k = `${r.listing_type}|${r.best_offer ? "offer" : "no-offer"}|${r.sold === false ? "unsold" : "sold?"}`; types[k] = (types[k] || 0) + 1; }
+      out[lt || "(none)"] = { count: recs.length, types, keys: recs[0] ? Object.keys(recs[0]) : [] };
+    } catch (e) { out[lt || "(none)"] = { error: e.message }; }
+  }
+  return out;
+}
+
 export async function cardsightCardInfo(cardId) {
   const body = await call(`/v1/catalog/cards/${encodeURIComponent(cardId)}`);
   return { parallels: Array.isArray(body?.parallels) ? body.parallels : [],
