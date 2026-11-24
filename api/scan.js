@@ -1890,6 +1890,7 @@ Strict rules:
     let pipeline = null;
     let market = null;
     let parallelPicker = null;
+    let versionPicker = null;
     try {
       pipeline = buildFieldVerification(scanResult, verification, {
         checklist: findChecklist(scanResult),
@@ -1928,6 +1929,14 @@ Strict rules:
         catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null, candidates: found.candidates || [],
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;
+        // Several catalog versions share this player + number (e.g. Base vs Chrome):
+        // let the user pick the version instead of giving up on sold prices.
+        if (found.status === "ambiguous" && Array.isArray(found.candidates) && found.candidates.length >= 2 && found.candidates.length <= 8) {
+          versionPicker = {
+            reason: `${found.candidates.length} versions of this card match the player and number. Pick the one you have to load sold prices.`,
+            candidates: found.candidates.map((c) => ({ id: c.id, name: c.name, number: c.number, release: c.release, set: c.set, year: c.year })),
+          };
+        }
       }
       // Retry a details lookup without the vision-guessed year/set when the
       // initial lookup fails. Accept only a unique matching autograph card.
@@ -1943,6 +1952,7 @@ Strict rules:
             from:"unique identity lookup without guessed year/set"};
         }
       }
+      if (pricingCardId) versionPicker = null;
       if (identityTrusted && pricingCardId) {
         // Comps must be for the same parallel as the card: base, one confirmed parallel, or none at all.
         const effective = v2Mode === "primary" && v2?.pipeline ? v2.pipeline : pipeline;
@@ -2212,6 +2222,7 @@ Strict rules:
       ...(v2Mode !== "off" ? { v2: { mode: v2Mode, ...v2, pipelineV1: pipeline, ...(v2Mode === "shadow" ? { debug: { raw: rawReads } } : {}) } } : {}),
       market,
       parallelPicker,
+      versionPicker: identityTrusted ? versionPicker : null,
       integrations: integrationStatus({ cardsight: cardsightConfigured(), ebay: ebayConfigured() }),
       readoutSummary,
       alternates: identityTrusted ? alternates : [],

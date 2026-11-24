@@ -1,6 +1,7 @@
 // Sold comps for one CardSight card + one parallel the user picked ("null" = base).
 // GET /api/parallel-comps?cardId=<uuid>&parallelId=<uuid|null>
-import { cardsightConfigured, cardsightSoldComps, cardsightCardInfo } from "./cardsight.js";
+// GET /api/parallel-comps?cardId=<uuid>&options=1  -> the parallels listed for that card (for the picker)
+import { cardsightConfigured, cardsightSoldComps, cardsightCardInfo, parallelOptions } from "./cardsight.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,6 +18,9 @@ export default async function handler(req, res) {
     let parallelName = "Base";
     const info = await cardsightCardInfo(cardId);
     const list = info.parallels;
+    if (String(req.query.options || "") === "1") {
+      return res.status(200).json({ cardId, options: parallelOptions(list, cardId), cardIsAuto: info.isAuto });
+    }
     if (parallelId !== "null") {
       const p = list.find((x) => x && x.id === parallelId);
       if (!p) return res.status(400).json({ error: "That parallel is not listed for this card." });
