@@ -18,6 +18,10 @@ jobs:
           node --check api/_lib/subscriptions.js
           node --check api/subscription-status.js
           node --check api/stripe-webhook.js
+      - name: Install API dependencies
+        run: npm install --prefix api --no-save --no-package-lock
+      - name: Load scanner module (catches top-level runtime errors)
+        run: node --test tests/scan-import.test.mjs
       - name: Run offline regression tests (no API keys)
         run: node --test tests/offline.test.mjs
       - name: Install browser test runner and Chromium
