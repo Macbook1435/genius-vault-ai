@@ -103,6 +103,12 @@ t("subset prefix ignored, finish words kept", () => {
   assert.equal(saleBucket({ title: "2030 Chromey Sam Example #9" }, P), "null");
 });
 console.log("parallel-comps: chrome-style checks passed");
+t("plural catalog names match singular titles", () => {
+  const P = [{ id: "r", name: "Refractors" }, { id: "c", name: "Camo Refractors", numberedTo: 10 }];
+  assert.equal(saleBucket({ title: "2030 Finest Sam Example Refractor #9" }, P), "r");
+  assert.equal(saleBucket({ title: "2030 Finest Sam Example Camo Refractor /10" }, P), "c");
+  assert.equal(saleBucket({ title: "2030 Finest Sam Example #9" }, P), "null");
+});
 t("die-cut spelled as one word is still the die-cut parallel", () => {
   const P = [{ id: "s", name: "Silver Prizm" }, { id: "sd", name: "Silver Prizm Die-Cut" }];
   assert.equal(saleBucket({ title: "2030 Brandco Sam Example SILVER DIECUT PRIZM #9" }, P), "sd");

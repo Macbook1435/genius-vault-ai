@@ -115,8 +115,8 @@ export function siblingAutoBucket(record, parallels, { raw = true } = {}) {
   const b = saleBucket({ ...record, parallel_id: null }, parallels, { cardIsAuto: true, raw });
   if (b !== "null") return b;
   // Base only when no parallel word (color/finish) shows up in the title at all.
-  const tw = titleWords(title);
-  const anyWord = (parallels || []).some((p) => distinctWords(p.name).filter((w) => w !== "autographs" && !FINISH_WORDS.has(w)).some((w) => tw.has(w)));
+  const tws = stemSet(titleWords(title));
+  const anyWord = (parallels || []).some((p) => distinctWords(p.name).filter((w) => w !== "autographs" && !FINISH_WORDS.has(stem(w))).some((w) => tws.has(stem(w))));
   if (anyWord || /\/\s*\d+\b/.test(title)) return "skip";
   return "null";
 }
@@ -184,6 +184,9 @@ async function soldCompsFor(cardId, { parallelId = "null", gradeId = "null", par
 // ---- Sorting a sale by its listing title ----
 const SUBSET_WORDS = new Set(["rated", "rookie", "rookies", "rc", "parallel", "base", "set"]);
 const titleWords = (t) => new Set(String(t || "").toLowerCase().replace(/\bauto(graph)?s?\b/g, "autographs").replace(/\bdie[\s-]*cuts?\b/g, "die cut").split(/[^a-z0-9]+/).filter(Boolean));
+// Plural catalog names ("Refractors") must match singular titles ("Refractor").
+const stem = (w) => (w.length > 4 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
+const stemSet = (set) => new Set([...set].map(stem));
 const distinctWords = (name) => words(name).filter((w) => !SUBSET_WORDS.has(w)).map((w) => (/^auto(graph)?s?$/.test(w) ? "autographs" : w));
 
 // Which bucket a sale belongs to: a parallel id, "null" (base), or "skip" (graded in raw comps, autograph mismatch, unclear).
@@ -191,10 +194,11 @@ export function saleBucket(record, parallels, { raw = true, cardIsAuto = false }
   const title = String(record?.title || "");
   if (raw && /\b(psa|bgs|sgc|cgc|csg|hga|tag)\s*-?\s*(\d{1,2}(\.5)?|auth)/i.test(title)) return "skip";
   const tw = titleWords(title);
+  const tws = stemSet(tw);
   const hits = [];
   for (const p of parallels || []) {
     const dw = distinctWords(p.name).filter((w) => !(cardIsAuto && w === "autographs"));
-    if (!dw.length || !dw.every((w) => tw.has(w))) continue;
+    if (!dw.length || !dw.every((w) => tws.has(stem(w)))) continue;
     if (p.numberedTo && !new RegExp(`/\\s*${Number(p.numberedTo)}\\b`).test(title)) continue;
     hits.push({ id: p.id, size: dw.length + (p.numberedTo ? 1 : 0) });
   }
