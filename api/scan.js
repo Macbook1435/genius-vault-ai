@@ -1708,7 +1708,7 @@ Strict rules:
     const checkB = serialValue(strongCheck?.stampedSerial);
     const sameSerial = (a, b) => a && b && a.num === b.num && a.den === b.den;
     // Skip when all three full-card reads saw no serial at all: the enlarged retry
-    // costs ~40s and on unnumbered cards it almost never finds one.
+    // costs ~40s, which is too slow for a live break.
     const serialHint = Boolean(mainSerial || checkA || checkB || scanResult.numberedTo || cleanPart(scanResult.serialNumber)
       || cleanPart(combinedCheck?.stampedSerial) || cleanPart(strongCheck?.stampedSerial));
     if (!serialImage && serialHint && (!mainSerial || !sameSerial(mainSerial, checkA) || !sameSerial(mainSerial, checkB))) {
