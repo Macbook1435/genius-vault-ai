@@ -396,7 +396,7 @@ function renderScan(data) {
  document.getElementById('resultBody').hidden=false;
  document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}<div class="identity-field"><small>AUTOGRAPH</small><strong>${card.autograph?'Yes — autograph detected':'Not detected'}</strong></div></div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}</div>`;
  document.getElementById('rawValue').textContent=comps.count?money(comps.median,comps.currency):(data.parallelPicker?.needsPick?'Confirm parallel':'No sales loaded');
- document.getElementById('rawDetail').textContent=comps.count?`${comps.count} returned auctions · Average ${money(comps.mean,comps.currency)} · ${money(comps.min,comps.currency)} – ${money(comps.max,comps.currency)}`:(comps.error||'Verify the exact card to find matching sales.');
+ document.getElementById('rawDetail').textContent=comps.count?`${comps.count} returned auctions · Average ${money(comps.mean,comps.currency)} · ${money(comps.min,comps.currency)} – ${money(comps.max,comps.currency)}${thinSalesNote(comps)}`:(comps.error||'Verify the exact card to find matching sales.');
  document.getElementById('gradedValue').textContent=card.grade?`${card.gradingCompany||'Graded'} ${card.grade}`:'Not available';
  document.getElementById('gradedDetail').textContent=card.grade?'Visible slab grade; raw sale prices are separate.':'No supported grade estimate or graded comps returned.';
  const audit=comps.matchAudit;
@@ -422,6 +422,14 @@ function renderScan(data) {
  const active=data.market?.active;
  document.getElementById('activeAsks').textContent=active?.count?`Active asking prices: ${money(active.low)} – ${money(active.high)} across ${active.count} listings. These are not sold prices.`:'Active asking prices: none loaded.';
  document.getElementById('saveCard').disabled=false;
+}
+// Warn when a price rests on very few or old sales, so a thin median is not read as market value.
+function thinSalesNote(comps,now=Date.now()){
+ const notes=[];const n=Number(comps?.count)||0;
+ if(n>0&&n<3)notes.push(`only ${n} sale${n===1?'':'s'} found`);
+ const newest=Date.parse(comps?.latestSaleDate||'');
+ if(Number.isFinite(newest)){const days=Math.floor((now-newest)/86400000);if(days>90)notes.push(`newest sale ${days>=60?Math.round(days/30)+' months':days+' days'} ago`);}
+ return notes.length?` · ⚠ Thin data: ${notes.join(', ')}. Check recent eBay sales before relying on this price.`:'';
 }
 function money(n,currency='USD'){return Number.isFinite(Number(n))&&n!==null?new Intl.NumberFormat('en-US',{style:'currency',currency:currency||'USD'}).format(Number(n)):'Unavailable';}
 function safeUrl(v){try{const u=new URL(v);return /^https?:$/.test(u.protocol)?escHtml(u.href):'#';}catch{return '#';}}

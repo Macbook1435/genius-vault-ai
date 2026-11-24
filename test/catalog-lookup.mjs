@@ -74,3 +74,18 @@ t("all-autograph release with a plain Base Set still matches an autographed scan
   assert.equal(pickCatalogCard([base], { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).status, "no_match");
 });
 console.log("catalog-lookup: release-level autograph checks passed");
+t("set text that is not word-for-word still picks the version without unread qualifiers", () => {
+  const chrome = { ...base, id: "ch", releaseName: "Brandco Chrome", setName: "Rookies Autographs", attributes: ["AUTO"] };
+  const sapphire = { ...base, id: "sa", releaseName: "Brandco Chrome Sapphire", setName: "Rookies Autographs Sapphire", attributes: ["AUTO"] };
+  const r = pickCatalogCard([chrome, sapphire], { player: "Sam Example", number: "XU7", year: 2019, set: "Chrome Football Rookie Autographs", brand: "Brandco", autograph: true });
+  assert.equal(r.status, "matched"); assert.equal(r.card.id, "ch");
+  // When the scan did read Sapphire, Sapphire wins.
+  assert.equal(pickCatalogCard([chrome, sapphire], { player: "Sam Example", number: "XU7", year: 2019, set: "Chrome Sapphire Rookie Autographs", brand: "Brandco", autograph: true }).card.id, "sa");
+  // No set text: stay ambiguous so the user picks.
+  assert.equal(pickCatalogCard([chrome, sapphire], { player: "Sam Example", number: "XU7", year: 2019, autograph: true }).status, "ambiguous");
+  // Base vs Chrome with only the brand read: stay ambiguous.
+  const plain = { ...base, id: "b", releaseName: "Brandco Signature Class", setName: "Base Set" };
+  const chr = { ...base, id: "c", releaseName: "Brandco Signature Class", setName: "Chrome" };
+  assert.equal(pickCatalogCard([plain, chr], { player: "Sam Example", number: "XU7", year: 2019, set: "2025 Brandco", brand: "Brandco" }).status, "ambiguous");
+});
+console.log("catalog-lookup: fuzzy set narrowing checks passed");
