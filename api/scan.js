@@ -1456,12 +1456,13 @@ function buildReadoutSummary(card, comps) {
 // Temporary troubleshooting aid: when GV_SCAN_DEBUG_LOG=1 is set in Vercel,
 // log one line per completed scan (identity, verification, price summary).
 // No photos, image data, or user identity are logged. Unset it to turn off.
-function logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted, catalog }) {
+function logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog }) {
   if (process.env.GV_SCAN_DEBUG_LOG !== "1") return;
   try {
     const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
     console.log("scan summary " + JSON.stringify({
       ms: Date.now() - startedAt,
+      phases,
       card: pick(scanResult, ["year", "brand", "set", "player", "cardNumber", "parallel", "numberedTo", "serialNumber", "autograph"]),
       verification: verification?.status ?? null,
       confidence,
@@ -1486,6 +1487,8 @@ function logScanSummary({ startedAt, scanResult, verification, confidence, comps
 export default async function handler(req, res) {
   let scanReservation = null;
   const startedAt = Date.now();
+  const phases = {}; // debug timing, ms since start
+  const mark = (k) => { phases[k] = Date.now() - startedAt; };
   try {
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
@@ -1617,6 +1620,7 @@ Strict rules:
       safe("strong check", runStrongCheck(frontImage, backImage, ex, v2Mode !== "off")),
     ]);
 
+    mark("vision");
     if (!scanResult) {
       throw new Error("OpenAI returned an empty identification.");
     }
@@ -1708,6 +1712,7 @@ Strict rules:
         fast: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
         strong: process.env.OPENAI_TIEBREAK_MODEL || "gpt-4o",
       });
+      mark("serialRetry");
       if (serialPhotoRetry.serial) {
         const stamp = serialPhotoRetry.serial;
         scanResult.serialNumber = stamp.text;
@@ -1754,7 +1759,9 @@ Strict rules:
     }
 
     // Outside matches (only used when they agree with the verified player + card number).
-    const catalog = applyCatalogMatch(scanResult, await catalogPromise, detailWarnings);
+    const catalogRaw = await catalogPromise;
+    mark("catalogPhoto");
+    const catalog = applyCatalogMatch(scanResult, catalogRaw, detailWarnings);
     const catalogParallels = catalog.status === "accepted" && !catalog.parallelConfirmed
       ? (catalog.rawParallels || []).map((p) => ({ name: p.name, numberedTo: p.numberedTo || null }))
       : null;
@@ -1827,6 +1834,7 @@ Strict rules:
     let v2 = null;
     if (v2Mode !== "off") {
       try {
+        mark("v2Start");
         v2 = await runPipelineV2({
           scan: scanResult,
           raw: rawReads,
@@ -1848,6 +1856,7 @@ Strict rules:
             return { ...a, agreed: Boolean(b && b.answer === a.answer), second: b?.answer || null };
           },
         });
+        mark("v2");
         if (v2Mode === "primary" && v2?.scan) {
           for (const k of ["player", "cardNumber", "parallel"]) scanResult[k] = v2.scan[k];
           if (scanResult.evidence) scanResult.evidence.cardNumberText = v2.scan.cardNumber;
@@ -1902,6 +1911,7 @@ Strict rules:
     } catch (e) {
       console.error("pipeline error:", e);
     }
+    mark("pricingStart");
     try {
       let catalogSold = null;
       parallelPicker = null;
@@ -1926,6 +1936,7 @@ Strict rules:
           year: scanResult.year, set: scanResult.set, brand: scanResult.brand,
           autograph: typeof scanResult.autograph === "boolean" ? scanResult.autograph : undefined,
           memorabilia: typeof scanResult.memorabilia === "boolean" ? scanResult.memorabilia : undefined }).catch((e) => ({ status: "error", error: e.message }));
+        mark("detailsLookup");
         catalog.detailsLookup = { status: found.status, count: found.count ?? null, error: found.error || null, candidates: found.candidates || [],
           match: found.card ? { id: found.card.id, name: found.card.name, number: found.card.number, release: found.card.releaseName, set: found.card.setName, year: found.card.releaseYear } : null };
         if (found.status === "matched") pricingCardId = found.card.id;
@@ -1964,6 +1975,7 @@ Strict rules:
         let parallelId = "null";
         catalog.parallelComps = { mode: plan.mode, name: plan.name || null, reason: plan.reason || null };
         const info = await cardsightCardInfo(pricingCardId).catch((e) => ({ error: e.message }));
+        mark("cardInfo");
         const list = info?.error ? info : info.parallels;
         // A confirmed serial print run (e.g. 13/250) rules out base: use the one parallel with that print run.
         const serialOk = scanResult.numberedTo && (effective?.fields?.serial?.status === "confirmed" || effective?.fields?.serial?.printRunConfirmed === true || Boolean(serialPhotoRetry?.serial && serialValue(scanResult.serialNumber)?.den === serialPhotoRetry.serial.den) || Boolean(closeupSerial && serialValue(scanResult.serialNumber)?.den === closeupSerial.den));
@@ -2042,6 +2054,7 @@ Strict rules:
           catalogSold = await cardsightSoldComps(pricingCardId, { parallelId, parallels: Array.isArray(list) ? list : null,
             cardIsAuto: info && !info.error ? info.isAuto : null }).catch((e) => ({ error: e.message, count: 0 }));
           if (catalogSold && parallelId !== "null") catalogSold.parallelName = catalog.parallelComps.catalogParallel?.name || plan.name;
+          mark("soldComps");
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
           // No sales for the version the scan assumed: the color or serial may have been missed
           // (e.g. a Red /99 read as base). Open the parallel menu instead of hiding it.
@@ -2203,7 +2216,7 @@ Strict rules:
       : "No prices auto-pulled. Use the sold-comps link below.";
 
     scanReservation = null; // A completed result legitimately consumes one scan.
-    logScanSummary({ startedAt, scanResult, verification, confidence, comps, market, identityTrusted, catalog });
+    logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog });
     return res.status(200).json({
       results: "Scan completed successfully.",
       scan: scanResult,
