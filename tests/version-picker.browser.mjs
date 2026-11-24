@@ -27,7 +27,7 @@ try{
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({cardId:CHROME,options:[{id:'null',name:'Base',numberedTo:null},{id:ORANGE,name:'Orange Refractor',numberedTo:50},{id:'44444444-4444-4444-8444-444444444444',name:'Gold Refractor',numberedTo:25}]})});
   }
   assert.equal(u.searchParams.get('parallelId'),ORANGE);
-  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({cardId:CHROME,parallelId:ORANGE,parallelName:'Orange Refractor',count:2,min:40,median:45,max:50,mean:45,items:[{title:'2025 Topps Signature Class Chrome Phil Mafah Orange /50 Auto',price:45,date:'2026-11-01',url:'https://www.ebay.com/itm/1'}],source:'cardsight'})});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({cardId:CHROME,parallelId:ORANGE,parallelName:'Orange Refractor',count:2,min:40,median:45,max:50,mean:45,latestSaleDate:'2025-01-01T00:00:00Z',items:[{title:'2025 Topps Signature Class Chrome Phil Mafah Orange /50 Auto',price:45,date:'2025-01-01',url:'https://www.ebay.com/itm/1'}],source:'cardsight'})});
  });
  await page.goto(origin,{waitUntil:'domcontentloaded'});
  await page.evaluate(([BASE,CHROME])=>{
@@ -52,6 +52,9 @@ try{
  await page.click('text=LOAD SOLD PRICES FOR THIS PARALLEL');
  await page.waitForFunction(()=>window.gvLast?.comps?.count===2);
  assert.equal(await page.evaluate(()=>window.gvLast.comps.median),45);
+ // Two sales, newest long ago: the price is flagged as thin data.
+ const detail=await page.textContent('#rawDetail');
+ assert.ok(/Thin data: only 2 sales found, newest sale \d+ months ago/.test(detail),detail);
  assert.deepEqual(errors,[]);
  console.log('PASS version picker: choose Chrome version, suggested /50 parallel, sold prices loaded.');
 }finally{await browser.close();server.close();}

@@ -243,6 +243,22 @@ export function pickCatalogCard(cards, { player, number, year, set, brand, autog
     if (want.length) {
       const narrowed = fits.filter((c) => { const have = new Set(words(`${c.releaseName || ""} ${c.setName || ""}`)); return want.every((w) => have.has(w)); });
       if (narrowed.length) fits = narrowed;
+      else {
+        // Scan set text rarely matches word for word ("Chrome Football Rookie Autographs" vs
+        // "Topps Chrome / Rookies Autographs"). Prefer the one version with no qualifier words the
+        // scan never read (e.g. "Sapphire"), and only when it shares a word with the scan.
+        const stem = (w) => w.replace(/s$/, "");
+        const wantStems = new Set(want.map(stem));
+        const scored = fits.map((c) => {
+          const have = [...new Set(words(`${c.releaseName || ""} ${c.setName || ""}`).filter((w) => !skip.has(w) && !/^\d+$/.test(w)).map(stem))];
+          return { c, extra: have.filter((w) => !wantStems.has(w)).length, shared: have.filter((w) => wantStems.has(w)).length };
+        });
+        const best = Math.min(...scored.map((x) => x.extra));
+        const fewest = scored.filter((x) => x.extra === best);
+        const most = Math.max(...fewest.map((x) => x.shared));
+        const top = fewest.filter((x) => x.shared === most);
+        if (top.length === 1 && top[0].shared > 0) fits = [top[0].c];
+      }
     }
   }
   if (fits.length === 1) return { status: "matched", card: fits[0], count: 1 };
