@@ -31,7 +31,7 @@ try{
  });
  await page.goto(origin,{waitUntil:'domcontentloaded'});
  await page.evaluate(([BASE,CHROME])=>{
-  const data={scan:{player:'Phil Mafah',year:2025,brand:'Topps',set:null,cardNumber:'188',parallel:null,numberedTo:50,serialNumber:'42/50',autograph:true},
+  const data={scan:{player:'Phil Mafah',year:2025,brand:'Topps',set:null,cardNumber:'188',parallel:null,numberedTo:50,serialNumber:'42/50',autograph:true,memorabilia:true},
    verification:{status:'verified',warnings:[]},confidence:'high',
    comps:{count:0,items:[],status:'exact_match_unverified',currency:'USD'},soldComps:{query:'2025 Topps Phil Mafah 188',summary:''},
    pipeline:{fields:{},allConfirmed:false},market:{active:{count:0}},parallelPicker:null,
@@ -41,6 +41,7 @@ try{
   window.gvLast=data;renderScan(data);
  },[BASE,CHROME]);
  await page.waitForSelector('#versionPick');
+ assert.ok((await page.textContent('#resultBody')).includes('Yes — patch or relic detected'),'patch field missing');
  const labels=await page.$$eval('#versionPick option',o=>o.map(x=>x.textContent));
  assert.ok(labels.some(l=>l.includes('Topps Signature Class Chrome Phil Mafah #188')),labels.join('|'));
  await page.selectOption('#versionPick',CHROME);
