@@ -1463,7 +1463,7 @@ function buildReadoutSummary(card, comps) {
 // Temporary troubleshooting aid: when GV_SCAN_DEBUG_LOG=1 is set in Vercel,
 // log one line per completed scan (identity, verification, price summary).
 // No photos, image data, or user identity are logged. Unset it to turn off.
-function logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog }) {
+function logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog, photoColor }) {
   if (process.env.GV_SCAN_DEBUG_LOG !== "1") return;
   try {
     const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
@@ -1471,6 +1471,7 @@ function logScanSummary({ startedAt, phases, scanResult, verification, confidenc
       ms: Date.now() - startedAt,
       phases,
       card: pick(scanResult, ["year", "brand", "set", "player", "cardNumber", "parallel", "numberedTo", "serialNumber", "autograph"]),
+      photoColor: photoColor ?? null,
       verification: verification?.status ?? null,
       confidence,
       identityTrusted,
@@ -2040,11 +2041,25 @@ Strict rules:
           catalog.parallelComps.mode = "blocked";
           catalog.parallelComps.reason = `Base and ${lookalikes.join(" / ")} look almost the same in photos. Pick the parallel below to load sold prices.`;
         }
+        // The photo shows a colored border (e.g. pink) that names an unnumbered color version of this card:
+        // do not price it as Base. Ask the user to confirm the color (it is suggested first in the menu).
+        const photoColorWord = String(combinedCheck?.parallelColor || "").trim().toLowerCase();
+        const colorVersions = plan.mode === "base" && photoColorWord && Array.isArray(list)
+          ? list.filter((p) => p && p.name && !p.numberedTo && !/\b(auto|autograph|signatures?|patch|relic|jersey|memorabilia)\b/i.test(p.name)
+              && String(p.name).toLowerCase().split(/[^a-z0-9]+/).includes(photoColorWord)
+              && (!p.isPartial || !Array.isArray(p.cards) || p.cards.includes(pricingCardId)))
+          : [];
+        if (colorVersions.length) {
+          plan.mode = "blocked";
+          catalog.parallelComps = { mode: "blocked", name: null, photoColor: photoColorWord,
+            reason: `The card's border looks ${photoColorWord}, and this card has a ${colorVersions.map((p) => p.name).join(" / ")} version, so it was not priced as Base. Confirm the color below to load sold prices.` };
+        }
         if (Array.isArray(list)) {
           const options = parallelOptions(list, pricingCardId);
           const unnumberedCard = !scanResult.numberedTo && effective?.fields?.serial?.status === "confirmed";
           // "Most likely" = the scanner's shortlist, then Base + Holo/Refractor on shiny cards, then CardSight's photo guesses.
           const shortlist = [plan.name, ...(v2?.parallel?.candidates || []), ...(verification.parallelId?.candidates || []).map((c) => String(c).replace(/\s*\/\d+$/, "")),
+            ...colorVersions.map((p) => p.name), ...(colorVersions.length ? ["Base"] : []),
             ...(shinyLookalikes.length ? ["Base", ...shinyLookalikes] : []), ...(catalog.rawParallels || []).map((p) => p.name)].filter(Boolean);
           parallelPicker = { cardId: pricingCardId, options, selectedId: null, needsPick: false,
             suggestedIds: suggestOptionIds(options, shortlist, { unnumbered: unnumberedCard }) };
@@ -2246,7 +2261,7 @@ Strict rules:
       : "No prices auto-pulled. Use the sold-comps link below.";
 
     scanReservation = null; // A completed result legitimately consumes one scan.
-    logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog });
+    logScanSummary({ startedAt, phases, scanResult, verification, confidence, comps, market, identityTrusted, catalog, photoColor: combinedCheck?.parallelColor });
     const keep = (o, keys) => Object.fromEntries(keys.map((k) => [k, o?.[k] ?? null]));
     const cardsightCalls = takeCardsightCalls();
     const [scanLogId] = await Promise.all([writeScanLog({
