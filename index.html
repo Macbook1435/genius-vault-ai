@@ -394,7 +394,7 @@ function renderScan(data) {
  document.getElementById('resultBadge').textContent=data.verification?.status==='verified'&&data.pipeline?.allConfirmed===true?'Identity verified':'Review card details';
  document.getElementById('emptyResult').hidden=true;
  document.getElementById('resultBody').hidden=false;
- document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}<div class="identity-field"><small>AUTOGRAPH</small><strong>${card.autograph?'Yes — autograph detected':'Not detected'}</strong></div></div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}</div>`;
+ document.getElementById('output').innerHTML=`<div class="identity-grid">${field('year','YEAR',card.year)}${field('set','SET',[card.brand,card.set].filter(Boolean).join(' '))}${field('cardNumber','CARD NUMBER',card.cardNumber)}${field('parallel','PARALLEL',card.parallel||fields.parallel?.value)}${field('serial','SERIAL NUMBER',card.serialNumber||(card.numberedTo?'/'+card.numberedTo:null))}<div class="identity-field"><small>AUTOGRAPH</small><strong>${card.autograph?'Yes — autograph detected':'Not detected'}</strong></div><div class="identity-field"><small>PATCH / RELIC</small><strong>${card.memorabilia?'Yes — patch or relic detected':'Not detected'}</strong></div></div><div class="tags">${card.rookie?'<span>Rookie</span>':''}${card.autograph?'<span>Autograph</span>':''}${card.memorabilia?'<span>Patch / Relic</span>':''}</div>`;
  document.getElementById('rawValue').textContent=comps.count?money(comps.median,comps.currency):(data.parallelPicker?.needsPick?'Confirm parallel':'No sales loaded');
  document.getElementById('rawDetail').textContent=comps.count?`${comps.count} returned auctions · Average ${money(comps.mean,comps.currency)} · ${money(comps.min,comps.currency)} – ${money(comps.max,comps.currency)}${thinSalesNote(comps)}`:(comps.error||'Verify the exact card to find matching sales.');
  document.getElementById('gradedValue').textContent=card.grade?`${card.gradingCompany||'Graded'} ${card.grade}`:'Not available';
@@ -607,7 +607,7 @@ Estimated Profit: $${profit.toFixed(2)}`;
 
 function getScanText() {
  const d=window.gvLast;if(!d?.scan)return '';const c=d.scan;
- return [`Player: ${c.player||'Not identified'}`,`Year: ${c.year||'Not identified'}`,`Brand / Set: ${[c.brand,c.set].filter(Boolean).join(' ')}`,`Card Number: ${c.cardNumber||'Not identified'}`,`Parallel / Insert: ${c.parallel||d.pipeline?.fields?.parallel?.value||'Not identified'}`,`Numbered: ${c.serialNumber||(c.numberedTo?'/'+c.numberedTo:'Not identified')}`,`Rookie: ${c.rookie?'Yes':'No'}`,`Autograph: ${c.autograph?'Yes':'No'}`,`Verification: ${d.verification?.status||'needs_review'}`,`Estimated Value Range: ${d.comps?.count?money(d.comps.min)+'–'+money(d.comps.max):'No sold prices auto-loaded'}`,...fieldCheckLines(d)].join('\n');
+ return [`Player: ${c.player||'Not identified'}`,`Year: ${c.year||'Not identified'}`,`Brand / Set: ${[c.brand,c.set].filter(Boolean).join(' ')}`,`Card Number: ${c.cardNumber||'Not identified'}`,`Parallel / Insert: ${c.parallel||d.pipeline?.fields?.parallel?.value||'Not identified'}`,`Numbered: ${c.serialNumber||(c.numberedTo?'/'+c.numberedTo:'Not identified')}`,`Rookie: ${c.rookie?'Yes':'No'}`,`Autograph: ${c.autograph?'Yes':'No'}`,`Patch / Relic: ${c.memorabilia?'Yes':'No'}`,`Verification: ${d.verification?.status||'needs_review'}`,`Estimated Value Range: ${d.comps?.count?money(d.comps.min)+'–'+money(d.comps.max):'No sold prices auto-loaded'}`,...fieldCheckLines(d)].join('\n');
 }
 function getLine(label, scanText) {
   const line = scanText
@@ -662,10 +662,11 @@ Rescan the front and back straight-on in bright light, then try again.`;
   const numbered = clean(getLine("Numbered", scan));
   const rookie = getLine("Rookie", scan).toLowerCase() === "yes";
   const auto = getLine("Autograph", scan).toLowerCase() === "yes";
+  const patch = getLine("Patch / Relic", scan).toLowerCase() === "yes";
   const condition = clean(getLine("Condition Estimate", scan)) || "Please review photos carefully";
   const value = getLine("Estimated Value Range", scan);
 
-  let title = [year, brand, player, cardNumber ? `#${cardNumber.replace(/^#/, "")}` : "", parallel, numbered, rookie ? "RC" : "", auto ? "Auto" : ""]
+  let title = [year, brand, player, cardNumber ? `#${cardNumber.replace(/^#/, "")}` : "", parallel, numbered, rookie ? "RC" : "", patch ? "Patch" : "", auto ? "Auto" : ""]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   if (title.length > 80) title = title.slice(0, 80).trim();
 
@@ -693,6 +694,7 @@ Parallel/Insert: ${parallel || "Not identified"}
 Serial Number: ${numbered || "Not identified"}
 Rookie Card: ${rookie ? "Yes" : "No"}
 Autograph: ${auto ? "Yes" : "No"}
+Patch / Relic: ${patch ? "Yes" : "No"}
 Condition: ${condition}
 
 Please review all photos carefully for the exact card condition and details.
