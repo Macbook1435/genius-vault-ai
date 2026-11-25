@@ -4,9 +4,24 @@
 const BASE = "https://www.thecardapi.com/api/v1/market/sales";
 const LIMIT = 40;
 
-export function cardApiConfigured() {
-  return Boolean(String(process.env.THECARDAPI_KEY || "").trim());
+// Use only the tca_ token, even if extra text was pasted around it in the settings box.
+export function cardApiKey() {
+  const raw = String(process.env.THECARDAPI_KEY || "");
+  const m = raw.match(/tca_[A-Za-z0-9_-]+/);
+  if (m) return m[0];
+  const t = raw.trim();
+  return /^[\x21-\x7e]+$/.test(t) ? t : "";
 }
+export function cardApiConfigured() {
+  return Boolean(cardApiKey());
+}
+// Never let the key reach a log line.
+const mask = (v) => {
+  let s = String(v ?? "").replace(/tca_[A-Za-z0-9_-]+/g, "tca_***");
+  const key = cardApiKey();
+  if (key) s = s.split(key).join("***");
+  return s.slice(0, 200);
+};
 
 const clean = (v) => {
   const s = String(v ?? "").replace(/\s+/g, " ").trim();
@@ -59,25 +74,25 @@ export async function fetchCardApiSales(card, { timeoutMs = 5000, fetchImpl = fe
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetchImpl(`${BASE}?${params}`, { signal: controller.signal,
-      headers: { "x-market-api-key": String(process.env.THECARDAPI_KEY).trim(), Accept: "application/json" } });
+      headers: { "x-market-api-key": cardApiKey(), Accept: "application/json" } });
     if (!res.ok) {
       const status = res.status === 401 ? "key_rejected" : res.status === 403 ? "plan_limit"
         : res.status === 429 ? "quota_reached" : res.status === 422 ? "bad_query" : "provider_error";
-      const detail = (await res.text().catch(() => "")).slice(0, 160).replace(/tca_[A-Za-z0-9_-]+/g, "tca_***");
+      const detail = mask(await res.text().catch(() => ""));
       console.warn("thecardapi sales", res.status, status, detail);
       return { ok: false, rows: [], status, error: `Sold-price provider returned ${res.status}.` };
     }
     const text = await res.text();
     let body;
     try { body = JSON.parse(text); } catch {
-      console.warn("thecardapi sales: non-JSON reply", res.status, res.headers.get("content-type"), text.slice(0, 120).replace(/tca_[A-Za-z0-9_-]+/g, "tca_***"));
+      console.warn("thecardapi sales: non-JSON reply", res.status, res.headers.get("content-type"), mask(text.slice(0, 120)));
       return { ok: false, rows: [], status: "provider_error", error: "Sold-price provider sent an unreadable reply." };
     }
     const data = Array.isArray(body?.data) ? body.data : [];
     return { ok: true, rows: data.map(mapCardApiRow).filter(Boolean), returned: data.length,
       total: body?.pagination?.total ?? null, status: "ok", error: null };
   } catch (e) {
-    if (e?.name !== "AbortError") console.warn("thecardapi sales failed:", e?.name, e?.message, e?.cause?.code || e?.cause?.message || "");
+    if (e?.name !== "AbortError") console.warn("thecardapi sales failed:", e?.name, mask(e?.message), mask(e?.cause?.code || e?.cause?.message || ""));
     return { ok: false, rows: [], status: e?.name === "AbortError" ? "timeout" : "provider_error",
       error: "Sold-price provider did not answer in time." };
   } finally {
