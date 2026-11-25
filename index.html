@@ -440,7 +440,7 @@ const escHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;
 function parallelPickerHtml(data) {
   const pk = data.parallelPicker;
   if (!pk || !pk.options?.length) return "";
-  const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
+  const label = (o) => `${o.name}${Number(o.numberedTo) === 1 ? " 1/1 (one of one)" : o.numberedTo ? ` /${o.numberedTo}` : ""}`;
   const sugg = new Set(pk.suggestedIds || []);
   const top = (pk.suggestedIds || []).map((id) => pk.options.find((o) => o.id === id)).filter(Boolean);
   const rest = pk.options.filter((o) => !sugg.has(o.id));
@@ -513,7 +513,7 @@ function filterParallelRun() {
   const n = Number(String(document.getElementById("parallelRun")?.value || "").replace(/\D/g, "")) || null;
   if (!n) { sel.innerHTML = pk.fullOptionsHtml; if (note) note.textContent = ""; return; }
   const hits = pk.options.filter((o) => Number(o.numberedTo) === n);
-  const label = (o) => `${o.name}${o.numberedTo ? ` /${o.numberedTo}` : ""}`;
+  const label = (o) => `${o.name}${Number(o.numberedTo) === 1 ? " 1/1 (one of one)" : o.numberedTo ? ` /${o.numberedTo}` : ""}`;
   sel.innerHTML = `<option value="" disabled ${hits.length === 1 ? "" : "selected"}>${hits.length ? "Choose the parallel on your card..." : "No parallel numbered to /" + n}</option>`
     + hits.map((o) => `<option value="${escHtml(o.id)}" ${hits.length === 1 ? "selected" : ""}>${escHtml(label(o))}</option>`).join("");
   if (note) note.textContent = hits.length === 1 ? `Only one /${n} version: ${hits[0].name}. Tap the button to load prices.`
