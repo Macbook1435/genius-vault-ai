@@ -30,3 +30,14 @@ export async function recordScanCorrection(id, correction) {
     console.warn("scan log correction failed:", e?.message);
   }
 }
+
+// Daily API call totals (gv_api_usage), so plan usage can be checked against the monthly limit.
+export async function countApiCalls(api, calls) {
+  if (!enabled() || !(calls > 0)) return;
+  try {
+    await withTimeout(supabaseRequest("/rest/v1/rpc/gv_count_api_calls", {
+      method: "POST", admin: true, body: { p_api: api, p_calls: calls } }), 2000);
+  } catch (e) {
+    console.warn("api usage count failed:", e?.message);
+  }
+}

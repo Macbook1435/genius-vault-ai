@@ -6,7 +6,13 @@ import { eligibleAuction, saleKey, exactTitleMatch, summarizeSales } from "./_li
 function key() { return process.env.CARDSIGHT_API_KEY || ""; }
 export function cardsightConfigured() { return Boolean(key()); }
 
+// Every request to CardSight counts against the plan (750/month on the free plan), retries included.
+// takeCardsightCalls() returns the calls made since the last take and resets the count.
+let callCount = 0;
+export function takeCardsightCalls() { const n = callCount; callCount = 0; return n; }
+
 async function call(path, options = {}, attempt = 0) {
+  callCount += 1;
   const response = await fetch(BASE + path, { ...options, headers: { "X-API-Key": key(), ...(options.headers || {}) },
     signal: AbortSignal.timeout(25000) });
   // Rate limited: wait briefly and retry (twice at most).

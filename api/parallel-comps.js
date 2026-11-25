@@ -1,8 +1,8 @@
 // Sold comps for one CardSight card + one parallel the user picked ("null" = base).
 // GET /api/parallel-comps?cardId=<uuid>&parallelId=<uuid|null>
 // GET /api/parallel-comps?cardId=<uuid>&options=1  -> the parallels listed for that card (for the picker)
-import { cardsightConfigured, cardsightSoldComps, cardsightCardInfo, parallelOptions } from "./cardsight.js";
-import { recordScanCorrection } from "./_lib/scan-log.js";
+import { cardsightConfigured, cardsightSoldComps, cardsightCardInfo, parallelOptions, takeCardsightCalls } from "./cardsight.js";
+import { recordScanCorrection, countApiCalls } from "./_lib/scan-log.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const list = info.parallels;
     const logId = String(req.query.logId || "");
     if (String(req.query.options || "") === "1") {
-      if (logId) await recordScanCorrection(logId, { versionCardId: cardId });
+      await Promise.all([logId ? recordScanCorrection(logId, { versionCardId: cardId }) : null, countApiCalls("cardsight", takeCardsightCalls())]);
       return res.status(200).json({ cardId, options: parallelOptions(list, cardId), cardIsAuto: info.isAuto });
     }
     if (parallelId !== "null") {
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       parallelName = p.name;
     }
     const sold = await cardsightSoldComps(cardId, { parallelId, parallels: list, cardIsAuto: info.isAuto });
-    if (logId) await recordScanCorrection(logId, { cardId, parallelId, parallelName, count: sold.count, median: sold.median });
+    await Promise.all([logId ? recordScanCorrection(logId, { cardId, parallelId, parallelName, count: sold.count, median: sold.median }) : null, countApiCalls("cardsight", takeCardsightCalls())]);
     return res.status(200).json({ cardId, parallelId, parallelName, count: sold.count, min: sold.min, median: sold.median,
       mean: sold.mean, coverage: sold.coverage, coverageNote: sold.coverageNote, warnings: sold.warnings, fetchedAt: sold.fetchedAt, latestSaleDate: sold.latestSaleDate,
       max: sold.max, items: sold.items, source: sold.source, considered: sold.considered, period: sold.period, autoTitledCount: (sold.autoTitled || []).length, autoTitled: (sold.autoTitled || []).slice(0, 15), cardIsAuto: info.isAuto });
