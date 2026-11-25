@@ -62,6 +62,13 @@ try{
  // Two sales, newest long ago: the price is flagged as thin data.
  const detail=await page.textContent('#rawDetail');
  assert.ok(/Thin data: only 2 sales found, newest sale \d+ months ago/.test(detail),detail);
+ // Priced as Base on a card that also comes in unnumbered colors: the menu stays open and names them.
+ await page.evaluate(()=>{const d={...window.gvLast,versionPicker:null,comps:{count:1,items:[],median:5,currency:'USD'},
+  parallelPicker:{cardId:'c',options:[{id:'null',name:'Base',numberedTo:null},{id:'p',name:'Pink',numberedTo:null}],selectedId:'null',needsPick:false,suggestedIds:[],baseColors:['Pink']}};
+  window.gvLast=d;renderScan(d);});
+ const pick=await page.textContent('.parallel-picker');
+ assert.ok(pick.includes('CHECK YOUR COLOR')&&pick.includes('This card also comes in Pink'),pick);
+ assert.equal(await page.$('.parallel-picker details'),null);
  assert.deepEqual(errors,[]);
  console.log('PASS version picker: choose Chrome version, suggested /50 parallel, sold prices loaded.');
 }finally{await browser.close();server.close();}
