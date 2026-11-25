@@ -12,7 +12,7 @@ jobs:
         with:
           node-version: '22'
       - name: Parse scanner JavaScript
-        run: node --check api/scan.js
+        run: node --check api/scan.js && node --check api/_lib/cardapi-sales.js
       - name: Parse subscription services
         run: |
           node --check api/_lib/subscriptions.js
@@ -21,7 +21,7 @@ jobs:
       - name: Install API dependencies
         run: npm install --prefix api --no-save --no-package-lock
       - name: Load scanner module (catches top-level runtime errors)
-        run: node --test tests/scan-import.test.mjs tests/scan-log.test.mjs
+        run: node --test tests/scan-import.test.mjs tests/scan-log.test.mjs tests/cardapi-sales.test.mjs
       - name: Run offline regression tests (no API keys)
         run: node --test tests/offline.test.mjs
       - name: Install browser test runner and Chromium

@@ -10,6 +10,7 @@ import { buildFieldVerification, buildMarket, integrationStatus } from "./_lib/v
 import { promptExamples } from "./_lib/prompt-examples.js";
 import { runPipelineV2, pipelineV2Mode, v2Extras } from "./_lib/pipeline-v2.js";
 import { writeScanLog, countApiCalls } from "./_lib/scan-log.js";
+import { cardApiConfigured, fetchCardApiSales } from "./_lib/cardapi-sales.js";
 import { readSerialFromPhotos, serialValue } from "./_lib/serial-photo.js";
 import { readCopyrightCloseup } from "./_lib/copyright-closeup.js";
 import { ebayConfigured, ebaySearch } from "./ebay-browse.js";
@@ -362,7 +363,8 @@ function auditSoldTitle(item, card) {
   const reasons = [];
   const matchedFields = [];
   const player = cleanPart(card.player);
-  const number = cleanPart(card.cardNumber).replace(/^#/, "").replace(/[^a-z0-9]/gi, "");
+  // "RP-JAN" must match "#RP-JAN", "RPJAN" and "RP JAN": allow one optional separator between parts.
+  const number = cleanPart(card.cardNumber).replace(/^#/, "").split(/[^a-z0-9]+/i).filter(Boolean).join("[^a-z0-9]?");
   const year = Number(card.year);
   if (player && !new RegExp("(?:^|[^a-z])" + player.toLowerCase().replace(/[^a-z0-9]+/g," ") + "(?:$|[^a-z])","i").test(normalize(title))) reasons.push("Player name does not match.");
   if (year && !new RegExp("\\b" + year + "\\b").test(title)) reasons.push("Year not confirmed in sale title.");
@@ -400,6 +402,7 @@ function auditSoldTitle(item, card) {
 async function fetchSoldComps(query, card = null) {
   const sourceUrl = buildEbaySoldUrl(query);
   const searchUrl = build130PointUrl(query);
+  if (query && card && cardApiConfigured()) return fetchCardApiComps(card, sourceUrl, searchUrl);
 
   if (!query) {
     return {
@@ -467,6 +470,28 @@ async function fetchSoldComps(query, card = null) {
       error: "Price estimate unavailable: the sold-listings search failed. Try again shortly.",
     };
   }
+}
+
+// Sold records from TheCardAPI, kept only when the seller title passes the strict audit.
+export async function fetchCardApiComps(card, sourceUrl, searchUrl, opts) {
+  const res = await fetchCardApiSales(card, opts);
+  const base = { currency: "USD", source: "thecardapi_sold", sourceUrl, searchUrl, cardApiRows: res.returned || 0 };
+  if (!res.ok) {
+    return { ...calculateCompStats([]), ...base, items: [], status: res.status === "not_searched" ? "not_searched" : "comps_search_failed",
+      providerStatus: res.status, error: res.status === "quota_reached"
+        ? "Sold prices are paused: today's sold-price lookups are used up. Use the manual search link."
+        : "Price estimate unavailable: the sold-price search failed. Use the manual search link." };
+  }
+  const seen = new Set();
+  const unique = res.rows.filter((r) => { const k = r.id ?? r.url ?? `${r.title}|${r.price}|${r.date}`; if (seen.has(k)) return false; seen.add(k); return true; });
+  const audited = unique.map((item) => ({ ...item, match: auditSoldTitle(item, card || {}) }));
+  const items = audited.filter((item) => item.match.matched).slice(0, 20);
+  const excluded = audited.filter((item) => !item.match.matched).slice(0, 8)
+    .map((item) => ({ title: item.title, reasons: item.match.reasons }));
+  return { ...calculateCompStats(items), ...base, items,
+    matchAudit: { candidateCount: unique.length, acceptedCount: items.length, excluded },
+    status: items.length ? "comps_found" : "no_comps_found",
+    error: items.length ? null : "No exact title-matched sold records found; insufficient verified sales." };
 }
 
 function hasText(value) {
@@ -1475,7 +1500,9 @@ function logScanSummary({ startedAt, phases, scanResult, verification, confidenc
       verification: verification?.status ?? null,
       confidence,
       identityTrusted,
-      comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error"]),
+      comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error", "providerStatus", "cardApiRows"]),
+      compAudit: comps?.matchAudit ? { candidates: comps.matchAudit.candidateCount, kept: comps.matchAudit.acceptedCount,
+        dropped: (comps.matchAudit.excluded || []).slice(0, 3) } : null,
       compTitles: (comps?.items || []).slice(0, 5).map((i) => [i.title, i.price, i.date]),
       marketSold: pick(market?.sold, ["source", "status", "count", "median", "error"]),
       catalog: {
@@ -1904,18 +1931,13 @@ Strict rules:
 
     // Unverified identities never reach pricing or listing titles.
     const query = identityTrusted ? buildSoldCompQuery(scanResult) : "";
-    const comps = identityTrusted
-      ? await fetchSoldComps(query, scanResult)
-      : {
-          ...calculateCompStats([]),
-          currency: "USD",
-          items: [],
-          source: "ebay_sold",
-          sourceUrl: null,
-          searchUrl: null,
-          status: "not_searched",
-          error: "Price estimate unavailable until the card identity is confirmed.",
-        };
+    // The sold search runs alongside the catalog lookups below; it is awaited before comps is used.
+    const comps = {
+      ...calculateCompStats([]), currency: "USD", items: [], source: "ebay_sold", sourceUrl: null, searchUrl: null,
+      status: "not_searched", error: "Price estimate unavailable until the card identity is confirmed." };
+    const compsReady = identityTrusted
+      ? fetchSoldComps(query, scanResult).then((found) => Object.assign(comps, found))
+      : Promise.resolve(comps);
 
     // Field-level verification + market data (additive; a failure here never breaks the scan).
     let pipeline = null;
@@ -2093,7 +2115,15 @@ Strict rules:
             if (colors.length) parallelPicker.baseColors = colors.slice(0, 8);
           }
         }
-        if (plan.mode === "blocked") {
+        await compsReady;
+        // The catalog lacks this parallel (e.g. Wild Card, Flawless, new colors), but strict-title sold
+        // records from the second source name it: price from those instead of hiding prices.
+        const externalCovers = plan.mode === "blocked" && catalog.parallelComps?.status === "not_in_catalog"
+          && comps.source === "thecardapi_sold" && comps.count > 0;
+        if (externalCovers) {
+          catalog.parallelComps.externalSource = "thecardapi_sold";
+          if (parallelPicker) parallelPicker.reason = `${catalog.parallelComps.reason.replace(/, so sold prices are not shown\.$/, ".")} Sold prices below are from eBay sales whose titles name the same card.`;
+        } else if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
         } else {
           catalogSold = await cardsightSoldComps(pricingCardId, { parallelId, parallels: Array.isArray(list) ? list : null,
@@ -2103,7 +2133,7 @@ Strict rules:
           catalog.soldLookup = { cardId: pricingCardId, parallelId, count: catalogSold?.count || 0, error: catalogSold?.error || null };
           // No sales for the version the scan assumed: the color or serial may have been missed
           // (e.g. a Red /99 read as base). Open the parallel menu instead of hiding it.
-          if (parallelPicker && !catalogSold?.count) {
+          if (parallelPicker && !catalogSold?.count && !comps.count) {
             const assumed = parallelId === "null" ? "the base version" : `the ${catalogSold?.parallelName || plan.name || "selected"} parallel`;
             parallelPicker.needsPick = true;
             parallelPicker.reason = `No sold auction sales were found for ${assumed}. If your card has a color or a serial number like /99, pick it below.`;
@@ -2199,6 +2229,7 @@ Strict rules:
         result.unconfirmed = keys.filter((key) => result.fields[key]?.status !== "confirmed");
         result.allConfirmed = result.unconfirmed.length === 0;
       }
+      await compsReady;
       // Completed catalog auctions take precedence over blocked or incomplete
       // eBay scraping. Update comps BEFORE computing the market summary.
       if (catalogSold?.count && Array.isArray(catalogSold.items) && catalogSold.items.length) {
@@ -2213,8 +2244,12 @@ Strict rules:
       const parallelMatch = catalog.parallelComps?.status === "matched" &&
         Number.isInteger(Number(scanResult.numberedTo)) &&
         Number(catalog.parallelComps?.catalogParallel?.numberedTo) === Number(scanResult.numberedTo);
+      // Second-source sales pass only when every kept title names the exact print run and parallel.
+      const externalExact = comps.source === "thecardapi_sold" && comps.count > 0 && !catalogSold?.count
+        && Boolean(cleanPart(scanResult.parallel)) && !/^(unknown|unconfirmed|base|none)$/i.test(cleanPart(scanResult.parallel))
+        && comps.items.every((i) => i.match?.matchedFields?.includes("Print run") && i.match?.matchedFields?.includes("Parallel"));
       if (scanResult.numberedTo &&
-          (serialField?.status !== "confirmed" || !parallelMatch)) {
+          (serialField?.status !== "confirmed" || !(parallelMatch || externalExact))) {
         Object.assign(comps, { ...calculateCompStats([]), items: [], count: 0,
           status: "exact_match_unverified",
           error: "Numbered card: stamped serial and exact parallel must both be verified before showing sold-price statistics." });
@@ -2228,6 +2263,7 @@ Strict rules:
     // Final response safety net: never let catalog pricing bypass an
     // unverified identity or a numbered-card exact-match failure.
     // Active listings remain visible strictly as asking prices, not value.
+    await compsReady;
     const soldBlocked = !identityTrusted || comps.status === "exact_match_unverified";
     if (soldBlocked && market?.sold) {
       market.sold = {
@@ -2273,7 +2309,7 @@ Strict rules:
       parallel_id: catalog?.soldLookup?.parallelId || null,
       parallel_name: catalog?.parallelComps?.name || null,
       comps: keep(comps, ["source", "status", "count", "min", "median", "max"]),
-    }), countApiCalls("cardsight", cardsightCalls)]);
+    }), countApiCalls("cardsight", cardsightCalls), countApiCalls("thecardapi", comps.cardApiRows || 0)]);
     return res.status(200).json({
       results: "Scan completed successfully.",
       scanLogId,
@@ -2289,7 +2325,7 @@ Strict rules:
         count: comps.count,
         currency: comps.currency,
         items: comps.items,
-        matchAudit: comps.source === "ebay_sold" ? comps.matchAudit || null : null,
+        matchAudit: comps.source === "ebay_sold" || comps.source === "thecardapi_sold" ? comps.matchAudit || null : null,
         source: comps.source,
         url: comps.sourceUrl,
         searchUrl: comps.searchUrl,
