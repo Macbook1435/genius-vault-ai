@@ -36,7 +36,9 @@ export function buildCardApiQuery(card = {}) {
   if (!player) return "";
   const brand = clean(card.brand), set = clean(card.set);
   const setText = brand && !set.toLowerCase().startsWith(brand.toLowerCase()) ? `${brand} ${set}` : set || brand;
-  const words = [clean(card.year), setText, clean(card.parallel)].join(" ")
+  // Year and parallel stay out of the search: a misread year (2025 vs 2026) or a color
+  // the seller omits would hide real sales. The strict title audit checks both.
+  const words = [setText].join(" ")
     .replace(/[^\w\s-]/g, " ").replace(/\s+/g, " ").trim();
   return `"${player}" ${words}`.trim();
 }
@@ -89,7 +91,7 @@ export async function fetchCardApiSales(card, { timeoutMs = 5000, fetchImpl = fe
       return { ok: false, rows: [], status: "provider_error", error: "Sold-price provider sent an unreadable reply." };
     }
     const data = Array.isArray(body?.data) ? body.data : [];
-    return { ok: true, rows: data.map(mapCardApiRow).filter(Boolean), returned: data.length,
+    return { ok: true, rows: data.map(mapCardApiRow).filter(Boolean), returned: data.length, query: params.get("q"),
       total: body?.pagination?.total ?? null, status: "ok", error: null };
   } catch (e) {
     if (e?.name !== "AbortError") console.warn("thecardapi sales failed:", e?.name, mask(e?.message), mask(e?.cause?.code || e?.cause?.message || ""));

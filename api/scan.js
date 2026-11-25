@@ -475,7 +475,7 @@ async function fetchSoldComps(query, card = null) {
 // Sold records from TheCardAPI, kept only when the seller title passes the strict audit.
 export async function fetchCardApiComps(card, sourceUrl, searchUrl, opts) {
   const res = await fetchCardApiSales(card, opts);
-  const base = { currency: "USD", source: "thecardapi_sold", sourceUrl, searchUrl, cardApiRows: res.returned || 0 };
+  const base = { currency: "USD", source: "thecardapi_sold", sourceUrl, searchUrl, cardApiRows: res.returned || 0, cardApiQuery: res.query || null };
   if (!res.ok) {
     return { ...calculateCompStats([]), ...base, items: [], status: res.status === "not_searched" ? "not_searched" : "comps_search_failed",
       providerStatus: res.status, error: res.status === "quota_reached"
@@ -1500,7 +1500,7 @@ function logScanSummary({ startedAt, phases, scanResult, verification, confidenc
       verification: verification?.status ?? null,
       confidence,
       identityTrusted,
-      comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error", "providerStatus", "cardApiRows"]),
+      comps: pick(comps, ["source", "status", "count", "min", "median", "max", "mean", "error", "providerStatus", "cardApiRows", "cardApiQuery"]),
       compAudit: comps?.matchAudit ? { candidates: comps.matchAudit.candidateCount, kept: comps.matchAudit.acceptedCount,
         dropped: (comps.matchAudit.excluded || []).slice(0, 3) } : null,
       compTitles: (comps?.items || []).slice(0, 5).map((i) => [i.title, i.price, i.date]),
