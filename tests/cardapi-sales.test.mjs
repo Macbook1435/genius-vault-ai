@@ -73,3 +73,22 @@ test("quota and key errors fail closed with no prices", async () => {
     fetchImpl: (u, { signal }) => new Promise((_, rej) => signal.addEventListener("abort", () => rej(Object.assign(new Error("a"), { name: "AbortError" })))) });
   assert.equal(slow.providerStatus, "timeout");
 });
+
+test("uses only the tca_ token when notes were pasted around it, and never logs it", async () => {
+  process.env.THECARDAPI_KEY = "# My notes\n- line one\n tca_abc123DEF456 \n";
+  assert.equal(lib.cardApiKey(), "tca_abc123DEF456");
+  const seen = [];
+  await lib.fetchCardApiSales(addison, { fetchImpl: mockFetch([], 200, seen) });
+  assert.equal(seen[0].init.headers["x-market-api-key"], "tca_abc123DEF456");
+  const logs = [];
+  const orig = console.warn;
+  console.warn = (...a) => logs.push(a.join(" "));
+  try {
+    await lib.fetchCardApiSales(addison, { fetchImpl: async () => { throw new TypeError("bad header tca_abc123DEF456"); } });
+    await lib.fetchCardApiSales(addison, { fetchImpl: async () => new Response("key tca_abc123DEF456 rejected", { status: 401 }) });
+  } finally { console.warn = orig; }
+  assert.ok(logs.length >= 2);
+  assert.ok(logs.every((l) => !l.includes("abc123DEF456")));
+  process.env.THECARDAPI_KEY = "has spaces and no token";
+  assert.equal(lib.cardApiConfigured(), false);
+});
