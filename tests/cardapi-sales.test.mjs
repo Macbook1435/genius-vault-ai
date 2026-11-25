@@ -28,7 +28,7 @@ test("query puts the player in quotes and sends the key only as a header", async
   await lib.fetchCardApiSales(addison, { fetchImpl: mockFetch([], 200, seen) });
   const { url, init } = seen[0];
   assert.equal(url.origin + url.pathname, "https://www.thecardapi.com/api/v1/market/sales");
-  assert.equal(url.searchParams.get("q"), '"Jordan Addison" 2023 Panini Flawless Ruby');
+  assert.equal(url.searchParams.get("q"), '"Jordan Addison" Panini Flawless');
   assert.equal(url.searchParams.get("graded"), "false");
   assert.equal(init.headers["x-market-api-key"], "tca_test_secret");
   assert.ok(!url.href.includes("tca_test_secret"));
