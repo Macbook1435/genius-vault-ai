@@ -530,7 +530,9 @@ function verifyIdentity(card) {
   } else if (card.year && copyrightYears.length && !copyrightYears.includes(card.year)) {
     // Card copyright years are usually the release year (or one year earlier for some sets).
     const closest = Math.max(...copyrightYears);
-    if (card.year !== closest + 1) {
+    // A product line like "2023 PANINI - FLAWLESS FOOTBALL" can carry a © one year later.
+    const productLine = yearsIn(ev.yearText).includes(card.year) && card.year === closest - 1;
+    if (card.year !== closest + 1 && !productLine) {
       rejected.push(
         `Year ${card.year} does not match the copyright line (${copyrightYears.join(", ")}).`,
       );
@@ -969,10 +971,11 @@ const STRONG_SCHEMA = {
     location: { type: ["string", "null"] },
     jerseyNumberText: { type: ["string", "null"] },
     copyrightYearText: { type: ["string", "null"] },
+    productYearText: { type: ["string", "null"] },
     playerNameText: { type: ["string", "null"] },
     ...SERIAL_SCHEMA.properties,
   },
-  required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", "playerNameText", ...SERIAL_SCHEMA.required],
+  required: ["cardNumberText", "location", "jerseyNumberText", "copyrightYearText", "productYearText", "playerNameText", ...SERIAL_SCHEMA.required],
 };
 
 function runStrongCheck(frontImage, backImage, ex = promptExamples(false), v2 = false) {
@@ -997,6 +1000,9 @@ Copy the player's full name exactly as printed on the nameplate, letter by lette
 
 COPYRIGHT YEAR:
 Find the copyright line (starts with "©", usually tiny text at the bottom of the back). Zoom in and copy ONLY its 4-digit year into copyrightYearText (for example "2025"). Read each digit carefully; do not use birth dates, draft years, or stats. Null if not readable.
+
+PRODUCT YEAR:
+Many backs also print a product line that starts with a year and names the product, usually just above the copyright line (for example "2023 PANINI - FLAWLESS FOOTBALL" or "2025 TOPPS CHROME"). Copy ONLY that line's 4-digit year into productYearText (for example "2023"). It can be one year earlier than the © year. Null if there is no such line.
 
 ${SERIAL_PROMPT}${v2 ? v2Extras("strong").prompt : ""}`,
   });
@@ -1562,7 +1568,7 @@ export default async function handler(req, res) {
 Use visible evidence first. In "evidence", copy the EXACT text you can read printed on the card for the player name, card number, set/brand, and year/copyright line. If you cannot read it, use null. Never fill a field from team logos, uniforms, or what seems likely. If the player name is not legible, set player to null and matchScore below 0.5. The back image should confirm the year, set, card number, serial numbering, and parallel. matchScore must be from 0 to 1 and represent confidence in the complete identification. Provide 2 to 5 plausible alternate identifications, especially nearby parallels or sets that look similar. Do not claim a serial number, autograph, memorabilia feature, grade, or rookie designation unless it is visible or strongly supported. An alternate may repeat the player but must differ by set, card number, year, or parallel.
 
 Strict rules:
-- "year" must come from the copyright line on the back (for example "© 2025 The Topps Company"). Copy that whole line into evidence.copyrightLineText.
+- "year" must come from the back. If the back prints a product line that starts with a year (for example "2023 PANINI - FLAWLESS FOOTBALL"), that year is the card year even when the © year is one later: copy that product line into evidence.yearText. Otherwise use the copyright line (for example "© 2025 The Topps Company"). Always copy the whole © line into evidence.copyrightLineText.
 - "cardNumber" must be copied character-for-character from the printed card number, including letter prefixes (for example ${ex.mainCardNumber}).
 - "serialNumber" is ONLY a stamped serial like "07/25" or "12/99". Dates such as "9/14/25" (often printed under "Rookie Debut" or similar) are NOT serial numbers. Copy a real serial into evidence.serialNumberText; otherwise use null for serialNumber, numberedTo, and serialNumberText.
 - "parallel" is the NAME of the parallel or insert printed on the card (for example ${ex.mainParallel}). Never put a number or serial in "parallel". Copy the printed parallel/insert text into evidence.parallelText, or null.
@@ -1665,8 +1671,18 @@ Strict rules:
       .filter((y) => y && y <= new Date().getFullYear() + 1);
     const latestEvent = eventYears.length ? Math.max(...eventYears) : null;
 
-    // Year: the stronger model reads the copyright year independently.
-    const strongYear = Number((cleanPart(strongCheck?.copyrightYearText).match(/\b(19|20)\d\d\b/) || [])[0]);
+    // Year: a printed product line ("2023 PANINI - FLAWLESS FOOTBALL") names the card year directly,
+    // and its © year can be one later. When the stronger model reads that line, it is the year.
+    const productYear = Number((cleanPart(strongCheck?.productYearText).match(/\b(19|20)\d\d\b/) || [])[0]);
+    const copyrightRead = Number((cleanPart(strongCheck?.copyrightYearText).match(/\b(19|20)\d\d\b/) || [])[0]);
+    const productYearOk = productYear && (!copyrightRead || copyrightRead === productYear || copyrightRead === productYear + 1);
+    if (productYearOk && scanResult.year !== productYear) {
+      detailWarnings.push(scanResult.year ? `Year changed from ${scanResult.year} to ${productYear}: the product line on the back says ${productYear}.` : `Year ${productYear} read from the product line on the back.`);
+      scanResult.year = productYear;
+    }
+    if (productYearOk && scanResult.evidence) scanResult.evidence.yearText = `${productYear} (product line)`;
+    // Otherwise the stronger model reads the copyright year independently.
+    const strongYear = productYearOk ? null : copyrightRead;
     const tooEarly = (y) => latestEvent && y < latestEvent;
     if (strongYear && scanResult.year && strongYear !== scanResult.year && tooEarly(strongYear) && !tooEarly(scanResult.year)) {
       // Strong read is impossible (before a printed draft/bio year): keep the main read.
@@ -2054,6 +2070,13 @@ Strict rules:
           parallelPicker.needsPick = plan.mode === "blocked";
           parallelPicker.selectedId = plan.mode === "blocked" ? null : parallelId;
           parallelPicker.reason = plan.mode === "blocked" ? catalog.parallelComps.reason : null;
+          // Priced as Base, but the card also comes in unnumbered colors the photo read can miss
+          // (e.g. a pink Elite Series read as base): say so and keep the menu open.
+          if (plan.mode === "base") {
+            const colors = parallelPicker.options.filter((o) => o.id !== "null" && !o.numberedTo
+              && !/\b(auto|autograph|signature|signatures|patch|relic|jersey|memorabilia)\b/i.test(o.name)).map((o) => o.name);
+            if (colors.length) parallelPicker.baseColors = colors.slice(0, 8);
+          }
         }
         if (plan.mode === "blocked") {
           Object.assign(comps, { ...calculateCompStats([]), items: [], status: "parallel_not_confirmed", error: catalog.parallelComps.reason });
